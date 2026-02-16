@@ -1,0 +1,643 @@
+/* ============================================
+   RESPONSIVE STYLES - Mobile First Approach
+   Breakpoints:
+   - Base: 0-479px (small mobile)
+   - sm: 480px+ (large mobile)
+   - md: 768px+ (tablet)
+   - lg: 1024px+ (desktop)
+   - xl: 1280px+ (large desktop)
+   ============================================ */
+
+/* ============================================
+   BASE STYLES (Mobile First - < 480px)
+   ============================================ */
+
+/* Touch Targets */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+button,
+.ant-btn,
+.ant-input,
+.ant-select-selector,
+.ant-picker,
+a.nav-link {
+  min-height: 44px;
+}
+
+/* Typography - Mobile */
+html {
+  font-size: 14px;
+}
+
+h1 { font-size: 1.75rem; line-height: 1.3; }
+h2 { font-size: 1.5rem; line-height: 1.35; }
+h3 { font-size: 1.25rem; line-height: 1.4; }
+h4 { font-size: 1.125rem; line-height: 1.45; }
+h5 { font-size: 1rem; line-height: 1.5; }
+h6 { font-size: 0.875rem; line-height: 1.5; }
+
+/* Spacing - Mobile */
+.container {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.section-padding {
+  padding: 24px 16px;
+}
+
+.card-padding {
+  padding: 16px;
+}
+
+/* Cards - Full Width on Mobile */
+.card,
+.ant-card,
+.luxury-card {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm); /* Lighter shadows on mobile */
+}
+
+/* Forms - Full Width */
+.ant-form-item,
+.form-field {
+  width: 100%;
+}
+
+.ant-input,
+.ant-select,
+.ant-picker,
+.ant-input-number {
+  width: 100% !important;
+}
+
+.ant-form-item-label {
+  padding-bottom: 4px !important;
+}
+
+/* Grid - Stack Vertically */
+.grid-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Tables - Horizontal Scroll */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ant-table-wrapper {
+  overflow-x: auto;
+}
+
+/* Navigation - Hide Sidebar */
+.desktop-only {
+  display: none !important;
+}
+
+.mobile-only {
+  display: flex !important;
+}
+
+/* Bottom Navigation */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-card-bg);
+  border-top: 1px solid var(--color-primary-pale);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 1000;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  min-width: 56px;
+  color: var(--color-text-secondary);
+  transition: color 0.2s ease;
+}
+
+.mobile-nav-item.active {
+  color: var(--color-primary);
+}
+
+.mobile-nav-item .nav-icon {
+  font-size: 20px;
+}
+
+.mobile-nav-item .nav-label {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Content Padding for Bottom Nav */
+.has-bottom-nav {
+  padding-bottom: 80px;
+}
+
+/* Header - Sticky */
+.mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: var(--color-card-bg);
+  border-bottom: 1px solid var(--color-primary-pale);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Hamburger Menu */
+.hamburger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-secondary);
+}
+
+/* Modal - Full Screen on Mobile */
+.ant-modal {
+  max-width: calc(100vw - 32px) !important;
+  margin: 16px auto !important;
+}
+
+.ant-modal-wrap {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+}
+
+.ant-modal-content {
+  border-radius: var(--radius-lg) !important;
+}
+
+/* Drawer - Full Width */
+.ant-drawer-content-wrapper {
+  max-width: 100vw !important;
+}
+
+/* Hero Section - Adjusted Height */
+.hero-section {
+  min-height: 60vh;
+  padding: 40px 20px;
+}
+
+.hero-title {
+  font-size: 2rem;
+}
+
+.hero-subtitle {
+  font-size: 1rem;
+}
+
+/* Stats Cards */
+.stat-card {
+  padding: 16px;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+}
+
+/* Buttons - Stack on Mobile */
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.button-group .ant-btn {
+  width: 100%;
+}
+
+/* Image containers */
+.image-container {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+}
+
+/* List items - More padding for touch */
+.list-item {
+  padding: 16px;
+  min-height: 60px;
+}
+
+/* Tab navigation */
+.ant-tabs-nav {
+  margin-bottom: 16px !important;
+}
+
+.ant-tabs-tab {
+  padding: 12px 16px !important;
+  font-size: 13px !important;
+}
+
+/* ============================================
+   SMALL MOBILE LANDSCAPE (sm: 480px+)
+   ============================================ */
+@media (min-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+
+  h1 { font-size: 1.875rem; }
+  h2 { font-size: 1.625rem; }
+  h3 { font-size: 1.375rem; }
+
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .section-padding {
+    padding: 32px 20px;
+  }
+
+  .card-padding {
+    padding: 20px;
+  }
+
+  .button-group {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .button-group .ant-btn {
+    width: auto;
+  }
+
+  /* Two column grid for small items */
+  .grid-2-mobile {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .hero-section {
+    min-height: 65vh;
+    padding: 48px 24px;
+  }
+
+  .hero-title {
+    font-size: 2.25rem;
+  }
+}
+
+/* ============================================
+   TABLET (md: 768px+)
+   ============================================ */
+@media (min-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.5rem; }
+  h4 { font-size: 1.25rem; }
+
+  .container {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .section-padding {
+    padding: 48px 32px;
+  }
+
+  .card-padding {
+    padding: 24px;
+  }
+
+  /* Two column grid */
+  .grid-responsive {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  /* Cards - Restore shadows */
+  .card,
+  .ant-card,
+  .luxury-card {
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-xl);
+  }
+
+  /* Modal - Centered */
+  .ant-modal {
+    max-width: 600px !important;
+    margin: 32px auto !important;
+  }
+
+  .ant-modal-wrap {
+    padding-top: 50px;
+  }
+
+  /* Stats */
+  .stat-value {
+    font-size: 2rem;
+  }
+
+  .stat-label {
+    font-size: 0.8125rem;
+  }
+
+  /* Hero */
+  .hero-section {
+    min-height: 70vh;
+    padding: 60px 40px;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.125rem;
+  }
+
+  /* Form layout - Two columns */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .form-grid .full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ============================================
+   DESKTOP (lg: 1024px+)
+   ============================================ */
+@media (min-width: 1024px) {
+  html {
+    font-size: 16px;
+  }
+
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  h3 { font-size: 1.5rem; }
+  h4 { font-size: 1.25rem; }
+
+  /* Show desktop navigation */
+  .desktop-only {
+    display: flex !important;
+  }
+
+  .mobile-only {
+    display: none !important;
+  }
+
+  /* Hide bottom nav */
+  .mobile-bottom-nav {
+    display: none;
+  }
+
+  .has-bottom-nav {
+    padding-bottom: 0;
+  }
+
+  /* Container max width */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  .section-padding {
+    padding: 60px 40px;
+  }
+
+  .card-padding {
+    padding: 28px;
+  }
+
+  /* Three/Four column grid */
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  /* Sidebar visible */
+  .sidebar {
+    display: block;
+    width: 260px;
+  }
+
+  .main-content {
+    margin-left: 260px;
+  }
+
+  /* Modal sizes */
+  .ant-modal.modal-sm {
+    max-width: 480px !important;
+  }
+
+  .ant-modal.modal-lg {
+    max-width: 800px !important;
+  }
+
+  .ant-modal.modal-xl {
+    max-width: 1000px !important;
+  }
+
+  /* Hero */
+  .hero-section {
+    min-height: 80vh;
+    padding: 80px 60px;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+  }
+
+  /* Stats */
+  .stat-value {
+    font-size: 2.25rem;
+  }
+}
+
+/* ============================================
+   LARGE DESKTOP (xl: 1280px+)
+   ============================================ */
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1400px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+  }
+
+  .hero-title {
+    font-size: 3.5rem;
+  }
+
+  .section-padding {
+    padding: 80px 60px;
+  }
+}
+
+/* ============================================
+   ANIMATION UTILITIES
+   ============================================ */
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ============================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ============================================ */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .luxury-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Increase touch targets */
+  .ant-btn {
+    min-height: 48px;
+    padding: 12px 20px;
+  }
+
+  /* Disable custom scrollbar on touch */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    scrollbar-width: none;
+  }
+}
+
+/* ============================================
+   LANDSCAPE ORIENTATION
+   ============================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero-section {
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .mobile-bottom-nav {
+    padding: 4px 0;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .mobile-bottom-nav,
+  .mobile-header,
+  .hamburger-btn,
+  .sidebar {
+    display: none !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+  }
+
+  .card,
+  .ant-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT (Future)
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  /* Placeholder for dark mode styles */
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   ============================================ */
+@media (prefers-contrast: high) {
+  .luxury-card {
+    border: 2px solid currentColor;
+  }
+
+  .ant-btn {
+    border: 2px solid currentColor;
+  }
+}

@@ -1,0 +1,140 @@
+.chatbot-container {
+  position: fixed;
+  z-index: 1000;
+}
+
+.chatbot-container.bottom-right {
+  bottom: 24px;
+  right: 24px;
+}
+
+.chatbot-container.bottom-left {
+  bottom: 24px;
+  left: 24px;
+}
+
+.chatbot-toggle-btn {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chatbot-toggle-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(183, 168, 154, 0.5) !important;
+}
+
+.chatbot-window {
+  width: 380px;
+  max-width: calc(100vw - 48px);
+  height: 520px;
+  max-height: calc(100vh - 100px);
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(123, 117, 109, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chatbot-window.minimized {
+  height: auto;
+}
+
+.chatbot-header {
+  background: linear-gradient(135deg, #7B756D 0%, #9A9187 100%);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatbot-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #F3F1ED;
+}
+
+.chat-message {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.chat-message.user {
+  justify-content: flex-end;
+}
+
+.message-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.message-bubble.assistant {
+  background: #EEE8DF;
+  color: #7B756D;
+  border-bottom-left-radius: 4px;
+}
+
+.message-bubble.user {
+  background: #B7A89A;
+  color: #FFFFFF;
+  border-bottom-right-radius: 4px;
+}
+
+.message-bubble.typing {
+  display: flex;
+  align-items: center;
+  color: #9A9187;
+}
+
+.quick-questions {
+  padding: 8px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #F3F1ED;
+  border-top: 1px solid #EEE8DF;
+}
+
+.chatbot-input {
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border-top: 1px solid #EEE8DF;
+}
+
+.chatbot-input .ant-input {
+  border-color: #D6C7B8;
+}
+
+.chatbot-input .ant-input:focus,
+.chatbot-input .ant-input:hover {
+  border-color: #B7A89A;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .chatbot-window {
+    width: calc(100vw - 24px);
+    height: calc(100vh - 80px);
+    max-height: none;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .chatbot-container.bottom-right,
+  .chatbot-container.bottom-left {
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+  }
+}
+
+/* Guest portal: offset from bottom nav */
+@media (max-width: 1023px) {
+  .chatbot-container.guest-portal {
+    bottom: 80px;
+  }
+}
