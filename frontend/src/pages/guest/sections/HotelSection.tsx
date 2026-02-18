@@ -383,13 +383,14 @@ const HotelSection: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (portalData?.hotel_preference) {
-      const pref = portalData.hotel_preference;
+    // Backend returns hotel_info, fallback to hotel_preference for compatibility
+    const pref = portalData?.hotel_info || portalData?.hotel_preference;
+    if (pref) {
       setIsEditing(false);
 
       if (pref.suggested_hotel_id) {
         setAccommodationType('suggested');
-        const hotel = portalData.suggested_hotels.find(
+        const hotel = portalData?.suggested_hotels.find(
           (h) => h.id === pref.suggested_hotel_id
         );
         if (hotel) setSelectedHotel(hotel);
@@ -442,7 +443,9 @@ const HotelSection: React.FC = () => {
 
   if (!portalData) return null;
 
-  const { suggested_hotels, hotel_preference } = portalData;
+  const { suggested_hotels } = portalData;
+  // Backend returns hotel_info, fallback to hotel_preference for compatibility
+  const hotel_preference = portalData.hotel_info || portalData.hotel_preference;
 
   // Get saved info for display
   const getSavedHotelInfo = () => {

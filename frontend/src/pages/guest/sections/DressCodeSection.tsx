@@ -417,31 +417,66 @@ const DressCodeSection: React.FC = () => {
   const [loading, setLoading] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
-    if (portalData?.dress_preferences) {
-      const prefs: Record<number, DressCodePreference> = {};
-      portalData.dress_preferences.forEach((pref) => {
-        prefs[pref.dress_code_id] = {
-          dressCodeId: pref.dress_code_id,
-          outfitDescription: pref.planned_outfit_description,
-          needsAssistance: pref.needs_shopping_assistance,
-          notes: pref.notes,
-        };
-        if (pref.color_choice) {
-          setSelectedColors((prev) => ({
+    if (!portalData) return;
+
+    const prefs: Record<number, DressCodePreference> = {};
+
+    // Read preferences from dress_codes[].guest_preference (backend embeds them there)
+    if (portalData.dress_codes) {
+      portalData.dress_codes.forEach((dc: any) => {
+        const pref = dc.guest_preference;
+        if (pref) {
+          prefs[dc.id] = {
+            dressCodeId: dc.id,
+            outfitDescription: pref.planned_outfit_description,
+            needsAssistance: pref.needs_shopping_assistance,
+            notes: pref.notes,
+          };
+          if (pref.color_choice) {
+            setSelectedColors((prev) => ({
+              ...prev,
+              [dc.id]: {
+                color_code: pref.color_choice,
+                color_name: pref.color_choice,
+              },
+            }));
+          }
+          setNeedsAssistance((prev) => ({
             ...prev,
-            [pref.dress_code_id]: {
-              color_code: pref.color_choice!,
-              color_name: pref.color_choice!,
-            },
+            [dc.id]: pref.needs_shopping_assistance,
           }));
         }
-        setNeedsAssistance((prev) => ({
-          ...prev,
-          [pref.dress_code_id]: pref.needs_shopping_assistance,
-        }));
       });
-      setPreferences(prefs);
     }
+
+    // Also check legacy dress_preferences array (fallback)
+    if (portalData.dress_preferences) {
+      portalData.dress_preferences.forEach((pref: any) => {
+        if (!prefs[pref.dress_code_id]) {
+          prefs[pref.dress_code_id] = {
+            dressCodeId: pref.dress_code_id,
+            outfitDescription: pref.planned_outfit_description,
+            needsAssistance: pref.needs_shopping_assistance,
+            notes: pref.notes,
+          };
+          if (pref.color_choice) {
+            setSelectedColors((prev) => ({
+              ...prev,
+              [pref.dress_code_id]: {
+                color_code: pref.color_choice,
+                color_name: pref.color_choice,
+              },
+            }));
+          }
+          setNeedsAssistance((prev) => ({
+            ...prev,
+            [pref.dress_code_id]: pref.needs_shopping_assistance,
+          }));
+        }
+      });
+    }
+
+    setPreferences(prefs);
   }, [portalData]);
 
   const toggleCard = (id: number) => {
@@ -580,9 +615,13 @@ const DressCodeSection: React.FC = () => {
                       <SectionTitle>Color Palette</SectionTitle>
                       <ColorPalette
                         colors={dressCode.color_palette}
-                        selectedColor={selectedColors[dressCode.id]?.color_code}
+                        selectedColor={selectedColors[dressCode.id]?.color_code || selectedColors[dressCode.id]?.hex}
                         onColorSelect={(color) =>
-                          handleColorSelect(dressCode.id, color)
+                          handleColorSelect(dressCode.id, {
+                            ...color,
+                            color_code: color.color_code || color.hex,
+                            color_name: color.color_name || color.name,
+                          })
                         }
                         size="medium"
                         interactive={isEditing}
@@ -689,15 +728,19 @@ const DressCodeSection: React.FC = () => {
                             <Form.Item label="Your color choice from the palette">
                               <Select
                                 placeholder="Select a color"
-                                value={selectedColors[dressCode.id]?.color_name}
+                                value={selectedColors[dressCode.id]?.color_name || selectedColors[dressCode.id]?.name}
                                 onChange={(value) => {
                                   const color = dressCode.color_palette?.find(
-                                    (c) => c.color_name === value
+                                    (c) => (c.color_name || c.name) === value
                                   );
-                                  if (color) handleColorSelect(dressCode.id, color);
+                                  if (color) handleColorSelect(dressCode.id, {
+                                    ...color,
+                                    color_code: color.color_code || color.hex,
+                                    color_name: color.color_name || color.name,
+                                  });
                                 }}
                                 options={dressCode.color_palette.map((c) => ({
-                                  value: c.color_name,
+                                  value: c.color_name || c.name,
                                   label: (
                                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                       <span
@@ -705,11 +748,11 @@ const DressCodeSection: React.FC = () => {
                                           width: 16,
                                           height: 16,
                                           borderRadius: '50%',
-                                          background: c.color_code,
+                                          background: c.color_code || c.hex,
                                           border: '1px solid rgba(0,0,0,0.1)',
                                         }}
                                       />
-                                      {c.color_name}
+                                      {c.color_name || c.name}
                                     </span>
                                   ),
                                 }))}
@@ -767,8 +810,8 @@ const DressCodeSection: React.FC = () => {
                         {selectedColors[dressCode.id] && (
                           <SavedRow>
                             <SavedLabel>Color Choice</SavedLabel>
-                            <ColorBadge $color={selectedColors[dressCode.id].color_code}>
-                              {selectedColors[dressCode.id].color_name}
+                            <ColorBadge $color={selectedColors[dressCode.id].color_code || selectedColors[dressCode.id].hex || '#ccc'}>
+                              {selectedColors[dressCode.id].color_name || selectedColors[dressCode.id].name || ''}
                             </ColorBadge>
                           </SavedRow>
                         )}

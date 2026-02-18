@@ -25,7 +25,7 @@ class Settings(BaseSettings):
 
     # Groq AI
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-    GROQ_MODEL: str = "llama-3.1-70b-versatile"
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
 
     # Environment
     ENVIRONMENT: str = "development"

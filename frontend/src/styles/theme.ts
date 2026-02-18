@@ -4,7 +4,7 @@ import { ThemeConfig } from 'antd';
 export const colors = {
   // Primary palette
   primary: '#B7A89A',       // Dead Sea Clay - buttons, CTAs
-  secondary: '#7B756D',     // Stone Grey - headings, primary text
+  secondary: '#5A534B',     // Deep Stone - headings, primary text
   accent: '#E5CEC0',        // Sunset Haze Peach - highlights, tags
   background: '#F3F1ED',    // Sea Salt Off-White
   cardBg: '#EEE8DF',        // Mineral Paper - card backgrounds
@@ -15,34 +15,34 @@ export const colors = {
   primaryLight: '#E5CEC0',  // Sunset Haze Peach
 
   // Text colors
-  textPrimary: '#7B756D',   // Stone Grey
-  textSecondary: '#9A9187', // Warm Taupe
+  textPrimary: '#5A534B',   // Deep Stone - primary text (darkened)
+  textSecondary: '#7B756D', // Stone Grey - secondary text (was Warm Taupe)
   textLight: '#F3F1ED',     // Sea Salt Off-White
   white: '#FFFFFF',
   black: '#000000',
 
-  // Status colors (earthy tones)
-  success: '#7B756D',       // Stone Grey
-  warning: '#B7A89A',       // Dead Sea Clay
-  error: '#9A9187',         // Warm Taupe
-  info: '#7B756D',          // Stone Grey
+  // Status colors (earthy tones, darkened for readability)
+  success: '#5B7A5E',       // Earthy Green
+  warning: '#A6853A',       // Deep Gold
+  error: '#9E5B5B',         // Muted Rose
+  info: '#5A534B',          // Deep Stone
 
   // Extended primary palette (Dead Sea Clay range)
   goldLight: '#D6C7B8',     // Soft Sand Beige
   goldMedium: '#B7A89A',    // Dead Sea Clay
-  goldDark: '#9A9187',      // Warm Taupe
+  goldDark: '#7B756D',      // Stone Grey (darkened from Warm Taupe)
   goldPale: '#E5CEC0',      // Sunset Haze Peach
 
   // Extended secondary palette (Stone Grey range)
-  tealLight: '#9A9187',     // Warm Taupe
-  tealMedium: '#7B756D',    // Stone Grey
-  tealDark: '#7B756D',      // Stone Grey
+  tealLight: '#7B756D',     // Stone Grey
+  tealMedium: '#5A534B',    // Deep Stone
+  tealDark: '#5A534B',      // Deep Stone
   tealPale: '#F3F1ED',      // Sea Salt Off-White
 
   // Extended accent palette (Peach range)
   burgundyLight: '#E5CEC0', // Sunset Haze Peach
   burgundyMedium: '#D6C7B8',// Soft Sand Beige
-  burgundyDark: '#9A9187',  // Warm Taupe
+  burgundyDark: '#7B756D',  // Stone Grey (darkened)
   burgundyPale: '#F3F1ED',  // Sea Salt Off-White
 
   // Cream palette
@@ -59,9 +59,9 @@ export const colors = {
     400: '#B7A89A',
     500: '#9A9187',
     600: '#7B756D',
-    700: '#7B756D',
-    800: '#7B756D',
-    900: '#7B756D',
+    700: '#5A534B',
+    800: '#4A433B',
+    900: '#3A342D',
   },
 
   // Borders
@@ -123,28 +123,28 @@ export const weddingTheme: ThemeConfig = {
     colorBgSpotlight: '#7B756D',       // Stone Grey
     colorBgMask: 'rgba(123, 117, 109, 0.65)',
 
-    // Text Colors
-    colorText: '#7B756D',              // Stone Grey - primary text
-    colorTextSecondary: '#9A9187',     // Warm Taupe - secondary
-    colorTextTertiary: '#B7A89A',      // Dead Sea Clay - tertiary
-    colorTextQuaternary: '#D6C7B8',    // Soft Sand Beige
-    colorTextHeading: '#7B756D',       // Stone Grey
+    // Text Colors (darkened for readability on light backgrounds)
+    colorText: '#5A534B',              // Deep Stone - primary text
+    colorTextSecondary: '#7B756D',     // Stone Grey - secondary
+    colorTextTertiary: '#9A9187',      // Warm Taupe - tertiary
+    colorTextQuaternary: '#B7A89A',    // Dead Sea Clay
+    colorTextHeading: '#4A433B',       // Dark Earth - headings
 
     // Border Colors
     colorBorder: '#D6C7B8',            // Soft Sand Beige
     colorBorderSecondary: '#EEE8DF',   // Mineral Paper
 
-    // Status colors
-    colorSuccess: '#7B756D',
-    colorSuccessBg: '#F3F1ED',
-    colorSuccessBorder: '#D6C7B8',
-    colorWarning: '#B7A89A',
-    colorWarningBg: '#F3F1ED',
+    // Status colors (distinct & readable)
+    colorSuccess: '#5B7A5E',
+    colorSuccessBg: '#F0F5F0',
+    colorSuccessBorder: '#A8C5AA',
+    colorWarning: '#A6853A',
+    colorWarningBg: '#FBF6ED',
     colorWarningBorder: '#D6C7B8',
-    colorError: '#9A9187',
-    colorErrorBg: '#F3F1ED',
-    colorErrorBorder: '#D6C7B8',
-    colorInfo: '#7B756D',
+    colorError: '#9E5B5B',
+    colorErrorBg: '#FAF0F0',
+    colorErrorBorder: '#D4A8A8',
+    colorInfo: '#5A534B',
     colorInfoBg: '#F3F1ED',
     colorInfoBorder: '#D6C7B8',
 
@@ -235,12 +235,12 @@ export const weddingTheme: ThemeConfig = {
   components: {
     Button: {
       colorPrimary: '#B7A89A',
-      colorPrimaryHover: '#9A9187',
+      colorPrimaryHover: '#A0937F',
       colorPrimaryActive: '#7B756D',
       colorPrimaryBorder: '#B7A89A',
       primaryShadow: '0 2px 8px rgba(183, 168, 154, 0.3)',
       defaultBorderColor: '#D6C7B8',
-      defaultColor: '#7B756D',
+      defaultColor: '#5A534B',
       defaultBg: '#EEE8DF',
       defaultGhostColor: '#B7A89A',
       defaultGhostBorderColor: '#B7A89A',
@@ -264,7 +264,7 @@ export const weddingTheme: ThemeConfig = {
     },
     Table: {
       headerBg: '#EEE8DF',
-      headerColor: '#7B756D',
+      headerColor: '#4A433B',
       rowHoverBg: '#F3F1ED',
       borderColor: '#D6C7B8',
       headerSplitColor: '#D6C7B8',
@@ -308,7 +308,7 @@ export const weddingTheme: ThemeConfig = {
     },
     Layout: {
       headerBg: '#FFFFFF',
-      headerColor: '#7B756D',
+      headerColor: '#5A534B',
       headerHeight: 64,
       headerPadding: '0 24px',
       bodyBg: '#F3F1ED',
@@ -319,7 +319,7 @@ export const weddingTheme: ThemeConfig = {
     Modal: {
       contentBg: '#FFFFFF',
       headerBg: '#FFFFFF',
-      titleColor: '#7B756D',
+      titleColor: '#4A433B',
       titleFontSize: 20,
       borderRadiusLG: borderRadius.xl,
     },
@@ -328,7 +328,7 @@ export const weddingTheme: ThemeConfig = {
     },
     Tag: {
       defaultBg: '#E5CEC0',
-      defaultColor: '#7B756D',
+      defaultColor: '#5A534B',
       borderRadiusSM: borderRadius.sm,
     },
     Badge: {
@@ -348,11 +348,11 @@ export const weddingTheme: ThemeConfig = {
       titleFontSize: 14,
       contentFontSize: 28,
       fontFamily: fonts.heading,
-      titleColor: '#9A9187',
-      contentColor: '#7B756D',
+      titleColor: '#7B756D',
+      contentColor: '#4A433B',
     },
     Form: {
-      labelColor: '#7B756D',
+      labelColor: '#5A534B',
       labelFontSize: 14,
       labelHeight: 32,
       verticalLabelPadding: '0 0 8px',
@@ -391,10 +391,10 @@ export const weddingTheme: ThemeConfig = {
       colorTextPlaceholder: '#7B756D',
     },
     Breadcrumb: {
-      lastItemColor: '#7B756D',
-      linkColor: '#9A9187',
+      lastItemColor: '#5A534B',
+      linkColor: '#7B756D',
       linkHoverColor: '#B7A89A',
-      separatorColor: '#D6C7B8',
+      separatorColor: '#B7A89A',
     },
     Collapse: {
       headerBg: '#F3F1ED',
@@ -467,7 +467,7 @@ export const weddingTheme: ThemeConfig = {
       subtitleFontSize: 14,
     },
     Empty: {
-      colorTextDescription: '#9A9187',
+      colorTextDescription: '#7B756D',
     },
     Pagination: {
       itemBg: '#EEE8DF',

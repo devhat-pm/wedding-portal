@@ -32,6 +32,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+dayjs.extend(relativeTime);
 import { useAuth } from '../../context/AuthContext';
 import { adminApi } from '../../services/admin.api';
 import { GoldDivider } from '../../components';
@@ -230,6 +232,48 @@ const EmptyIcon = styled.div`
   font-size: 32px;
   color: ${colors.gray[400]};
   margin-bottom: 16px;
+`;
+
+const ActivityList = styled.div`
+  padding: 8px 0;
+`;
+
+const ActivityItem = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid ${colors.creamDark};
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const ActivityDot = styled.div<{ $type: string }>`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+  background: ${(props) => {
+    switch (props.$type) {
+      case 'rsvp': return colors.success;
+      case 'travel': return colors.primary;
+      case 'hotel': return colors.warning;
+      case 'food': return '#B7A89A';
+      case 'dress': return '#E5CEC0';
+      case 'activity': return colors.info;
+      case 'media': return '#9A9187';
+      case 'access': return colors.gray[400];
+      default: return colors.gray[400];
+    }
+  }};
+`;
+
+const ActivityContent = styled.div`
+  flex: 1;
+  min-width: 0;
 `;
 
 const RSVPChartCard = styled(Card)`
@@ -662,17 +706,39 @@ const Dashboard: React.FC = () => {
                 }
                 bodyStyle={{ padding: '0 24px' }}
               >
-                <EmptyActivityWrapper>
-                  <EmptyIcon>
-                    <InboxOutlined />
-                  </EmptyIcon>
-                  <Text strong style={{ fontSize: 16, color: colors.textPrimary, marginBottom: 4 }}>
-                    No activity yet
-                  </Text>
-                  <Text type="secondary" style={{ fontSize: 13 }}>
-                    Activity will appear here as guests respond
-                  </Text>
-                </EmptyActivityWrapper>
+                {stats?.recent_activity && stats.recent_activity.length > 0 ? (
+                  <ActivityList>
+                    {stats.recent_activity.map((item, index) => (
+                      <ActivityItem key={index}>
+                        <ActivityDot $type={item.action_type} />
+                        <ActivityContent>
+                          <Text strong style={{ fontSize: 13 }}>{item.guest_name}</Text>
+                          <div>
+                            <Text style={{ fontSize: 13 }}>{item.action}</Text>
+                            {item.detail && (
+                              <Text type="secondary" style={{ fontSize: 12 }}> — {item.detail}</Text>
+                            )}
+                          </div>
+                          <Text type="secondary" style={{ fontSize: 11 }}>
+                            {dayjs(item.time).fromNow()}
+                          </Text>
+                        </ActivityContent>
+                      </ActivityItem>
+                    ))}
+                  </ActivityList>
+                ) : (
+                  <EmptyActivityWrapper>
+                    <EmptyIcon>
+                      <InboxOutlined />
+                    </EmptyIcon>
+                    <Text strong style={{ fontSize: 16, color: colors.textPrimary, marginBottom: 4 }}>
+                      No activity yet
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      Activity will appear here as guests respond
+                    </Text>
+                  </EmptyActivityWrapper>
+                )}
               </RecentActivityCard>
             </motion.div>
           </Col>

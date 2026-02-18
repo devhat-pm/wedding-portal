@@ -120,7 +120,7 @@ export const GuestPortalProvider: React.FC<GuestPortalProviderProps> = ({ childr
   ) || (portalData?.activity_registrations?.length || 0) > 0;
 
   const sectionCompletion: SectionCompletion = {
-    rsvp: portalData?.guest?.rsvp_status !== 'pending',
+    rsvp: portalData?.guest?.rsvp_status !== undefined && portalData?.guest?.rsvp_status !== 'pending',
     travel: !!portalData?.travel_info,
     hotel: !!portalData?.hotel_info || !!portalData?.hotel_preference,
     dress: hasDressPreference || (portalData?.dress_preferences?.length || 0) > 0,

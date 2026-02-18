@@ -6,8 +6,10 @@ import { CheckOutlined, CopyOutlined } from '@ant-design/icons';
 import { colors, shadows } from '../../styles/theme';
 
 interface ColorItem {
-  color_code: string;
-  color_name: string;
+  color_code?: string;
+  color_name?: string;
+  hex?: string;
+  name?: string;
 }
 
 interface ColorPaletteProps {
@@ -142,15 +144,17 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
   return (
     <PaletteWrapper>
       {colorItems.map((item, index) => {
-        const isSelected = selectedColor === item.color_code;
-        const isCopied = copiedColor === item.color_code;
+        const colorCode = item.color_code || item.hex || '#ccc';
+        const colorName = item.color_name || item.name || '';
+        const isSelected = selectedColor === colorCode;
+        const isCopied = copiedColor === colorCode;
 
         return (
           <Tooltip
             key={index}
             title={
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontWeight: 600 }}>{item.color_name}</div>
+                <div style={{ fontWeight: 600 }}>{colorName}</div>
                 <CopyHint>
                   {isCopied ? (
                     <>
@@ -158,7 +162,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                     </>
                   ) : (
                     <>
-                      <CopyOutlined /> {item.color_code} (click to copy)
+                      <CopyOutlined /> {colorCode} (click to copy)
                     </>
                   )}
                 </CopyHint>
@@ -168,17 +172,17 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
             <ColorItemWrapper
               $size={size}
               $interactive={interactive}
-              onClick={() => handleClick(item)}
+              onClick={() => handleClick({ ...item, color_code: colorCode, color_name: colorName })}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
             >
               <ColorCircle
-                $color={item.color_code}
+                $color={colorCode}
                 $size={size}
                 $selected={isSelected}
                 $interactive={interactive}
-                onClick={(e) => handleCopy(e, item.color_code)}
+                onClick={(e) => handleCopy(e, colorCode)}
                 whileHover={interactive ? { scale: 1.1 } : undefined}
                 whileTap={interactive ? { scale: 0.95 } : undefined}
               >
@@ -193,7 +197,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({
                 )}
               </ColorCircle>
               {showNames && (
-                <ColorName $size={size}>{item.color_name}</ColorName>
+                <ColorName $size={size}>{colorName}</ColorName>
               )}
             </ColorItemWrapper>
           </Tooltip>

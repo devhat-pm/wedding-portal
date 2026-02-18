@@ -1,18 +1,28 @@
 import os
 import uuid as uuid_lib
 import aiofiles
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, desc, union_all, literal, cast, String
+from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
 
 from app.database import get_db
-from app.models import Wedding, Guest, TravelInfo, HotelInfo, GuestActivity, MediaUpload, RSVPStatus
+from app.models import Wedding, Guest, TravelInfo, HotelInfo, GuestActivity, GuestFoodPreference, GuestDressPreference, MediaUpload, RSVPStatus
 from app.schemas import WeddingResponse, WeddingUpdate, SuccessResponse
 from app.utils.auth import get_current_wedding
 from app.config import settings
 
 router = APIRouter(prefix="/api/admin/wedding", tags=["Admin Wedding"])
+
+
+class RecentActivityItem(BaseModel):
+    guest_name: str
+    action: str
+    action_type: str  # rsvp, travel, hotel, food, dress, activity, media, access
+    time: str
+    detail: Optional[str] = None
 
 
 class DashboardStats(BaseModel):
@@ -34,6 +44,7 @@ class DashboardStats(BaseModel):
     confirmed_rsvps: int = 0
     pending_rsvps: int = 0
     declined_rsvps: int = 0
+    recent_activity: List[RecentActivityItem] = []
 
 
 @router.get("/", response_model=WeddingResponse)
@@ -191,6 +202,127 @@ async def get_dashboard_stats(
     )
     media_approved = media_approved_result.scalar() or 0
 
+    # Build recent activity from real data
+    recent_activity: list[RecentActivityItem] = []
+
+    # Get recent RSVPs (non-pending guests, ordered by rsvp_submitted_at or updated_at)
+    rsvp_result = await db.execute(
+        select(Guest)
+        .where(
+            Guest.wedding_id == wedding.id,
+            Guest.rsvp_status != RSVPStatus.pending
+        )
+        .order_by(desc(Guest.rsvp_submitted_at))
+        .limit(10)
+    )
+    for g in rsvp_result.scalars().all():
+        ts = g.rsvp_submitted_at or g.updated_at
+        if ts:
+            recent_activity.append(RecentActivityItem(
+                guest_name=g.full_name,
+                action=f"RSVP: {g.rsvp_status.value}",
+                action_type="rsvp",
+                time=ts.isoformat(),
+                detail=f"{g.number_of_attendees} attendee(s)",
+            ))
+
+    # Get recent travel info submissions
+    travel_recent = await db.execute(
+        select(TravelInfo)
+        .join(Guest)
+        .options(selectinload(TravelInfo.guest))
+        .where(Guest.wedding_id == wedding.id)
+        .order_by(desc(TravelInfo.updated_at))
+        .limit(5)
+    )
+    for ti in travel_recent.scalars().all():
+        recent_activity.append(RecentActivityItem(
+            guest_name=ti.guest.full_name,
+            action="Submitted travel info",
+            action_type="travel",
+            time=ti.updated_at.isoformat() if ti.updated_at else "",
+        ))
+
+    # Get recent hotel info submissions
+    hotel_recent = await db.execute(
+        select(HotelInfo)
+        .join(Guest)
+        .options(selectinload(HotelInfo.guest))
+        .where(Guest.wedding_id == wedding.id)
+        .order_by(desc(HotelInfo.id))
+        .limit(5)
+    )
+    for hi in hotel_recent.scalars().all():
+        hotel_name = hi.custom_hotel_name or "a suggested hotel"
+        recent_activity.append(RecentActivityItem(
+            guest_name=hi.guest.full_name,
+            action="Submitted hotel preference",
+            action_type="hotel",
+            time=hi.guest.updated_at.isoformat() if hi.guest.updated_at else "",
+            detail=hotel_name,
+        ))
+
+    # Get recent activity registrations
+    activity_recent = await db.execute(
+        select(GuestActivity)
+        .join(Guest)
+        .options(selectinload(GuestActivity.guest))
+        .where(Guest.wedding_id == wedding.id)
+        .order_by(desc(GuestActivity.registered_at))
+        .limit(5)
+    )
+    for ga in activity_recent.scalars().all():
+        ts = ga.registered_at or ga.guest.updated_at
+        if ts:
+            recent_activity.append(RecentActivityItem(
+                guest_name=ga.guest.full_name,
+                action="Registered for activity",
+                action_type="activity",
+                time=ts.isoformat(),
+            ))
+
+    # Get recent media uploads
+    media_recent = await db.execute(
+        select(MediaUpload)
+        .options(selectinload(MediaUpload.guest))
+        .where(MediaUpload.wedding_id == wedding.id)
+        .order_by(desc(MediaUpload.uploaded_at))
+        .limit(5)
+    )
+    for mu in media_recent.scalars().all():
+        guest_name = mu.guest.full_name if mu.guest else "Unknown"
+        ts = mu.uploaded_at
+        if ts:
+            recent_activity.append(RecentActivityItem(
+                guest_name=guest_name,
+                action="Uploaded media",
+                action_type="media",
+                time=ts.isoformat(),
+                detail=mu.caption,
+            ))
+
+    # Get recent portal accesses
+    access_result = await db.execute(
+        select(Guest)
+        .where(
+            Guest.wedding_id == wedding.id,
+            Guest.last_accessed_at.isnot(None)
+        )
+        .order_by(desc(Guest.last_accessed_at))
+        .limit(5)
+    )
+    for g in access_result.scalars().all():
+        recent_activity.append(RecentActivityItem(
+            guest_name=g.full_name,
+            action="Accessed portal",
+            action_type="access",
+            time=g.last_accessed_at.isoformat(),
+        ))
+
+    # Sort all by time descending, take top 10
+    recent_activity.sort(key=lambda x: x.time, reverse=True)
+    recent_activity = recent_activity[:10]
+
     return DashboardStats(
         total_guests=total_guests,
         confirmed_guests=confirmed_guests,
@@ -209,4 +341,5 @@ async def get_dashboard_stats(
         confirmed_rsvps=confirmed_guests,
         pending_rsvps=pending_guests,
         declined_rsvps=declined_guests,
+        recent_activity=recent_activity,
     )

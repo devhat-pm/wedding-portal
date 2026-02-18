@@ -19,6 +19,7 @@ import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { colors, shadows, borderRadius } from '../../styles/theme';
 import ChatBot from '../chat/ChatBot';
+import { useAuth } from '../../context/AuthContext';
 
 const { Header, Sider, Content } = Layout;
 
@@ -316,6 +317,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
 
   // Handle responsive behavior
   useEffect(() => {
@@ -336,9 +338,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('wedding_id');
-    navigate('/login');
+    logout();
+    navigate('/admin/login');
   };
 
   const userMenuItems = [

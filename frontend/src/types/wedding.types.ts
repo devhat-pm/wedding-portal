@@ -79,6 +79,15 @@ export interface AdminLoginResponse {
   wedding_id: string;
 }
 
+// Recent activity item
+export interface RecentActivityItem {
+  guest_name: string;
+  action: string;
+  action_type: string;
+  time: string;
+  detail?: string;
+}
+
 // Dashboard statistics
 export interface DashboardStats {
   total_guests: number;
@@ -89,6 +98,7 @@ export interface DashboardStats {
   hotel_info_submitted: number;
   activity_registrations: number;
   media_pending_approval: number;
+  recent_activity?: RecentActivityItem[];
   // Additional stats for dashboard
   confirmed_guests?: number;
   pending_guests?: number;

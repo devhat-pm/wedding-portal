@@ -374,9 +374,15 @@ const GuestList: React.FC = () => {
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      setUploadedGuests([]);
+      // Populate uploaded guests from API response for display
+      const uploaded = (result.guests || []).map((g: any) => ({
+        name: g.full_name || g.name || '',
+        token: g.unique_token || g.token || '',
+      }));
+      setUploadedGuests(uploaded);
       setUploadStep('success');
-      message.success(`Successfully uploaded ${result.created} guest(s)!${result.errors?.length ? ` (${result.errors.length} error(s))` : ''}`);
+      const count = result.created_count || result.created || uploaded.length;
+      message.success(`Successfully uploaded ${count} guest(s)!${result.errors?.length ? ` (${result.errors.length} error(s))` : ''}`);
       if (result.errors?.length) {
         result.errors.forEach((err: string) => message.warning(err));
       }
@@ -408,7 +414,7 @@ const GuestList: React.FC = () => {
     try {
       const response = await guestsApi.getGuests({
         page: tableParams.pagination.current || 1,
-        per_page: tableParams.pagination.pageSize || 10,
+        page_size: tableParams.pagination.pageSize || 10,
         search: searchText || undefined,
         rsvp_status: rsvpFilter !== 'all' ? (rsvpFilter as RSVPStatus) : undefined,
         has_travel_info: travelFilter !== 'all' ? travelFilter === 'yes' : undefined,

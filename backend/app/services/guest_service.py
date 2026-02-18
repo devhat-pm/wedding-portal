@@ -226,6 +226,26 @@ def _serialize_suggested_hotel(sh: SuggestedHotel) -> dict:
     }
 
 
+def _normalize_color_palette(palette):
+    """Normalize color palette items to include both name formats."""
+    if not palette:
+        return palette
+    normalized = []
+    for item in palette:
+        if isinstance(item, dict):
+            name = item.get('name', item.get('color_name', ''))
+            hex_val = item.get('hex', item.get('color_code', ''))
+            normalized.append({
+                'name': name,
+                'hex': hex_val,
+                'color_name': name,
+                'color_code': hex_val,
+            })
+        else:
+            normalized.append(item)
+    return normalized
+
+
 def _serialize_dress_code(dc: DressCode) -> dict:
     return {
         "id": str(dc.id),
@@ -233,10 +253,14 @@ def _serialize_dress_code(dc: DressCode) -> dict:
         "event_date": dc.event_date.isoformat() if dc.event_date else None,
         "description": dc.description,
         "theme": dc.theme,
-        "color_palette": dc.color_palette,
+        "theme_description": " - ".join([p for p in [dc.theme, dc.description] if p]) if (dc.theme or dc.description) else None,
+        "color_palette": _normalize_color_palette(dc.color_palette),
         "dress_suggestions_men": dc.dress_suggestions_men,
         "dress_suggestions_women": dc.dress_suggestions_women,
+        "men_suggestions": dc.dress_suggestions_men,
+        "women_suggestions": dc.dress_suggestions_women,
         "image_urls": dc.image_urls,
+        "inspiration_images": dc.image_urls,
         "notes": dc.notes
     }
 

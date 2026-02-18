@@ -400,10 +400,13 @@ const GuestDetail: React.FC = () => {
 
   // Get activities from guest data (if available from API response)
   const guestAny = guest as any;
-  const registeredActivities: { name: string; date: string; time: string }[] = (guestAny?.activity_registrations || guestAny?.activities || []).map((a: any) => ({
+  const registeredActivities: any[] = (guestAny?.activity_registrations || guestAny?.activities || []).map((a: any) => ({
     name: a.activity_name || a.name || 'Activity',
     date: a.start_time ? dayjs(a.start_time).format('YYYY-MM-DD') : (a.date || ''),
     time: a.start_time ? dayjs(a.start_time).format('h:mm A') : (a.time || ''),
+    location: a.location,
+    number_of_participants: a.number_of_participants || 1,
+    notes: a.notes,
   }));
 
   // Get media from guest data (if available from API response)
@@ -607,7 +610,7 @@ const GuestDetail: React.FC = () => {
             }
             key="travel"
           >
-            {guest.travel_info ? (
+            {(guest as any).travel_info ? (
               <Row gutter={[24, 24]}>
                 <Col xs={24} md={12}>
                   <InfoCard>
@@ -620,19 +623,19 @@ const GuestDetail: React.FC = () => {
                       </div>
                     </InfoCardHeader>
                     <Descriptions column={1} size="small">
-                      <Descriptions.Item label="Mode">
-                        {guest.travel_info.arrival_mode || '-'}
-                      </Descriptions.Item>
                       <Descriptions.Item label="Flight/Train">
-                        {guest.travel_info.arrival_flight_number || '-'}
+                        {(guest as any).travel_info.arrival_flight_number || '-'}
                       </Descriptions.Item>
-                      <Descriptions.Item label="Date & Time">
-                        {guest.travel_info.arrival_datetime
-                          ? dayjs(guest.travel_info.arrival_datetime).format('MMM D, YYYY h:mm A')
+                      <Descriptions.Item label="Date">
+                        {(guest as any).travel_info.arrival_date
+                          ? dayjs((guest as any).travel_info.arrival_date).format('MMM D, YYYY')
                           : '-'}
                       </Descriptions.Item>
+                      <Descriptions.Item label="Time">
+                        {(guest as any).travel_info.arrival_time || '-'}
+                      </Descriptions.Item>
                       <Descriptions.Item label="Airport/Station">
-                        {guest.travel_info.arrival_airport || '-'}
+                        {(guest as any).travel_info.arrival_airport || '-'}
                       </Descriptions.Item>
                     </Descriptions>
                   </InfoCard>
@@ -641,7 +644,7 @@ const GuestDetail: React.FC = () => {
                 <Col xs={24} md={12}>
                   <InfoCard>
                     <InfoCardHeader>
-                      <InfoCardIcon $color={colors.accent}>
+                      <InfoCardIcon $color={colors.primary}>
                         <CarOutlined />
                       </InfoCardIcon>
                       <div>
@@ -649,38 +652,42 @@ const GuestDetail: React.FC = () => {
                       </div>
                     </InfoCardHeader>
                     <Descriptions column={1} size="small">
-                      <Descriptions.Item label="Mode">
-                        {guest.travel_info.departure_mode || '-'}
-                      </Descriptions.Item>
                       <Descriptions.Item label="Flight/Train">
-                        {guest.travel_info.departure_flight_number || '-'}
+                        {(guest as any).travel_info.departure_flight_number || '-'}
                       </Descriptions.Item>
-                      <Descriptions.Item label="Date & Time">
-                        {guest.travel_info.departure_datetime
-                          ? dayjs(guest.travel_info.departure_datetime).format('MMM D, YYYY h:mm A')
+                      <Descriptions.Item label="Date">
+                        {(guest as any).travel_info.departure_date
+                          ? dayjs((guest as any).travel_info.departure_date).format('MMM D, YYYY')
                           : '-'}
                       </Descriptions.Item>
-                      <Descriptions.Item label="Airport/Station">
-                        {guest.travel_info.departure_airport || '-'}
+                      <Descriptions.Item label="Time">
+                        {(guest as any).travel_info.departure_time || '-'}
                       </Descriptions.Item>
                     </Descriptions>
                   </InfoCard>
                 </Col>
 
-                {guest.travel_info.needs_pickup && (
-                  <Col xs={24}>
-                    <Tag color="gold" style={{ padding: '8px 16px' }}>
-                      <CarOutlined /> Pickup Required
-                    </Tag>
-                  </Col>
-                )}
+                <Col xs={24}>
+                  <Space wrap>
+                    {(guest as any).travel_info.needs_pickup && (
+                      <Tag color="gold" style={{ padding: '8px 16px' }}>
+                        <CarOutlined /> Pickup Required
+                      </Tag>
+                    )}
+                    {(guest as any).travel_info.needs_dropoff && (
+                      <Tag color="gold" style={{ padding: '8px 16px' }}>
+                        <CarOutlined /> Dropoff Required
+                      </Tag>
+                    )}
+                  </Space>
+                </Col>
 
-                {guest.travel_info.special_requests && (
+                {((guest as any).travel_info.special_requests || (guest as any).travel_info.special_requirements) && (
                   <Col xs={24}>
                     <InfoCard>
                       <Text strong>Special Requests</Text>
                       <Paragraph style={{ marginTop: 8, marginBottom: 0 }}>
-                        {guest.travel_info.special_requests}
+                        {(guest as any).travel_info.special_requests || (guest as any).travel_info.special_requirements}
                       </Paragraph>
                     </InfoCard>
                   </Col>
@@ -700,7 +707,7 @@ const GuestDetail: React.FC = () => {
             }
             key="hotel"
           >
-            {guest.hotel_info ? (
+            {(guest as any).hotel_info ? (
               <InfoCard>
                 <InfoCardHeader>
                   <InfoCardIcon $color={colors.secondary}>
@@ -712,35 +719,45 @@ const GuestDetail: React.FC = () => {
                 </InfoCardHeader>
                 <Descriptions column={{ xs: 1, sm: 2 }} size="small">
                   <Descriptions.Item label="Hotel">
-                    {guest.hotel_info.hotel_name || 'Self-arranged'}
+                    {(guest as any).hotel_info.hotel_name || 'Self-arranged'}
                   </Descriptions.Item>
                   <Descriptions.Item label="Room Type">
-                    {guest.hotel_info.room_type || '-'}
+                    {(guest as any).hotel_info.room_type || '-'}
                   </Descriptions.Item>
                   <Descriptions.Item label="Check-in">
-                    {guest.hotel_info.check_in_date
-                      ? dayjs(guest.hotel_info.check_in_date).format('MMM D, YYYY')
+                    {(guest as any).hotel_info.check_in_date
+                      ? dayjs((guest as any).hotel_info.check_in_date).format('MMM D, YYYY')
                       : '-'}
                   </Descriptions.Item>
                   <Descriptions.Item label="Check-out">
-                    {guest.hotel_info.check_out_date
-                      ? dayjs(guest.hotel_info.check_out_date).format('MMM D, YYYY')
+                    {(guest as any).hotel_info.check_out_date
+                      ? dayjs((guest as any).hotel_info.check_out_date).format('MMM D, YYYY')
                       : '-'}
                   </Descriptions.Item>
                   <Descriptions.Item label="Number of Rooms">
-                    {guest.hotel_info.number_of_rooms || '-'}
+                    {(guest as any).hotel_info.number_of_rooms || '-'}
                   </Descriptions.Item>
                   <Descriptions.Item label="Booking Status">
-                    <Tag color={guest.hotel_info.is_booked ? 'green' : 'orange'}>
-                      {guest.hotel_info.is_booked ? 'Booked' : 'Pending'}
+                    <Tag color={(guest as any).hotel_info.is_booked ? 'green' : 'orange'}>
+                      {(guest as any).hotel_info.is_booked ? 'Booked' : 'Pending'}
                     </Tag>
                   </Descriptions.Item>
+                  {(guest as any).hotel_info.custom_hotel_address && (
+                    <Descriptions.Item label="Address" span={2}>
+                      {(guest as any).hotel_info.custom_hotel_address}
+                    </Descriptions.Item>
+                  )}
+                  {(guest as any).hotel_info.booking_confirmation && (
+                    <Descriptions.Item label="Booking Reference" span={2}>
+                      {(guest as any).hotel_info.booking_confirmation}
+                    </Descriptions.Item>
+                  )}
                 </Descriptions>
-                {guest.hotel_info.special_requests && (
+                {(guest as any).hotel_info.special_requests && (
                   <>
                     <Divider />
                     <Text strong>Special Requests: </Text>
-                    <Text>{guest.hotel_info.special_requests}</Text>
+                    <Text>{(guest as any).hotel_info.special_requests}</Text>
                   </>
                 )}
               </InfoCard>
@@ -758,8 +775,8 @@ const GuestDetail: React.FC = () => {
             }
             key="dress"
           >
-            {guest.dress_preferences && guest.dress_preferences.length > 0 ? (
-              guest.dress_preferences.map((pref, index) => (
+            {(guest as any).dress_preferences && (guest as any).dress_preferences.length > 0 ? (
+              (guest as any).dress_preferences.map((pref: any, index: number) => (
                 <InfoCard key={index}>
                   <InfoCardHeader>
                     <InfoCardIcon $color={colors.primary}>
@@ -770,23 +787,30 @@ const GuestDetail: React.FC = () => {
                     </div>
                   </InfoCardHeader>
                   <Descriptions column={1} size="small">
-                    <Descriptions.Item label="Outfit Choice">
-                      {pref.outfit_choice || '-'}
+                    <Descriptions.Item label="Outfit Description">
+                      {pref.planned_outfit_description || pref.outfit_choice || '-'}
                     </Descriptions.Item>
                     <Descriptions.Item label="Color Selected">
                       <Space>
-                        <div
-                          style={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: 4,
-                            background: pref.color_code || '#ccc',
-                            border: '1px solid #ddd',
-                          }}
-                        />
-                        {pref.color_name || '-'}
+                        {pref.color_choice && (
+                          <div
+                            style={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: 4,
+                              background: pref.color_code || pref.color_choice || '#ccc',
+                              border: '1px solid #ddd',
+                            }}
+                          />
+                        )}
+                        {pref.color_name || pref.color_choice || '-'}
                       </Space>
                     </Descriptions.Item>
+                    {pref.needs_shopping_assistance && (
+                      <Descriptions.Item label="Shopping Help">
+                        <Tag color="blue">Needs Shopping Assistance</Tag>
+                      </Descriptions.Item>
+                    )}
                     {pref.notes && <Descriptions.Item label="Notes">{pref.notes}</Descriptions.Item>}
                   </Descriptions>
                 </InfoCard>
@@ -805,10 +829,10 @@ const GuestDetail: React.FC = () => {
             }
             key="food"
           >
-            {guest.food_preferences ? (
+            {(guest as any).food_preferences ? (
               <InfoCard>
                 <InfoCardHeader>
-                  <InfoCardIcon $color={colors.accent}>
+                  <InfoCardIcon $color={colors.primary}>
                     <CoffeeOutlined />
                   </InfoCardIcon>
                   <div>
@@ -817,36 +841,33 @@ const GuestDetail: React.FC = () => {
                 </InfoCardHeader>
                 <Descriptions column={{ xs: 1, sm: 2 }} size="small">
                   <Descriptions.Item label="Meal Size">
-                    {guest.food_preferences.meal_size_preference || '-'}
+                    {(guest as any).food_preferences.meal_size_preference || '-'}
                   </Descriptions.Item>
                   <Descriptions.Item label="Dietary Restrictions">
-                    {guest.dietary_restrictions || 'None'}
+                    {Array.isArray((guest as any).food_preferences.dietary_restrictions)
+                      ? (guest as any).food_preferences.dietary_restrictions.join(', ')
+                      : (guest as any).food_preferences.dietary_restrictions || 'None'}
                   </Descriptions.Item>
+                  {(guest as any).food_preferences.cuisine_preferences && (
+                    <Descriptions.Item label="Cuisine Preferences" span={2}>
+                      {(guest as any).food_preferences.cuisine_preferences}
+                    </Descriptions.Item>
+                  )}
                 </Descriptions>
 
-                {guest.food_preferences.selected_items &&
-                  guest.food_preferences.selected_items.length > 0 && (
-                    <>
-                      <Divider />
-                      <Text strong>Selected Menu Items</Text>
-                      <List
-                        dataSource={guest.food_preferences.selected_items}
-                        renderItem={(item) => (
-                          <List.Item>
-                            <Text>{item.name}</Text>
-                          </List.Item>
-                        )}
-                        size="small"
-                        style={{ marginTop: 8 }}
-                      />
-                    </>
-                  )}
-
-                {guest.food_preferences.allergies && (
+                {(guest as any).food_preferences.allergies && (
                   <>
                     <Divider />
                     <Text strong>Allergies: </Text>
-                    <Text type="danger">{guest.food_preferences.allergies}</Text>
+                    <Text type="danger">{(guest as any).food_preferences.allergies}</Text>
+                  </>
+                )}
+
+                {(guest as any).food_preferences.special_requests && (
+                  <>
+                    <Divider />
+                    <Text strong>Special Requests: </Text>
+                    <Text>{(guest as any).food_preferences.special_requests}</Text>
                   </>
                 )}
               </InfoCard>
@@ -865,7 +886,7 @@ const GuestDetail: React.FC = () => {
             key="activities"
           >
             {registeredActivities.length > 0 ? (
-              registeredActivities.map((activity, index) => (
+              registeredActivities.map((activity: any, index: number) => (
                 <ActivityCard key={index}>
                   <ActivityIcon>
                     <CalendarOutlined />
@@ -875,8 +896,22 @@ const GuestDetail: React.FC = () => {
                       {activity.name}
                     </Text>
                     <Text type="secondary">
-                      {activity.date} at {activity.time}
+                      {activity.date && activity.time ? `${activity.date} at ${activity.time}` : activity.date || '-'}
                     </Text>
+                    {activity.number_of_participants > 1 && (
+                      <div>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          <TeamOutlined /> {activity.number_of_participants} participants
+                        </Text>
+                      </div>
+                    )}
+                    {activity.notes && (
+                      <div>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          Note: {activity.notes}
+                        </Text>
+                      </div>
+                    )}
                   </div>
                   <Tag color="green">Registered</Tag>
                 </ActivityCard>

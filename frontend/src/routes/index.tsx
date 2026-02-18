@@ -6,7 +6,7 @@ import { LoadingScreen, AdminLayout } from '../components';
 
 // Lazy load pages for better performance
 const AdminLogin = lazy(() => import('../pages/admin/Login'));
-const AdminRegister = lazy(() => import('../pages/admin/Register'));
+// Register page removed – admin accounts are created via API only
 const AdminDashboard = lazy(() => import('../pages/admin/Dashboard'));
 const AdminSettings = lazy(() => import('../pages/admin/Settings'));
 const GuestList = lazy(() => import('../pages/admin/Guests/GuestList'));
@@ -74,21 +74,10 @@ const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Admin Registration */}
-      <Route
-        path="/admin/register"
-        element={
-          <PublicRoute>
-            <SuspenseWrapper>
-              <AdminRegister />
-            </SuspenseWrapper>
-          </PublicRoute>
-        }
-      />
-
-      {/* Legacy login routes - redirect to new paths */}
+      {/* Legacy routes - redirect to login */}
       <Route path="/login" element={<Navigate to="/admin/login" replace />} />
-      <Route path="/register" element={<Navigate to="/admin/register" replace />} />
+      <Route path="/register" element={<Navigate to="/admin/login" replace />} />
+      <Route path="/admin/register" element={<Navigate to="/admin/login" replace />} />
 
       {/* ============================================ */}
       {/* GUEST PORTAL ROUTES                         */}

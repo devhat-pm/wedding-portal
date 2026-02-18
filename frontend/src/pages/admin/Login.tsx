@@ -1,226 +1,257 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, Typography, Space, Divider } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate, Link } from 'react-router-dom';
+import { Form, Input, Button, Typography, message } from 'antd';
+import { MailOutlined, LockOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import styled from '@emotion/styled';
 import { useAuth } from '../../context/AuthContext';
-import { ArabicPattern } from '../../components';
-import { colors, shadows, borderRadius } from '../../styles/theme';
+import { colors, shadows, borderRadius, fonts } from '../../styles/theme';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
-const PageWrapper = styled.div`
+/* ------------------------------------------------------------------ */
+/*  Layout                                                             */
+/* ------------------------------------------------------------------ */
+
+const Page = styled.div`
   min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: ${colors.background};
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+/* ---------- Left – decorative panel ---------- */
+
+const BrandPanel = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 48px;
+  background: linear-gradient(160deg, #7B756D 0%, #9A9187 50%, #B7A89A 100%);
+  overflow: hidden;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+`;
+
+const BrandBg = styled.div`
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23fff' stroke-width='0.8'%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3Ccircle cx='40' cy='40' r='18'/%3E%3Cpath d='M40 10L70 40L40 70L10 40Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 80px 80px;
+`;
+
+const BrandContent = styled(motion.div)`
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 380px;
+`;
+
+const BrandIcon = styled.div`
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, ${colors.secondary} 0%, ${colors.tealDark} 100%);
-  padding: 24px;
-  position: relative;
-  overflow: hidden;
+  font-size: 32px;
+  line-height: 1;
+  color: #fff;
 `;
 
-const PatternOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  opacity: 0.1;
+const BrandTitle = styled.h1`
+  font-family: ${fonts.heading};
+  font-size: 32px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 `;
 
-const ContentWrapper = styled(motion.div)`
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 440px;
+const BrandSub = styled.p`
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0 0 40px;
+  line-height: 1.6;
 `;
 
-const StyledCard = styled(Card)`
-  border-radius: ${borderRadius.xl}px;
-  box-shadow: ${shadows.xl};
-  border: 2px solid ${colors.goldLight};
-  background: ${colors.cardBg};
-  overflow: hidden;
+const FeatureList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
 
-  .ant-card-body {
-    padding: 48px 40px;
-  }
+const FeatureItem = styled(motion.li)`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  line-height: 1.5;
+`;
+
+const FeatureDot = styled.span`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${colors.accent};
+  flex-shrink: 0;
+`;
+
+/* ---------- Right – form panel ---------- */
+
+const FormPanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 48px;
+  background: #fff;
 
   @media (max-width: 480px) {
-    .ant-card-body {
-      padding: 32px 24px;
-    }
+    padding: 40px 24px;
   }
 `;
 
-const LogoContainer = styled(motion.div)`
+const FormWrapper = styled(motion.div)`
+  width: 100%;
+  max-width: 400px;
+`;
+
+const MobileHeader = styled.div`
+  display: none;
   text-align: center;
   margin-bottom: 32px;
+
+  @media (max-width: 900px) {
+    display: block;
+  }
 `;
 
-const WeddingRingsLogo = styled.div`
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 20px;
-  position: relative;
-`;
-
-const Ring = styled.div<{ $position: 'left' | 'right' }>`
-  width: 50px;
-  height: 50px;
-  border: 4px solid ${colors.primary};
+const MobileLogo = styled.div`
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 16px;
   border-radius: 50%;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  ${(props) => (props.$position === 'left' ? 'left: 15px;' : 'right: 15px;')}
-
-  &::before {
-    content: '';
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background: ${colors.primary};
-    border-radius: 50%;
-    top: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
+  background: linear-gradient(135deg, ${colors.secondary} 0%, ${colors.primary} 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #fff;
 `;
 
-const ArabicCalligraphy = styled.div`
-  font-family: 'Amiri', serif;
+const FormHeading = styled.h2`
+  font-family: ${fonts.heading};
   font-size: 28px;
-  color: ${colors.primary};
-  margin-bottom: 8px;
-  direction: rtl;
+  font-weight: 600;
+  color: ${colors.secondary};
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
 `;
 
-const WelcomeTitle = styled(Title)`
+const FormSubtext = styled(Text)`
   && {
-    margin: 0;
-    font-family: 'Playfair Display', serif;
-    color: ${colors.secondary};
-    font-size: 28px;
+    display: block;
+    color: ${colors.textSecondary};
+    font-size: 15px;
+    margin-bottom: 36px;
   }
-`;
-
-const SubtitleText = styled(Text)`
-  display: block;
-  margin-top: 8px;
-  color: ${colors.textSecondary};
 `;
 
 const StyledForm = styled(Form)`
+  .ant-form-item-label > label {
+    font-weight: 500;
+    font-size: 13px;
+    color: ${colors.textSecondary};
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   .ant-input-affix-wrapper {
     border-radius: ${borderRadius.md}px;
-    border-color: ${colors.creamDark};
+    border: 1.5px solid ${colors.creamDark};
     padding: 12px 16px;
+    background: ${colors.background};
+    transition: all 0.2s ease;
 
-    &:hover, &:focus, &.ant-input-affix-wrapper-focused {
+    &:hover {
       border-color: ${colors.primary};
-      box-shadow: 0 0 0 2px rgba(183, 168, 154, 0.1);
+    }
+
+    &:focus,
+    &.ant-input-affix-wrapper-focused {
+      border-color: ${colors.primary};
+      box-shadow: 0 0 0 3px rgba(183, 168, 154, 0.12);
+      background: #fff;
     }
   }
 
   .ant-input {
     font-size: 15px;
-  }
-
-  .ant-form-item-label > label {
-    font-weight: 500;
-    color: ${colors.textPrimary};
+    background: transparent;
   }
 `;
 
-const LoginButton = styled(Button)`
+const SubmitButton = styled(Button)`
   && {
-    height: 50px;
+    height: 52px;
     border-radius: ${borderRadius.md}px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
-    background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.goldDark} 100%);
+    letter-spacing: 0.02em;
+    background: ${colors.secondary};
     border: none;
+    box-shadow: 0 4px 14px rgba(123, 117, 109, 0.25);
+    transition: all 0.25s ease;
 
     &:hover {
-      background: linear-gradient(135deg, ${colors.goldDark} 0%, ${colors.primary} 100%);
+      background: ${colors.tealDark} !important;
+      box-shadow: 0 6px 20px rgba(123, 117, 109, 0.35);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 `;
 
-const StyledDivider = styled(Divider)`
-  && {
-    color: ${colors.textSecondary};
-    font-size: 13px;
-
-    &::before, &::after {
-      border-color: ${colors.creamDark};
-    }
-  }
-`;
-
-const RegisterLink = styled.div`
+const Footer = styled.div`
+  margin-top: 48px;
   text-align: center;
-  margin-top: 24px;
-
-  a {
-    color: ${colors.primary};
-    font-weight: 600;
-
-    &:hover {
-      color: ${colors.goldDark};
-    }
-  }
+  color: ${colors.textSecondary};
+  font-size: 12px;
+  opacity: 0.6;
 `;
 
-const BottomAccent = styled.div`
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, ${colors.primary}, ${colors.accent}, ${colors.primary});
-  z-index: 10;
-`;
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
 
-const FloatingOrnament = styled(motion.div)<{ $position: 'topLeft' | 'bottomRight' }>`
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  opacity: 0.1;
-
-  ${(props) =>
-    props.$position === 'topLeft'
-      ? `
-        top: -50px;
-        left: -50px;
-      `
-      : `
-        bottom: -50px;
-        right: -50px;
-      `}
-`;
-
-const OrnamentSVG = () => (
-  <svg viewBox="0 0 200 200" fill="none">
-    <path
-      d="M100 0L200 100L100 200L0 100L100 0Z"
-      stroke={colors.goldLight}
-      strokeWidth="2"
-      fill="none"
-    />
-    <path
-      d="M100 20L180 100L100 180L20 100L100 20Z"
-      stroke={colors.goldLight}
-      strokeWidth="1"
-      fill="none"
-    />
-    <circle cx="100" cy="100" r="30" stroke={colors.goldLight} strokeWidth="1" fill="none" />
-  </svg>
-);
+const features = [
+  'Manage RSVPs and guest lists in real time',
+  'Track travel, hotels, and dietary preferences',
+  'Share photos and coordinate activities',
+  'AI-powered assistant for guest questions',
+];
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -247,48 +278,51 @@ const Login: React.FC = () => {
   };
 
   return (
-    <PageWrapper>
-      <PatternOverlay>
-        <ArabicPattern variant="geometric" color={colors.goldLight} opacity={0.15} />
-      </PatternOverlay>
+    <Page>
+      {/* ---------- Left panel ---------- */}
+      <BrandPanel>
+        <BrandBg />
+        <BrandContent
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+        >
+          <BrandIcon>&#9829;</BrandIcon>
+          <BrandTitle>Wedding Guest Management</BrandTitle>
+          <BrandSub>
+            Everything you need to organise your perfect day — guests, RSVPs,
+            travel, and more — all in one place.
+          </BrandSub>
 
-      <FloatingOrnament
-        $position="topLeft"
-        initial={{ rotate: 0 }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-      >
-        <OrnamentSVG />
-      </FloatingOrnament>
+          <FeatureList>
+            {features.map((f, i) => (
+              <FeatureItem
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 + i * 0.12, duration: 0.5 }}
+              >
+                <FeatureDot />
+                {f}
+              </FeatureItem>
+            ))}
+          </FeatureList>
+        </BrandContent>
+      </BrandPanel>
 
-      <FloatingOrnament
-        $position="bottomRight"
-        initial={{ rotate: 360 }}
-        animate={{ rotate: 0 }}
-        transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-      >
-        <OrnamentSVG />
-      </FloatingOrnament>
+      {/* ---------- Right panel ---------- */}
+      <FormPanel>
+        <FormWrapper
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          <MobileHeader>
+            <MobileLogo>&#9829;</MobileLogo>
+          </MobileHeader>
 
-      <ContentWrapper
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <StyledCard>
-          <LogoContainer
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <WeddingRingsLogo>
-              <Ring $position="left" />
-              <Ring $position="right" />
-            </WeddingRingsLogo>
-            <ArabicCalligraphy>أهلاً وسهلاً</ArabicCalligraphy>
-            <WelcomeTitle level={2}>Welcome Back</WelcomeTitle>
-            <SubtitleText>Sign in to manage your wedding guests</SubtitleText>
-          </LogoContainer>
+          <FormHeading>Welcome back</FormHeading>
+          <FormSubtext>Sign in to your wedding dashboard</FormSubtext>
 
           <StyledForm
             form={form}
@@ -299,16 +333,17 @@ const Login: React.FC = () => {
           >
             <Form.Item
               name="email"
-              label="Email Address"
+              label="Email"
               rules={[
                 { required: true, message: 'Please enter your email' },
                 { type: 'email', message: 'Please enter a valid email' },
               ]}
             >
               <Input
-                prefix={<UserOutlined style={{ color: colors.textSecondary }} />}
-                placeholder="Enter your email"
+                prefix={<MailOutlined style={{ color: colors.textSecondary, fontSize: 16 }} />}
+                placeholder="you@example.com"
                 size="large"
+                autoComplete="email"
               />
             </Form.Item>
 
@@ -318,36 +353,31 @@ const Login: React.FC = () => {
               rules={[{ required: true, message: 'Please enter your password' }]}
             >
               <Input.Password
-                prefix={<LockOutlined style={{ color: colors.textSecondary }} />}
+                prefix={<LockOutlined style={{ color: colors.textSecondary, fontSize: 16 }} />}
                 placeholder="Enter your password"
                 size="large"
+                autoComplete="current-password"
               />
             </Form.Item>
 
-            <Form.Item style={{ marginBottom: 0, marginTop: 32 }}>
-              <LoginButton
+            <Form.Item style={{ marginBottom: 0, marginTop: 8 }}>
+              <SubmitButton
                 type="primary"
                 htmlType="submit"
                 size="large"
                 block
                 loading={loading}
+                icon={!loading ? <ArrowRightOutlined /> : undefined}
               >
-                {loading ? 'Signing In...' : 'Sign In'}
-              </LoginButton>
+                {loading ? 'Signing in...' : 'Sign in'}
+              </SubmitButton>
             </Form.Item>
           </StyledForm>
 
-          <StyledDivider>or</StyledDivider>
-
-          <RegisterLink>
-            <Text type="secondary">Don't have an account? </Text>
-            <Link to="/register">Create your wedding portal</Link>
-          </RegisterLink>
-        </StyledCard>
-      </ContentWrapper>
-
-      <BottomAccent />
-    </PageWrapper>
+          <Footer>Wedding Guest Management System</Footer>
+        </FormWrapper>
+      </FormPanel>
+    </Page>
   );
 };
 

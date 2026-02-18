@@ -11,6 +11,7 @@ import type { RSVPStatus } from '../types';
 
 interface GuestFilters {
   page?: number;
+  page_size?: number;
   per_page?: number;
   search?: string;
   rsvp_status?: RSVPStatus;

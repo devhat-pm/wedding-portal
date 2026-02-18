@@ -6,7 +6,11 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-client = Groq(api_key=settings.GROQ_API_KEY)
+client = None
+if settings.GROQ_API_KEY:
+    client = Groq(api_key=settings.GROQ_API_KEY)
+else:
+    logger.warning("GROQ_API_KEY is not set. AI chat will not work.")
 
 SYSTEM_PROMPT = """You are a helpful AI assistant for a Wedding Guest Management Portal. You help guests and wedding administrators with:
 
@@ -61,6 +65,13 @@ async def get_chat_response(
     # Add current message
     messages.append({"role": "user", "content": message})
 
+    if not client:
+        logger.error("Groq client not initialized - GROQ_API_KEY is missing")
+        return (
+            "I apologize, but the AI assistant is not configured yet. "
+            "Please contact the wedding organizers for assistance."
+        )
+
     try:
         response = client.chat.completions.create(
             model=settings.GROQ_MODEL,
@@ -71,7 +82,7 @@ async def get_chat_response(
         )
         return response.choices[0].message.content
     except Exception as e:
-        logger.error(f"Groq API error: {e}")
+        logger.error(f"Groq API error ({type(e).__name__}): {e}")
         return (
             "I apologize, but I'm having trouble connecting right now. "
             "Please try again in a moment, or contact the wedding organizers for assistance."
@@ -100,6 +111,10 @@ async def get_streaming_response(
 
     messages.append({"role": "user", "content": message})
 
+    if not client:
+        yield "AI assistant is not configured. Please contact the wedding organizers."
+        return
+
     try:
         stream = client.chat.completions.create(
             model=settings.GROQ_MODEL,
@@ -112,4 +127,5 @@ async def get_streaming_response(
             if chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
     except Exception as e:
+        logger.error(f"Groq streaming error ({type(e).__name__}): {e}")
         yield f"Error: {str(e)}"

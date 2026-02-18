@@ -18,8 +18,8 @@
   /* Semantic Colors */
   --color-bg-primary: var(--color-sea-salt);
   --color-bg-secondary: var(--color-mineral-paper);
-  --color-text-primary: var(--color-stone-grey);
-  --color-text-secondary: var(--color-warm-taupe);
+  --color-text-primary: #5A534B;
+  --color-text-secondary: var(--color-stone-grey);
   --color-border: var(--color-soft-sand);
   --color-accent: var(--color-sunset-peach);
   --color-cta: var(--color-dead-sea-clay);
@@ -121,7 +121,7 @@ body {
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  color: var(--color-stone-grey);
+  color: #4A433B;
   font-weight: 600;
   line-height: 1.3;
   margin-bottom: 0.5em;
@@ -206,8 +206,8 @@ a:hover {
 /* Utility Classes */
 .text-gold { color: var(--color-dead-sea-clay); }
 .text-secondary { color: var(--color-stone-grey); }
-.text-accent { color: var(--color-sunset-peach); }
-.text-muted { color: var(--color-warm-taupe); }
+.text-accent { color: #A0937F; }
+.text-muted { color: var(--color-stone-grey); }
 
 .bg-cream { background-color: var(--color-sea-salt); }
 .bg-card { background-color: var(--color-mineral-paper); }
@@ -516,25 +516,25 @@ a:hover {
 /* Status Tags */
 .status-attending {
   background: #E5CEC0;
-  color: #7B756D;
+  color: #4A433B;
   border: 1px solid #D6C7B8;
 }
 
 .status-pending {
-  background: #D6C7B8;
-  color: #7B756D;
-  border: 1px solid #B7A89A;
+  background: #EEE8DF;
+  color: #5A534B;
+  border: 1px solid #D6C7B8;
 }
 
 .status-not-attending {
-  background: #9A9187;
-  color: #F3F1ED;
-  border: 1px solid #7B756D;
+  background: #7B756D;
+  color: #FFFFFF;
+  border: 1px solid #5A534B;
 }
 
 .status-maybe {
-  background: #EEE8DF;
-  color: #7B756D;
+  background: #F3F1ED;
+  color: #5A534B;
   border: 1px solid #D6C7B8;
 }
 
@@ -567,12 +567,12 @@ a:hover {
 .page-title {
   font-family: var(--font-heading);
   font-size: 1.75rem;
-  color: var(--color-stone-grey);
+  color: #4A433B;
   margin-bottom: var(--space-xs);
 }
 
 .page-subtitle {
-  color: var(--color-warm-taupe);
+  color: var(--color-stone-grey);
   font-size: 0.9375rem;
 }
 
@@ -591,7 +591,7 @@ a:hover {
 .section-title {
   font-family: var(--font-heading);
   font-size: 1.25rem;
-  color: var(--color-stone-grey);
+  color: #4A433B;
   margin-bottom: var(--space-md);
   display: flex;
   align-items: center;
@@ -611,12 +611,12 @@ a:hover {
 .empty-state {
   text-align: center;
   padding: var(--space-xxl) var(--space-lg);
-  color: var(--color-warm-taupe);
+  color: var(--color-stone-grey);
 }
 
 .empty-state-icon {
   font-size: 48px;
-  color: var(--color-soft-sand);
+  color: #B7A89A;
   margin-bottom: var(--space-md);
 }
 
@@ -710,12 +710,12 @@ a:hover {
 
 .ant-statistic-title {
   font-family: var(--font-body);
-  color: var(--color-warm-taupe) !important;
+  color: var(--color-stone-grey) !important;
 }
 
 .ant-statistic-content {
   font-family: var(--font-heading);
-  color: var(--color-stone-grey) !important;
+  color: #4A433B !important;
 }
 
 /* Modal centering fix */

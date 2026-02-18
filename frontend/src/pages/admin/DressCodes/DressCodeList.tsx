@@ -294,7 +294,7 @@ const SortableDressCodeCard: React.FC<SortableDressCodeCardProps> = ({
             {dressCode.color_palette && dressCode.color_palette.length > 0 && (
               <ColorPalettePreview>
                 {dressCode.color_palette.slice(0, 4).map((color, index) => (
-                  <ColorDot key={index} $color={color.color_code} />
+                  <ColorDot key={index} $color={color.color_code || color.hex || '#ccc'} />
                 ))}
                 {dressCode.color_palette.length > 4 && (
                   <Tag>+{dressCode.color_palette.length - 4}</Tag>
@@ -324,8 +324,8 @@ const SortableDressCodeCard: React.FC<SortableDressCodeCardProps> = ({
                 <ColorPaletteFull>
                   {dressCode.color_palette.map((color, index) => (
                     <ColorItem key={index}>
-                      <ColorSwatch $color={color.color_code} />
-                      <ColorName>{color.color_name}</ColorName>
+                      <ColorSwatch $color={color.color_code || color.hex || '#ccc'} />
+                      <ColorName>{color.color_name || color.name || ''}</ColorName>
                     </ColorItem>
                   ))}
                 </ColorPaletteFull>

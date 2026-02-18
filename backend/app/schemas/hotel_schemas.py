@@ -51,7 +51,7 @@ class SuggestedHotelCreate(BaseModel):
     phone: Optional[str] = Field(None, max_length=50)
     distance_from_venue: Optional[str] = Field(None, max_length=100)
     price_range: Optional[str] = Field(None, max_length=100)
-    star_rating: Optional[int] = Field(None, ge=1, le=5)
+    star_rating: Optional[float] = Field(None, ge=1, le=5)
     description: Optional[str] = None
     amenities: Optional[List[str]] = None
     image_urls: Optional[List[str]] = None
@@ -84,7 +84,7 @@ class SuggestedHotelUpdate(BaseModel):
     phone: Optional[str] = Field(None, max_length=50)
     distance_from_venue: Optional[str] = Field(None, max_length=100)
     price_range: Optional[str] = Field(None, max_length=100)
-    star_rating: Optional[int] = Field(None, ge=1, le=5)
+    star_rating: Optional[float] = Field(None, ge=1, le=5)
     description: Optional[str] = None
     amenities: Optional[List[str]] = None
     image_urls: Optional[List[str]] = None
@@ -119,7 +119,7 @@ class SuggestedHotelResponse(BaseSchema):
     phone: Optional[str] = None
     distance_from_venue: Optional[str] = None
     price_range: Optional[str] = None
-    star_rating: Optional[int] = None
+    star_rating: Optional[float] = None
     description: Optional[str] = None
     amenities: Optional[List[str]] = None
     image_urls: Optional[List[str]] = None

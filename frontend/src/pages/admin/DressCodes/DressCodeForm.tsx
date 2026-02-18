@@ -187,8 +187,8 @@ const DressCodeForm: React.FC<DressCodeFormProps> = ({ open, dressCode, onClose,
       setColorPalette(
         dressCode.color_palette?.map((c, i) => ({
           id: `${i}`,
-          color: c.color_code,
-          name: c.color_name,
+          color: c.color_code || c.hex || '#ccc',
+          name: c.color_name || c.name || '',
         })) || []
       );
       setFileList(

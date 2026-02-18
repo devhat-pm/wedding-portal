@@ -93,6 +93,26 @@ class DressCodeResponse(BaseSchema):
     notes: Optional[str] = None
     display_order: Optional[int] = None
 
+    @model_validator(mode='after')
+    def normalize_color_palette(self) -> 'DressCodeResponse':
+        """Ensure color_palette items have both name/hex and color_name/color_code."""
+        if self.color_palette:
+            normalized = []
+            for item in self.color_palette:
+                if isinstance(item, dict):
+                    name = item.get('name', item.get('color_name', ''))
+                    hex_val = item.get('hex', item.get('color_code', ''))
+                    normalized.append({
+                        'name': name,
+                        'hex': hex_val,
+                        'color_name': name,
+                        'color_code': hex_val,
+                    })
+                else:
+                    normalized.append(item)
+            self.color_palette = normalized
+        return self
+
     @computed_field
     @property
     def theme_description(self) -> Optional[str]:

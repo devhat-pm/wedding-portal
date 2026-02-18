@@ -4,6 +4,9 @@
 .env.*.local
 *.env
 
+# Deploy script (contains secrets)
+deploy.sh
+
 # Python
 __pycache__/
 *.py[cod]
@@ -79,3 +82,4 @@ credentials.json
 
 # ESLint cache
 .eslintcache
+aws-credentials.txt
