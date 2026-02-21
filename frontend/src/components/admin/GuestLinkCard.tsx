@@ -1,5 +1,5 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { Card, Button, Input, Typography, Tooltip, message, Modal, QRCode, Space } from 'antd';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { Card, Button, Input, Typography, Tooltip, message, Modal, QRCode } from 'antd';
 import {
   CopyOutlined,
   WhatsAppOutlined,
@@ -8,6 +8,7 @@ import {
   CheckOutlined,
   LinkOutlined,
   MessageOutlined,
+  CloseOutlined,
 } from '@ant-design/icons';
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
@@ -46,7 +47,6 @@ const generateInvitationMessage = (guestName: string, wedding: Wedding | null | 
 
 // Try clipboard copy - returns true only if it actually worked
 const tryCopy = async (text: string): Promise<boolean> => {
-  // Only use clipboard API on secure context (HTTPS/localhost)
   if (navigator.clipboard && window.isSecureContext) {
     try {
       await navigator.clipboard.writeText(text);
@@ -235,18 +235,41 @@ const MessagePreviewBox = styled.div`
   color: ${colors.textPrimary};
 `;
 
-const CopyModalContent = styled.div`
+// Inline copy box - replaces Modal to avoid nested-modal freeze
+const InlineCopyBox = styled.div`
+  margin-top: 16px;
+  border: 1px solid ${colors.borderGold};
+  border-radius: ${borderRadius.md}px;
+  background: ${colors.creamLight};
+  overflow: hidden;
+
+  .copy-box-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, ${colors.goldPale} 0%, ${colors.creamLight} 100%);
+    border-bottom: 1px solid ${colors.borderGold};
+    font-size: 13px;
+    font-weight: 600;
+    color: ${colors.textPrimary};
+  }
+
+  .copy-box-body {
+    padding: 12px 14px;
+  }
+
   .copy-textarea {
     width: 100%;
-    min-height: 120px;
-    padding: 12px;
+    min-height: 80px;
+    padding: 10px;
     border: 1px solid ${colors.creamDark};
     border-radius: ${borderRadius.md}px;
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 13px;
     line-height: 1.5;
     resize: none;
-    background: ${colors.creamLight};
+    background: white;
     color: ${colors.textPrimary};
     outline: none;
 
@@ -257,12 +280,12 @@ const CopyModalContent = styled.div`
   }
 
   .copy-hint {
-    margin-top: 12px;
-    padding: 10px 14px;
+    margin-top: 8px;
+    padding: 8px 12px;
     background: #FFF8E1;
     border: 1px solid #FFE082;
     border-radius: ${borderRadius.md}px;
-    font-size: 13px;
+    font-size: 12px;
     color: #F57F17;
     text-align: center;
     font-weight: 500;
@@ -280,27 +303,30 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
-  const [copyModalOpen, setCopyModalOpen] = useState(false);
-  const [copyModalText, setCopyModalText] = useState('');
-  const [copyModalTitle, setCopyModalTitle] = useState('');
+  const [copyBoxText, setCopyBoxText] = useState('');
+  const [copyBoxTitle, setCopyBoxTitle] = useState('');
+  const [copyBoxOpen, setCopyBoxOpen] = useState(false);
   const copyTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const baseUrl = window.location.origin;
   const fullUrl = `${baseUrl}/guest/${uniqueToken}`;
   const invitationMessage = generateInvitationMessage(guestName, wedding, fullUrl);
 
-  // Show copy modal with text - used as fallback when clipboard API unavailable
-  const showCopyModal = useCallback((text: string, title: string) => {
-    setCopyModalText(text);
-    setCopyModalTitle(title);
-    setCopyModalOpen(true);
-    // Auto-select text after modal renders
-    setTimeout(() => {
-      if (copyTextareaRef.current) {
-        copyTextareaRef.current.focus();
-        copyTextareaRef.current.select();
-      }
-    }, 100);
+  // Auto-select text when copy box opens
+  useEffect(() => {
+    if (copyBoxOpen && copyTextareaRef.current) {
+      const timer = setTimeout(() => {
+        copyTextareaRef.current?.focus();
+        copyTextareaRef.current?.select();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [copyBoxOpen]);
+
+  const showCopyBox = useCallback((text: string, title: string) => {
+    setCopyBoxText(text);
+    setCopyBoxTitle(title);
+    setCopyBoxOpen(true);
   }, []);
 
   const handleCopyMessageAndLink = async () => {
@@ -310,8 +336,7 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
       message.success('Message & link copied!');
       setTimeout(() => setCopied(false), 2000);
     } else {
-      // Show copy modal as fallback
-      showCopyModal(invitationMessage, 'Copy Invitation Message');
+      showCopyBox(invitationMessage, 'Copy Invitation Message');
     }
   };
 
@@ -322,8 +347,7 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
       message.success('Link copied!');
       setTimeout(() => setCopiedLink(false), 2000);
     } else {
-      // Show copy modal as fallback
-      showCopyModal(fullUrl, 'Copy Guest Portal Link');
+      showCopyBox(fullUrl, 'Copy Guest Portal Link');
     }
   };
 
@@ -339,36 +363,66 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
   };
 
-  const handleCopyModalClose = () => {
-    setCopyModalOpen(false);
-    setCopyModalText('');
+  // Inline copy area component - used in both compact and full modes
+  const renderCopyBox = () => {
+    if (!copyBoxOpen) return null;
+    return (
+      <InlineCopyBox>
+        <div className="copy-box-header">
+          <span>{copyBoxTitle}</span>
+          <Button
+            type="text"
+            size="small"
+            icon={<CloseOutlined />}
+            onClick={() => setCopyBoxOpen(false)}
+            style={{ color: colors.textSecondary }}
+          />
+        </div>
+        <div className="copy-box-body">
+          <textarea
+            ref={copyTextareaRef}
+            className="copy-textarea"
+            value={copyBoxText}
+            readOnly
+            rows={copyBoxText.length > 100 ? 5 : 2}
+            onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+          />
+          <div className="copy-hint">
+            Select all text above and press <strong>Ctrl+C</strong> (or <strong>Cmd+C</strong> on Mac) to copy
+          </div>
+        </div>
+      </InlineCopyBox>
+    );
   };
 
   if (compact) {
     return (
-      <CompactWrapper className={className}>
-        <Text
-          style={{ fontFamily: 'monospace', fontSize: 12, color: colors.textSecondary }}
-        >
-          {uniqueToken.slice(0, 8)}...
-        </Text>
-        <Tooltip title="Copy link">
-          <Button
-            type="text"
-            size="small"
-            icon={<CopyOutlined style={{ color: colors.primary }} />}
-            onClick={handleCopyLinkOnly}
-          />
-        </Tooltip>
-        <Tooltip title="Share via WhatsApp">
-          <Button
-            type="text"
-            size="small"
-            icon={<WhatsAppOutlined style={{ color: '#25D366' }} />}
-            onClick={handleWhatsAppShare}
-          />
-        </Tooltip>
-      </CompactWrapper>
+      <div className={className}>
+        <CompactWrapper>
+          <Text
+            style={{ fontFamily: 'monospace', fontSize: 12, color: colors.textSecondary }}
+          >
+            {uniqueToken.slice(0, 8)}...
+          </Text>
+          <Tooltip title="Copy link">
+            <Button
+              type="text"
+              size="small"
+              icon={<CopyOutlined style={{ color: colors.primary }} />}
+              onClick={handleCopyLinkOnly}
+            />
+          </Tooltip>
+          <Tooltip title="Share via WhatsApp">
+            <Button
+              type="text"
+              size="small"
+              icon={<WhatsAppOutlined style={{ color: '#25D366' }} />}
+              onClick={handleWhatsAppShare}
+            />
+          </Tooltip>
+        </CompactWrapper>
+        {renderCopyBox()}
+      </div>
     );
   }
 
@@ -436,36 +490,9 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
             </ShareButton>
           )}
         </ShareButtonsWrapper>
-      </StyledCard>
 
-      {/* Copy text modal - fallback for HTTP where clipboard API doesn't work */}
-      <Modal
-        title={copyModalTitle}
-        open={copyModalOpen}
-        onCancel={handleCopyModalClose}
-        centered
-        width={500}
-        getContainer={false}
-        footer={[
-          <Button key="close" type="primary" onClick={handleCopyModalClose}>
-            Done
-          </Button>,
-        ]}
-      >
-        <CopyModalContent>
-          <textarea
-            ref={copyTextareaRef}
-            className="copy-textarea"
-            value={copyModalText}
-            readOnly
-            rows={copyModalText.length > 100 ? 6 : 2}
-            onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-          />
-          <div className="copy-hint">
-            Select all text above and press <strong>Ctrl+C</strong> (or <strong>Cmd+C</strong> on Mac) to copy
-          </div>
-        </CopyModalContent>
-      </Modal>
+        {renderCopyBox()}
+      </StyledCard>
 
       <QRCodeModal
         title={`QR Code for ${guestName}`}
@@ -480,7 +507,6 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
             key="download"
             type="primary"
             onClick={() => {
-              // Download QR code as image
               const canvas = document.querySelector('.ant-qrcode canvas') as HTMLCanvasElement;
               if (canvas) {
                 const link = document.createElement('a');
