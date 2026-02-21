@@ -450,7 +450,8 @@ const FoodSection: React.FC = () => {
 
   if (!portalData) return null;
 
-  const { food_menus, food_preference } = portalData;
+  const food_menus = portalData.food_menus || [];
+  const food_preference = portalData.food_preference;
 
   return (
     <SectionWrapper>

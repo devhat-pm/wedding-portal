@@ -549,7 +549,7 @@ const DressCodeSection: React.FC = () => {
 
   if (!portalData) return null;
 
-  const { dress_codes } = portalData;
+  const dress_codes = portalData.dress_codes || [];
 
   return (
     <SectionWrapper>

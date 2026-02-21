@@ -443,7 +443,7 @@ const HotelSection: React.FC = () => {
 
   if (!portalData) return null;
 
-  const { suggested_hotels } = portalData;
+  const suggested_hotels = portalData.suggested_hotels || [];
   // Backend returns hotel_info, fallback to hotel_preference for compatibility
   const hotel_preference = portalData.hotel_info || portalData.hotel_preference;
 
