@@ -445,6 +445,7 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
         onCancel={handleCopyModalClose}
         centered
         width={500}
+        getContainer={false}
         footer={[
           <Button key="close" type="primary" onClick={handleCopyModalClose}>
             Done
@@ -470,6 +471,7 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
         title={`QR Code for ${guestName}`}
         open={qrModalOpen}
         onCancel={() => setQrModalOpen(false)}
+        getContainer={false}
         footer={[
           <Button key="close" onClick={() => setQrModalOpen(false)}>
             Close
