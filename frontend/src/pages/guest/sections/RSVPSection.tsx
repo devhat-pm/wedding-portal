@@ -373,20 +373,6 @@ const PhoneInputWrapper = styled.div`
   .ant-select {
     width: 110px;
     flex-shrink: 0;
-
-    .ant-select-selector {
-      height: 48px !important;
-      border-radius: ${borderRadius.md}px !important;
-      border-color: ${colors.creamDark} !important;
-      background: ${colors.creamLight} !important;
-      display: flex;
-      align-items: center;
-    }
-
-    &.ant-select-focused .ant-select-selector {
-      border-color: ${colors.primary} !important;
-      box-shadow: 0 0 0 2px rgba(183, 168, 154, 0.15) !important;
-    }
   }
 
   .ant-input {
@@ -627,17 +613,30 @@ const RSVPSection: React.FC = () => {
       setRsvpStatus(guest.rsvp_status as RSVPStatus || 'pending');
       setAttendeeCount(guestData.number_of_attendees || guest.number_of_guests || 1);
 
-      // Parse phone number
+      // Parse phone number - handle double country codes (e.g. "+971+923045958258")
       const phone = guest.phone || '';
+      let parsedCode = '';
+      let localNumber = phone;
+
       const matchedCode = COUNTRY_CODES.find((c) => phone.startsWith(c.value));
       if (matchedCode) {
-        setCountryCode(matchedCode.value);
-        form.setFieldsValue({
-          phone: phone.replace(matchedCode.value, ''),
-        });
-      } else {
-        form.setFieldsValue({ phone });
+        parsedCode = matchedCode.value;
+        localNumber = phone.slice(matchedCode.value.length);
+
+        // If remaining part starts with '+', there's a double country code
+        if (localNumber.startsWith('+')) {
+          const innerMatch = COUNTRY_CODES.find((c) => localNumber.startsWith(c.value));
+          if (innerMatch) {
+            parsedCode = innerMatch.value;
+            localNumber = localNumber.slice(innerMatch.value.length);
+          }
+        }
       }
+
+      if (parsedCode) {
+        setCountryCode(parsedCode);
+      }
+      form.setFieldsValue({ phone: localNumber });
 
       // Handle both API formats: full_name or first_name/last_name
       let firstName = guest.first_name || '';
