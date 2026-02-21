@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Card, Button, Input, Typography, Tooltip, message, Modal, QRCode, Space } from 'antd';
 import {
   CopyOutlined,
@@ -12,7 +12,6 @@ import {
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
 import { colors, shadows, borderRadius } from '../../styles/theme';
-import { copyToClipboard, formatDate } from '../../utils/helpers';
 import type { Wedding } from '../../types/wedding.types';
 
 const { Text, Paragraph } = Typography;
@@ -43,6 +42,20 @@ const generateInvitationMessage = (guestName: string, wedding: Wedding | null | 
     .replace(/{venue_name}/g, venueName);
 
   return `${msg}\n\n${link}`;
+};
+
+// Try clipboard copy - returns true only if it actually worked
+const tryCopy = async (text: string): Promise<boolean> => {
+  // Only use clipboard API on secure context (HTTPS/localhost)
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
 };
 
 const StyledCard = styled(Card)<{ $compact: boolean }>`
@@ -222,6 +235,40 @@ const MessagePreviewBox = styled.div`
   color: ${colors.textPrimary};
 `;
 
+const CopyModalContent = styled.div`
+  .copy-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    border: 1px solid ${colors.creamDark};
+    border-radius: ${borderRadius.md}px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: none;
+    background: ${colors.creamLight};
+    color: ${colors.textPrimary};
+    outline: none;
+
+    &:focus {
+      border-color: ${colors.primary};
+      box-shadow: 0 0 0 2px rgba(183, 168, 154, 0.2);
+    }
+  }
+
+  .copy-hint {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #FFF8E1;
+    border: 1px solid #FFE082;
+    border-radius: ${borderRadius.md}px;
+    font-size: 13px;
+    color: #F57F17;
+    text-align: center;
+    font-weight: 500;
+  }
+`;
+
 const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
   guestName,
   uniqueToken,
@@ -233,30 +280,50 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [copyModalText, setCopyModalText] = useState('');
+  const [copyModalTitle, setCopyModalTitle] = useState('');
+  const copyTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const baseUrl = window.location.origin;
   const fullUrl = `${baseUrl}/guest/${uniqueToken}`;
   const invitationMessage = generateInvitationMessage(guestName, wedding, fullUrl);
 
+  // Show copy modal with text - used as fallback when clipboard API unavailable
+  const showCopyModal = useCallback((text: string, title: string) => {
+    setCopyModalText(text);
+    setCopyModalTitle(title);
+    setCopyModalOpen(true);
+    // Auto-select text after modal renders
+    setTimeout(() => {
+      if (copyTextareaRef.current) {
+        copyTextareaRef.current.focus();
+        copyTextareaRef.current.select();
+      }
+    }, 100);
+  }, []);
+
   const handleCopyMessageAndLink = async () => {
-    const ok = await copyToClipboard(invitationMessage);
+    const ok = await tryCopy(invitationMessage);
     if (ok) {
       setCopied(true);
       message.success('Message & link copied!');
       setTimeout(() => setCopied(false), 2000);
     } else {
-      message.error('Failed to copy');
+      // Show copy modal as fallback
+      showCopyModal(invitationMessage, 'Copy Invitation Message');
     }
   };
 
   const handleCopyLinkOnly = async () => {
-    const ok = await copyToClipboard(fullUrl);
+    const ok = await tryCopy(fullUrl);
     if (ok) {
       setCopiedLink(true);
       message.success('Link copied!');
       setTimeout(() => setCopiedLink(false), 2000);
     } else {
-      message.error('Failed to copy link');
+      // Show copy modal as fallback
+      showCopyModal(fullUrl, 'Copy Guest Portal Link');
     }
   };
 
@@ -270,6 +337,11 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
     const subject = encodeURIComponent(`Wedding Invitation from ${coupleNames}`);
     const body = encodeURIComponent(invitationMessage);
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+  };
+
+  const handleCopyModalClose = () => {
+    setCopyModalOpen(false);
+    setCopyModalText('');
   };
 
   if (compact) {
@@ -365,6 +437,34 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
           )}
         </ShareButtonsWrapper>
       </StyledCard>
+
+      {/* Copy text modal - fallback for HTTP where clipboard API doesn't work */}
+      <Modal
+        title={copyModalTitle}
+        open={copyModalOpen}
+        onCancel={handleCopyModalClose}
+        centered
+        width={500}
+        footer={[
+          <Button key="close" type="primary" onClick={handleCopyModalClose}>
+            Done
+          </Button>,
+        ]}
+      >
+        <CopyModalContent>
+          <textarea
+            ref={copyTextareaRef}
+            className="copy-textarea"
+            value={copyModalText}
+            readOnly
+            rows={copyModalText.length > 100 ? 6 : 2}
+            onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+          />
+          <div className="copy-hint">
+            Select all text above and press <strong>Ctrl+C</strong> (or <strong>Cmd+C</strong> on Mac) to copy
+          </div>
+        </CopyModalContent>
+      </Modal>
 
       <QRCodeModal
         title={`QR Code for ${guestName}`}
