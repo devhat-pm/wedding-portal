@@ -411,6 +411,10 @@ const HotelSection: React.FC = () => {
     }
   }, [portalData, form]);
 
+  const disabledDate = (current: dayjs.Dayjs) => {
+    return current && current.isBefore(dayjs().startOf('day'));
+  };
+
   const handleHotelSelect = (hotel: SuggestedHotel) => {
     setSelectedHotel(hotel);
   };
@@ -664,6 +668,7 @@ const HotelSection: React.FC = () => {
                               style={{ width: '100%' }}
                               size="large"
                               format="MMMM D, YYYY"
+                              disabledDate={disabledDate}
                             />
                           </Form.Item>
                         </Col>
@@ -677,6 +682,7 @@ const HotelSection: React.FC = () => {
                               style={{ width: '100%' }}
                               size="large"
                               format="MMMM D, YYYY"
+                              disabledDate={disabledDate}
                             />
                           </Form.Item>
                         </Col>
@@ -771,6 +777,7 @@ const HotelSection: React.FC = () => {
                             style={{ width: '100%' }}
                             size="large"
                             format="MMMM D, YYYY"
+                            disabledDate={disabledDate}
                           />
                         </Form.Item>
                       </Col>
@@ -784,6 +791,7 @@ const HotelSection: React.FC = () => {
                             style={{ width: '100%' }}
                             size="large"
                             format="MMMM D, YYYY"
+                            disabledDate={disabledDate}
                           />
                         </Form.Item>
                       </Col>

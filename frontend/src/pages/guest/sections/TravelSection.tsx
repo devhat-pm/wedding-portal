@@ -118,28 +118,11 @@ const ToggleArabic = styled.div`
 `;
 
 const StyledSwitch = styled(Switch)`
-  && {
-    min-width: 44px;
-    height: 22px;
+  &&& {
     background: ${colors.creamDark};
-
-    .ant-switch-handle {
-      width: 18px;
-      height: 18px;
-      top: 2px;
-      inset-inline-start: 2px;
-
-      &::before {
-        border-radius: 50%;
-      }
-    }
 
     &.ant-switch-checked {
       background: ${colors.primary};
-
-      .ant-switch-handle {
-        inset-inline-start: calc(100% - 20px);
-      }
     }
   }
 `;

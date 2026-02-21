@@ -371,8 +371,22 @@ const PhoneInputWrapper = styled.div`
   gap: 8px;
 
   .ant-select {
-    width: 120px;
+    width: 110px;
     flex-shrink: 0;
+
+    .ant-select-selector {
+      height: 48px !important;
+      border-radius: ${borderRadius.md}px !important;
+      border-color: ${colors.creamDark} !important;
+      background: ${colors.creamLight} !important;
+      display: flex;
+      align-items: center;
+    }
+
+    &.ant-select-focused .ant-select-selector {
+      border-color: ${colors.primary} !important;
+      box-shadow: 0 0 0 2px rgba(183, 168, 154, 0.15) !important;
+    }
   }
 
   .ant-input {
@@ -579,6 +593,13 @@ const COUNTRY_CODES = [
   { value: '+20', label: '+20' },
   { value: '+962', label: '+962' },
   { value: '+961', label: '+961' },
+  { value: '+92', label: '+92' },
+  { value: '+91', label: '+91' },
+  { value: '+90', label: '+90' },
+  { value: '+98', label: '+98' },
+  { value: '+33', label: '+33' },
+  { value: '+49', label: '+49' },
+  { value: '+61', label: '+61' },
   { value: '+1', label: '+1' },
   { value: '+44', label: '+44' },
 ];
