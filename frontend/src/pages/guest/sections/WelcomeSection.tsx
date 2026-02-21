@@ -468,8 +468,6 @@ const WelcomeSection: React.FC = () => {
             <CornerOrnament $position="bottom-left" />
             <CornerOrnament $position="bottom-right" />
 
-            <WelcomeTitle>Welcome</WelcomeTitle>
-            <WelcomeArabic>أهلاً وسهلاً</WelcomeArabic>
             <WelcomeMessage>{wedding.welcome_message}</WelcomeMessage>
           </WelcomeMessageCard>
         )}

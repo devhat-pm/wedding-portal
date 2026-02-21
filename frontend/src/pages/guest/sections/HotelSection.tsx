@@ -471,8 +471,8 @@ const HotelSection: React.FC = () => {
   return (
     <SectionWrapper>
       <SectionHeader
-        title="Accommodation"
-        arabicTitle="الإقامة"
+        title="Suggested Hotels"
+        arabicTitle="الفنادق المقترحة"
         subtitle="Let us know where you'll be staying during the wedding"
         icon={<BankOutlined />}
       />

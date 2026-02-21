@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Form, Input, Button, Typography, message, Row, Col } from 'antd';
+import { Modal, Form, Input, Select, Button, Typography, message, Row, Col } from 'antd';
 import {
   UserOutlined,
   MailOutlined,
@@ -87,10 +87,11 @@ const StyledForm = styled(Form)`
   }
 
   .ant-input,
-  .ant-input-affix-wrapper {
+  .ant-input-affix-wrapper,
+  .ant-select-selector {
     height: 44px;
-    border-radius: 6px;
-    border: 1px solid #D6C7B8;
+    border-radius: 6px !important;
+    border: 1px solid #D6C7B8 !important;
     font-size: 14px;
 
     &:hover {
@@ -154,6 +155,37 @@ const GuestNameDisplay = styled.div`
   color: ${colors.primary};
   margin-bottom: 24px;
 `;
+
+const COUNTRIES = [
+  'United Arab Emirates',
+  'Saudi Arabia',
+  'Kuwait',
+  'Bahrain',
+  'Qatar',
+  'Oman',
+  'Egypt',
+  'Jordan',
+  'Lebanon',
+  'Iraq',
+  'Syria',
+  'Palestine',
+  'Morocco',
+  'Tunisia',
+  'Algeria',
+  'Libya',
+  'Sudan',
+  'Yemen',
+  'United States',
+  'United Kingdom',
+  'Canada',
+  'France',
+  'Germany',
+  'Australia',
+  'India',
+  'Pakistan',
+  'Turkey',
+  'Iran',
+];
 
 interface FormValues {
   firstName: string;
@@ -289,12 +321,19 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({ open, onClose, onSuccess 
                 />
               </Form.Item>
 
-              <Form.Item name="country" label="Country" style={{ marginBottom: 0 }}>
-                <Input
-                  prefix={<GlobalOutlined />}
-                  placeholder="Country (optional)"
+              <Form.Item name="country" label="Country">
+                <Select
+                  placeholder="Select country (optional)"
+                  allowClear
+                  showSearch
+                  suffixIcon={<GlobalOutlined />}
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={COUNTRIES.map((c) => ({ value: c, label: c }))}
                 />
               </Form.Item>
+
             </StyledForm>
           </motion.div>
         ) : (

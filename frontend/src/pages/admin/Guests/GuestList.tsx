@@ -559,12 +559,6 @@ const GuestList: React.FC = () => {
       render: (phone) => phone || <Text type="secondary">-</Text>,
     },
     {
-      title: 'Country',
-      key: 'country',
-      width: 120,
-      render: (_, record) => (record as any).country_of_origin || record.country || <Text type="secondary">-</Text>,
-    },
-    {
       title: 'Travel',
       key: 'has_travel_info',
       width: 80,

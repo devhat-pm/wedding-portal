@@ -133,21 +133,32 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
   }
 
   // Fallback: textarea + execCommand for HTTP contexts
-  const textarea = document.createElement('textarea');
-  textarea.value = text;
-  textarea.style.position = 'fixed';
-  textarea.style.left = '-9999px';
-  textarea.style.top = '-9999px';
-  document.body.appendChild(textarea);
-  textarea.focus();
-  textarea.select();
   try {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    // Must be visible enough for selection to work, but off-screen
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '0';
+    textarea.style.top = '0';
+    textarea.style.width = '1px';
+    textarea.style.height = '1px';
+    textarea.style.padding = '0';
+    textarea.style.border = 'none';
+    textarea.style.outline = 'none';
+    textarea.style.boxShadow = 'none';
+    textarea.style.background = 'transparent';
+    textarea.style.opacity = '0.01';
+    textarea.style.zIndex = '99999';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, text.length);
     const ok = document.execCommand('copy');
+    document.body.removeChild(textarea);
     return ok;
   } catch {
     return false;
-  } finally {
-    document.body.removeChild(textarea);
   }
 };
 

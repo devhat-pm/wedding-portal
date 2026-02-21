@@ -379,8 +379,8 @@ const GuestDetail: React.FC = () => {
     if (guestData.created_at) {
       activityTimeline.push({ time: guestData.created_at, action: 'Guest added to system', type: 'access' });
     }
-    if (guestData.last_portal_access) {
-      activityTimeline.push({ time: guestData.last_portal_access, action: 'Portal accessed', type: 'access' });
+    if (guestData.last_accessed_at) {
+      activityTimeline.push({ time: guestData.last_accessed_at, action: 'Portal last accessed', type: 'access' });
     }
     if (guestData.rsvp_submitted_at) {
       activityTimeline.push({
@@ -390,10 +390,10 @@ const GuestDetail: React.FC = () => {
       });
     }
     if (guestData.travel_info) {
-      activityTimeline.push({ time: guestData.travel_info.updated_at || guestData.travel_info.created_at || guestData.rsvp_submitted_at || '', action: 'Travel information submitted', type: 'travel' });
+      activityTimeline.push({ time: guestData.travel_info.updated_at || guestData.rsvp_submitted_at || guestData.created_at || '', action: 'Travel information submitted', type: 'travel' });
     }
     if (guestData.hotel_info) {
-      activityTimeline.push({ time: guestData.hotel_info.updated_at || guestData.hotel_info.created_at || '', action: 'Hotel preference saved', type: 'hotel' });
+      activityTimeline.push({ time: guestData.hotel_info.updated_at || guestData.rsvp_submitted_at || guestData.created_at || '', action: 'Hotel preference saved', type: 'hotel' });
     }
   }
   activityTimeline.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
@@ -574,9 +574,38 @@ const GuestDetail: React.FC = () => {
                     <Input.TextArea rows={2} placeholder="Any dietary restrictions..." />
                   </Form.Item>
 
-                  <Form.Item name="notes" label="Admin Notes">
-                    <Input.TextArea rows={3} placeholder="Internal notes about this guest..." />
+                  <Form.Item name="notes" label="Special Requests">
+                    <Input.TextArea rows={3} placeholder="Special requests from the guest..." />
                   </Form.Item>
+
+                  {/* Guest-submitted fields (read-only) */}
+                  {!editMode && (guest as any).song_requests && (
+                    <InfoCard>
+                      <InfoCardHeader>
+                        <InfoCardIcon $color={colors.primary}>
+                          <HeartOutlined />
+                        </InfoCardIcon>
+                        <div>
+                          <Text strong>Song Requests</Text>
+                        </div>
+                      </InfoCardHeader>
+                      <Paragraph style={{ marginBottom: 0 }}>{(guest as any).song_requests}</Paragraph>
+                    </InfoCard>
+                  )}
+
+                  {!editMode && (guest as any).notes_to_couple && (
+                    <InfoCard>
+                      <InfoCardHeader>
+                        <InfoCardIcon $color={colors.secondary}>
+                          <HeartOutlined />
+                        </InfoCardIcon>
+                        <div>
+                          <Text strong>Notes to the Couple</Text>
+                        </div>
+                      </InfoCardHeader>
+                      <Paragraph style={{ marginBottom: 0 }}>{(guest as any).notes_to_couple}</Paragraph>
+                    </InfoCard>
+                  )}
                 </Form>
               </Col>
 

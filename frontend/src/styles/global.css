@@ -739,6 +739,27 @@ a:hover {
   box-shadow: 0 0 0 2px rgba(183, 168, 154, 0.2) !important;
 }
 
+/* Ant Design Switch Fix */
+.ant-switch {
+  min-width: 44px;
+  height: 22px;
+}
+
+.ant-switch .ant-switch-handle {
+  width: 18px;
+  height: 18px;
+  top: 2px;
+  inset-inline-start: 2px;
+}
+
+.ant-switch .ant-switch-handle::before {
+  border-radius: 50%;
+}
+
+.ant-switch.ant-switch-checked .ant-switch-handle {
+  inset-inline-start: calc(100% - 20px);
+}
+
 /* Print Styles */
 @media print {
   .no-print,

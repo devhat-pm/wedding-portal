@@ -119,8 +119,27 @@ const ToggleArabic = styled.div`
 
 const StyledSwitch = styled(Switch)`
   && {
+    min-width: 44px;
+    height: 22px;
+    background: ${colors.creamDark};
+
+    .ant-switch-handle {
+      width: 18px;
+      height: 18px;
+      top: 2px;
+      inset-inline-start: 2px;
+
+      &::before {
+        border-radius: 50%;
+      }
+    }
+
     &.ant-switch-checked {
       background: ${colors.primary};
+
+      .ant-switch-handle {
+        inset-inline-start: calc(100% - 20px);
+      }
     }
   }
 `;
@@ -371,6 +390,10 @@ const TravelSection: React.FC = () => {
     }
   }, [portalData, form]);
 
+  const disabledDate = (current: dayjs.Dayjs) => {
+    return current && current.isBefore(dayjs().startOf('day'));
+  };
+
   const handleAirlineSearch = (searchText: string) => {
     const filtered = MAJOR_AIRLINES.filter((airline) =>
       airline.toLowerCase().includes(searchText.toLowerCase())
@@ -431,8 +454,8 @@ const TravelSection: React.FC = () => {
   return (
     <SectionWrapper>
       <SectionHeader
-        title="Travel Information"
-        arabicTitle="معلومات السفر"
+        title="Arrival Information"
+        arabicTitle="معلومات الوصول"
         subtitle="Let us know your travel plans so we can help coordinate your arrival"
         icon={<span style={{ fontSize: 24 }}>✈️</span>}
       />
@@ -447,7 +470,7 @@ const TravelSection: React.FC = () => {
               <SavedIcon>
                 <CheckCircleFilled />
               </SavedIcon>
-              <SavedLabel>Travel Details Saved</SavedLabel>
+              <SavedLabel>Arrival Details Saved</SavedLabel>
             </SavedInfoTitle>
             <Button
               icon={<EditOutlined />}
@@ -581,6 +604,7 @@ const TravelSection: React.FC = () => {
                             style={{ width: '100%' }}
                             size="large"
                             format="MMMM D, YYYY"
+                            disabledDate={disabledDate}
                           />
                         </Form.Item>
                       </Col>
@@ -614,6 +638,7 @@ const TravelSection: React.FC = () => {
                             style={{ width: '100%' }}
                             size="large"
                             format="MMMM D, YYYY"
+                            disabledDate={disabledDate}
                           />
                         </Form.Item>
                       </Col>
@@ -721,6 +746,7 @@ const TravelSection: React.FC = () => {
                             style={{ width: '100%' }}
                             size="large"
                             format="MMMM D, YYYY"
+                            disabledDate={disabledDate}
                           />
                         </Form.Item>
                       </Col>
@@ -747,7 +773,7 @@ const TravelSection: React.FC = () => {
               onClick={handleSubmit}
               icon={<CheckCircleFilled />}
             >
-              Save Travel Information
+              Save Arrival Information
             </SubmitButton>
           </StyledForm>
         </FormCard>

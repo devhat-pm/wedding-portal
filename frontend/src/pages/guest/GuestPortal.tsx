@@ -30,8 +30,8 @@ interface SectionConfig {
 const SECTIONS: SectionConfig[] = [
   { key: 'welcome', label: 'Welcome', arabicLabel: 'أهلاً', icon: <HomeOutlined />, component: WelcomeSection },
   { key: 'rsvp', label: 'RSVP', arabicLabel: 'تأكيد الحضور', icon: <SendOutlined />, component: RSVPSection },
-  { key: 'travel', label: 'Travel', arabicLabel: 'السفر', icon: <CarOutlined />, component: TravelSection },
-  { key: 'hotel', label: 'Hotel', arabicLabel: 'الفندق', icon: <BankOutlined />, component: HotelSection },
+  { key: 'travel', label: 'Arrival', arabicLabel: 'الوصول', icon: <CarOutlined />, component: TravelSection },
+  { key: 'hotel', label: 'Suggested Hotels', arabicLabel: 'الفنادق المقترحة', icon: <BankOutlined />, component: HotelSection },
 ];
 
 // Styled components
@@ -441,6 +441,13 @@ const PortalContent: React.FC = () => {
     (weddingData.groom_name && weddingData.bride_name
       ? `${weddingData.groom_name} & ${weddingData.bride_name}`
       : 'Wedding Portal');
+
+  // Set document title to couple names
+  useEffect(() => {
+    if (coupleNames) {
+      document.title = coupleNames;
+    }
+  }, [coupleNames]);
 
   // Get completion status for sections (excluding welcome)
   const getSectionCompletion = (key: string) => {

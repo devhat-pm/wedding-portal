@@ -583,11 +583,6 @@ const COUNTRY_CODES = [
   { value: '+44', label: '+44' },
 ];
 
-const COUNTRIES = [
-  'UAE', 'Saudi Arabia', 'Kuwait', 'Bahrain', 'Qatar', 'Oman',
-  'Egypt', 'Jordan', 'Lebanon', 'Syria', 'Iraq', 'Palestine',
-  'USA', 'UK', 'Canada', 'Australia', 'Germany', 'France', 'Other',
-];
 
 type RSVPStatus = 'pending' | 'confirmed' | 'declined' | 'maybe';
 
@@ -635,7 +630,6 @@ const RSVPSection: React.FC = () => {
       form.setFieldsValue({
         first_name: firstName,
         last_name: lastName,
-        country: guest.country,
         special_requests: guest.special_requests,
         song_requests: guestData.song_requests || '',
         notes_to_couple: guestData.notes_to_couple || '',
@@ -681,7 +675,6 @@ const RSVPSection: React.FC = () => {
         rsvp_status: rsvpStatus,
         number_of_attendees: rsvpStatus === 'declined' ? 0 : attendeeCount,
         phone: countryCode + values.phone,
-        country: values.country,
         special_requests: values.special_requests,
         song_requests: values.song_requests,
         notes_to_couple: values.notes_to_couple,
@@ -864,14 +857,15 @@ const RSVPSection: React.FC = () => {
           )}
 
           <StyledForm form={form} layout="vertical" requiredMark={false}>
-            {/* 3. Contact Information */}
+            {/* 3. Contact Information - Hidden when declined */}
+            {rsvpStatus !== 'declined' && (
             <FormSection>
               <FormSectionTitle>Your Information</FormSectionTitle>
 
               <Form.Item
                 name="first_name"
                 label="First Name"
-                rules={[{ required: true, message: 'Please enter your first name' }]}
+                rules={[{ required: rsvpStatus !== 'declined', message: 'Please enter your first name' }]}
               >
                 <Input placeholder="First name" size="large" />
               </Form.Item>
@@ -879,15 +873,15 @@ const RSVPSection: React.FC = () => {
               <Form.Item
                 name="last_name"
                 label="Last Name"
-                rules={[{ required: true, message: 'Please enter your last name' }]}
+                rules={[{ required: rsvpStatus !== 'declined', message: 'Please enter your last name' }]}
               >
                 <Input placeholder="Last name" size="large" />
               </Form.Item>
 
               <Form.Item
-                name="phone"
                 label="Phone Number"
-                rules={[{ required: true, message: 'Please enter your phone number' }]}
+                required={rsvpStatus !== 'declined'}
+                style={{ marginBottom: 24 }}
               >
                 <PhoneInputWrapper>
                   <Select
@@ -896,22 +890,17 @@ const RSVPSection: React.FC = () => {
                     options={COUNTRY_CODES}
                     size="large"
                   />
-                  <Input placeholder="Phone number" size="large" />
+                  <Form.Item
+                    name="phone"
+                    noStyle
+                    rules={[{ required: rsvpStatus !== 'declined', message: 'Please enter your phone number' }]}
+                  >
+                    <Input placeholder="Phone number" size="large" />
+                  </Form.Item>
                 </PhoneInputWrapper>
               </Form.Item>
-
-              <Form.Item
-                name="country"
-                label="Country of Origin"
-              >
-                <Select
-                  placeholder="Select your country"
-                  size="large"
-                  showSearch
-                  options={COUNTRIES.map((c) => ({ value: c, label: c }))}
-                />
-              </Form.Item>
             </FormSection>
+            )}
 
             {/* 4. Activities Selection */}
             {rsvpStatus !== 'declined' && rsvpStatus !== 'pending' && signupActivities.length > 0 && (
@@ -930,7 +919,11 @@ const RSVPSection: React.FC = () => {
                       <ActivityCheckbox>
                         <Checkbox
                           checked={selectedActivities.has(activity.id)}
-                          onChange={() => toggleActivity(activity.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            toggleActivity(activity.id);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
                         />
                       </ActivityCheckbox>
                       <ActivityInfo>
@@ -1012,7 +1005,9 @@ const RSVPSection: React.FC = () => {
               </FormSection>
             )}
 
-            {/* 5. Song Requests */}
+            {/* 5. Song Requests - Hidden when declined */}
+            {rsvpStatus !== 'declined' && (
+            <>
             <FormSection>
               <FormSectionTitle>Song Requests</FormSectionTitle>
               <Form.Item name="song_requests">
@@ -1047,6 +1042,8 @@ const RSVPSection: React.FC = () => {
                 />
               </Form.Item>
             </FormSection>
+            </>
+            )}
           </StyledForm>
 
           {/* 8. Save Button */}

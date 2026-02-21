@@ -12,8 +12,6 @@ const AdminSettings = lazy(() => import('../pages/admin/Settings'));
 const GuestList = lazy(() => import('../pages/admin/Guests/GuestList'));
 const GuestDetail = lazy(() => import('../pages/admin/Guests/GuestDetail'));
 const HotelList = lazy(() => import('../pages/admin/Hotels/HotelList'));
-const DressCodeList = lazy(() => import('../pages/admin/DressCodes/DressCodeList'));
-const FoodMenuList = lazy(() => import('../pages/admin/FoodMenu/FoodMenuList'));
 const ActivityList = lazy(() => import('../pages/admin/Activities/ActivityList'));
 const MediaGallery = lazy(() => import('../pages/admin/Media/MediaGallery'));
 const ChatbotSettingsPage = lazy(() => import('../pages/admin/Chatbot/ChatbotSettingsPage'));
@@ -130,8 +128,6 @@ const AppRoutes: React.FC = () => {
 
         {/* Content Management */}
         <Route path="hotels" element={<HotelList />} />
-        <Route path="dress-codes" element={<DressCodeList />} />
-        <Route path="food-menu" element={<FoodMenuList />} />
         <Route path="activities" element={<ActivityList />} />
         <Route path="media" element={<MediaGallery />} />
 

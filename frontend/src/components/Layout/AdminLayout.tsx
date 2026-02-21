@@ -4,8 +4,6 @@ import {
   DashboardOutlined,
   TeamOutlined,
   HomeOutlined,
-  SkinOutlined,
-  CoffeeOutlined,
   CalendarOutlined,
   PictureOutlined,
   RobotOutlined,
@@ -280,17 +278,7 @@ const menuItems = [
   {
     key: '/admin/hotels',
     icon: <HomeOutlined />,
-    label: 'Hotels',
-  },
-  {
-    key: '/admin/dress-codes',
-    icon: <SkinOutlined />,
-    label: 'Dress Codes',
-  },
-  {
-    key: '/admin/food-menu',
-    icon: <CoffeeOutlined />,
-    label: 'Food Menu',
+    label: 'Suggested Hotels',
   },
   {
     key: '/admin/activities',
