@@ -91,7 +91,7 @@ const StyledForm = styled(Form)`
   .ant-select-selector {
     height: 44px;
     border-radius: 6px !important;
-    border: 1px solid #D6C7B8 !important;
+    border: 1px solid #D6C7B8;
     font-size: 14px;
 
     &:hover {
@@ -109,11 +109,11 @@ const StyledForm = styled(Form)`
 
     .ant-input {
       height: auto;
-      border: none;
-      box-shadow: none;
+      border: none !important;
+      box-shadow: none !important;
 
       &:focus {
-        box-shadow: none;
+        box-shadow: none !important;
       }
     }
 
