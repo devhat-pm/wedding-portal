@@ -18,7 +18,7 @@
   min-width: 44px;
 }
 
-button,
+button:not(.ant-switch),
 .ant-btn,
 .ant-input,
 .ant-select-selector,
