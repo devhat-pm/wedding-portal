@@ -19,7 +19,7 @@ class GuestDressPreference(Base):
     )
     guest_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("guests.id"),
+        ForeignKey("guests.id", ondelete="CASCADE"),
         nullable=False
     )
     dress_code_id: Mapped[uuid.UUID] = mapped_column(

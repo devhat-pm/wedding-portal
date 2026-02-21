@@ -23,7 +23,7 @@ class GuestFoodPreference(Base):
     )
     guest_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("guests.id"),
+        ForeignKey("guests.id", ondelete="CASCADE"),
         unique=True,
         nullable=False
     )

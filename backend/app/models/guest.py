@@ -51,13 +51,13 @@ class Guest(Base, TimestampMixin):
 
     # Relationships
     wedding: Mapped["Wedding"] = relationship("Wedding", back_populates="guests")
-    travel_info: Mapped["TravelInfo"] = relationship("TravelInfo", back_populates="guest", uselist=False)
-    hotel_info: Mapped["HotelInfo"] = relationship("HotelInfo", back_populates="guest", uselist=False)
-    dress_preferences: Mapped[list["GuestDressPreference"]] = relationship("GuestDressPreference", back_populates="guest")
-    food_preference: Mapped["GuestFoodPreference"] = relationship("GuestFoodPreference", back_populates="guest", uselist=False)
-    activities: Mapped[list["GuestActivity"]] = relationship("GuestActivity", back_populates="guest")
-    media_uploads: Mapped[list["MediaUpload"]] = relationship("MediaUpload", back_populates="guest")
-    invitations: Mapped[list["Invitation"]] = relationship("Invitation", back_populates="guest")
+    travel_info: Mapped["TravelInfo"] = relationship("TravelInfo", back_populates="guest", uselist=False, cascade="all, delete-orphan")
+    hotel_info: Mapped["HotelInfo"] = relationship("HotelInfo", back_populates="guest", uselist=False, cascade="all, delete-orphan")
+    dress_preferences: Mapped[list["GuestDressPreference"]] = relationship("GuestDressPreference", back_populates="guest", cascade="all, delete-orphan")
+    food_preference: Mapped["GuestFoodPreference"] = relationship("GuestFoodPreference", back_populates="guest", uselist=False, cascade="all, delete-orphan")
+    activities: Mapped[list["GuestActivity"]] = relationship("GuestActivity", back_populates="guest", cascade="all, delete-orphan")
+    media_uploads: Mapped[list["MediaUpload"]] = relationship("MediaUpload", back_populates="guest", cascade="all, delete-orphan")
+    invitations: Mapped[list["Invitation"]] = relationship("Invitation", back_populates="guest", cascade="all, delete-orphan")
 
 
 from app.models.wedding import Wedding

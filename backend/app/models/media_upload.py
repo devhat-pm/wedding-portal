@@ -28,7 +28,7 @@ class MediaUpload(Base):
     )
     guest_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("guests.id"),
+        ForeignKey("guests.id", ondelete="CASCADE"),
         nullable=False
     )
     file_type: Mapped[FileType] = mapped_column(SQLEnum(FileType), nullable=False)

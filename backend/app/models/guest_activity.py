@@ -20,7 +20,7 @@ class GuestActivity(Base):
     )
     guest_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("guests.id"),
+        ForeignKey("guests.id", ondelete="CASCADE"),
         nullable=False
     )
     activity_id: Mapped[uuid.UUID] = mapped_column(

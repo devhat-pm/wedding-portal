@@ -22,7 +22,7 @@ class ChatbotLog(Base):
     )
     guest_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("guests.id"),
+        ForeignKey("guests.id", ondelete="SET NULL"),
         nullable=True
     )
     session_id: Mapped[str] = mapped_column(String(100), nullable=False)
