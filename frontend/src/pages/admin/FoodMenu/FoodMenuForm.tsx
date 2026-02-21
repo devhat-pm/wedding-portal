@@ -362,6 +362,8 @@ const FoodMenuForm: React.FC<FoodMenuFormProps> = ({ open, foodMenu, onClose, on
       title={foodMenu ? 'Edit Food Menu' : 'Add Food Menu'}
       open={open}
       onCancel={handleClose}
+      destroyOnClose
+      maskClosable
       width={800}
       footer={[
         <Button key="cancel" onClick={handleClose}>

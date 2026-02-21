@@ -39,7 +39,8 @@ logger = logging.getLogger(__name__)
 from app.models import (
     Wedding, Guest, TravelInfo, HotelInfo, SuggestedHotel,
     DressCode, GuestDressPreference, FoodMenu, GuestFoodPreference,
-    Activity, GuestActivity, MediaUpload, Event, Invitation
+    Activity, GuestActivity, MediaUpload, Event, Invitation,
+    ChatbotSettings, ChatbotLog
 )
 from app.routers import (
     auth_router,
@@ -54,6 +55,7 @@ from app.routers import (
     chat_router,
     events_router,
     invitations_router,
+    chatbot_router,
 )
 from app.schemas.common import HealthResponse
 
@@ -224,6 +226,7 @@ app.include_router(guest_router)
 app.include_router(chat_router)
 app.include_router(events_router)
 app.include_router(invitations_router)
+app.include_router(chatbot_router)
 
 
 @app.get("/", tags=["Root"])

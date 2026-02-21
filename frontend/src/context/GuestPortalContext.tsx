@@ -6,18 +6,18 @@ import type {
   Wedding,
   GuestTravelInfo,
   GuestHotelPreference,
-  GuestDressPreference,
-  GuestFoodPreference,
   GuestActivityRegistration,
-  DressCode,
-  FoodMenu,
   Activity,
   SuggestedHotel,
   GuestPortalData,
   TravelInfo,
   HotelInfo,
-  DressCodeWithPreference,
   ActivityWithRegistration,
+  DressCode,
+  GuestDressPreference,
+  FoodMenu,
+  GuestFoodPreference,
+  DressCodeWithPreference,
 } from '../types';
 import * as guestPortalApi from '../services/guestPortal.api';
 
@@ -44,9 +44,6 @@ export interface SectionCompletion {
   rsvp: boolean;
   travel: boolean;
   hotel: boolean;
-  dress: boolean;
-  food: boolean;
-  activities: boolean;
 }
 
 interface GuestPortalContextType {
@@ -64,11 +61,6 @@ interface GuestPortalContextType {
   updateRSVP: (data: Partial<Guest>) => Promise<void>;
   updateTravelInfo: (data: Partial<GuestTravelInfo>) => Promise<void>;
   updateHotelPreference: (data: Partial<GuestHotelPreference>) => Promise<void>;
-  updateDressPreference: (dressCodeId: number, data: Partial<GuestDressPreference>) => Promise<void>;
-  updateFoodPreference: (data: Partial<GuestFoodPreference>) => Promise<void>;
-  registerForActivity: (activityId: number, data: { number_of_participants: number; notes?: string }) => Promise<void>;
-  unregisterFromActivity: (activityId: number) => Promise<void>;
-  updateActivityRegistration: (activityIds: number[]) => Promise<void>;
 
   // Refresh
   refreshPortalData: () => Promise<void>;
@@ -109,39 +101,27 @@ export const GuestPortalProvider: React.FC<GuestPortalProviderProps> = ({ childr
   });
 
   // Calculate section completion
-  // Check for dress preferences in dress_codes array (DressCodeWithPreference has guest_preference field)
-  const hasDressPreference = portalData?.dress_codes?.some(
-    (dc: any) => dc.guest_preference !== null && dc.guest_preference !== undefined
-  ) || false;
-
-  // Check for activity registrations in activities array (ActivityWithRegistration has is_registered field)
-  const hasActivityRegistration = portalData?.activities?.some(
-    (act: any) => act.is_registered === true
-  ) || (portalData?.activity_registrations?.length || 0) > 0;
-
   const sectionCompletion: SectionCompletion = {
     rsvp: portalData?.guest?.rsvp_status !== undefined && portalData?.guest?.rsvp_status !== 'pending',
     travel: !!portalData?.travel_info,
     hotel: !!portalData?.hotel_info || !!portalData?.hotel_preference,
-    dress: hasDressPreference || (portalData?.dress_preferences?.length || 0) > 0,
-    food: !!portalData?.food_preference,
-    activities: hasActivityRegistration,
   };
 
   const completedCount = Object.values(sectionCompletion).filter(Boolean).length;
-  const completionPercentage = Math.round((completedCount / 6) * 100);
+  const completionPercentage = Math.round((completedCount / 3) * 100);
 
   // Update RSVP mutation - calls real API
   const updateRSVPMutation = useMutation({
-    mutationFn: async (data: Partial<Guest> & { number_of_attendees?: number; special_requests?: string }) => {
-      // Map field names: frontend may send number_of_guests or number_of_attendees
-      // Backend expects: rsvp_status, phone, country, number_of_attendees, special_requests
+    mutationFn: async (data: Partial<Guest> & { number_of_attendees?: number; special_requests?: string; song_requests?: string; notes_to_couple?: string; activity_ids?: string[] }) => {
       const rsvpData = {
         rsvp_status: data.rsvp_status || 'confirmed',
         phone: data.phone,
         country: data.country,
         number_of_attendees: data.number_of_attendees || data.number_of_guests || 1,
         special_requests: data.special_requests || data.notes,
+        song_requests: data.song_requests,
+        notes_to_couple: data.notes_to_couple,
+        activity_ids: data.activity_ids,
       };
       return await guestPortalApi.updateRSVP(token, rsvpData);
     },
@@ -206,98 +186,6 @@ export const GuestPortalProvider: React.FC<GuestPortalProviderProps> = ({ childr
     },
   });
 
-  // Update dress preference mutation - calls real API
-  const updateDressMutation = useMutation({
-    mutationFn: async ({ dressCodeId, data }: { dressCodeId: number; data: Partial<GuestDressPreference> }) => {
-      const dressData = {
-        dress_code_id: dressCodeId.toString(),
-        planned_outfit_description: data.planned_outfit_description,
-        color_choice: data.color_choice,
-        needs_shopping_assistance: data.needs_shopping_assistance || false,
-        notes: data.notes,
-      };
-      return await guestPortalApi.updateDressPreference(token, dressData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portalData', token] });
-      message.success('Dress preference saved!');
-    },
-    onError: () => {
-      message.error('Failed to save dress preference.');
-    },
-  });
-
-  // Update food preference mutation - calls real API
-  const updateFoodMutation = useMutation({
-    mutationFn: async (data: Partial<GuestFoodPreference>) => {
-      const foodData = {
-        dietary_restrictions: data.dietary_restrictions,
-        allergies: data.allergies,
-        cuisine_preferences: data.cuisine_preferences,
-        special_requests: data.special_requests,
-        meal_size_preference: data.meal_size_preference,
-      };
-      return await guestPortalApi.updateFoodPreference(token, foodData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portalData', token] });
-      message.success('Food preferences saved!');
-    },
-    onError: () => {
-      message.error('Failed to save food preferences.');
-    },
-  });
-
-  // Activity registration mutations - calls real API
-  const registerActivityMutation = useMutation({
-    mutationFn: async ({ activityId, data }: { activityId: number; data: { number_of_participants: number; notes?: string } }) => {
-      return await guestPortalApi.registerActivity(token, activityId.toString(), {
-        number_of_participants: data.number_of_participants,
-        notes: data.notes,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portalData', token] });
-      message.success('Registered for activity!');
-    },
-    onError: () => {
-      message.error('Failed to register for activity.');
-    },
-  });
-
-  const unregisterActivityMutation = useMutation({
-    mutationFn: async (activityId: number) => {
-      return await guestPortalApi.unregisterActivity(token, activityId.toString());
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portalData', token] });
-      message.success('Unregistered from activity.');
-    },
-    onError: () => {
-      message.error('Failed to unregister from activity.');
-    },
-  });
-
-  // Update activity registration (array of IDs) - this is used for bulk updates
-  const updateActivityRegistrationMutation = useMutation({
-    mutationFn: async (activityIds: number[]) => {
-      // For bulk registration, we need to register/unregister individual activities
-      // This is a client-side optimization that syncs with current registrations
-      return activityIds;
-    },
-    onSuccess: (activityIds) => {
-      queryClient.setQueryData(['portalData', token], (old: PortalData | undefined) => {
-        if (!old) return old;
-        return {
-          ...old,
-          guest: { ...old.guest, registered_activities: activityIds },
-        };
-      });
-    },
-    onError: () => {
-      message.error('Failed to update activity registration.');
-    },
-  });
 
   // Handler functions
   const updateRSVP = useCallback(
@@ -321,41 +209,6 @@ export const GuestPortalProvider: React.FC<GuestPortalProviderProps> = ({ childr
     [updateHotelMutation]
   );
 
-  const updateDressPreference = useCallback(
-    async (dressCodeId: number, data: Partial<GuestDressPreference>) => {
-      await updateDressMutation.mutateAsync({ dressCodeId, data });
-    },
-    [updateDressMutation]
-  );
-
-  const updateFoodPreference = useCallback(
-    async (data: Partial<GuestFoodPreference>) => {
-      await updateFoodMutation.mutateAsync(data);
-    },
-    [updateFoodMutation]
-  );
-
-  const registerForActivity = useCallback(
-    async (activityId: number, data: { number_of_participants: number; notes?: string }) => {
-      await registerActivityMutation.mutateAsync({ activityId, data });
-    },
-    [registerActivityMutation]
-  );
-
-  const unregisterFromActivity = useCallback(
-    async (activityId: number) => {
-      await unregisterActivityMutation.mutateAsync(activityId);
-    },
-    [unregisterActivityMutation]
-  );
-
-  const updateActivityRegistration = useCallback(
-    async (activityIds: number[]) => {
-      await updateActivityRegistrationMutation.mutateAsync(activityIds);
-    },
-    [updateActivityRegistrationMutation]
-  );
-
   const refreshPortalData = useCallback(async () => {
     await refetch();
   }, [refetch]);
@@ -370,11 +223,6 @@ export const GuestPortalProvider: React.FC<GuestPortalProviderProps> = ({ childr
     updateRSVP,
     updateTravelInfo,
     updateHotelPreference,
-    updateDressPreference,
-    updateFoodPreference,
-    registerForActivity,
-    unregisterFromActivity,
-    updateActivityRegistration,
     refreshPortalData,
   };
 

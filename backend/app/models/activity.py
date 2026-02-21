@@ -1,6 +1,6 @@
 from sqlalchemy import String, Text, DateTime, Integer, Boolean, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSON
 from datetime import datetime
 import uuid
 
@@ -32,6 +32,10 @@ class Activity(Base):
     image_url: Mapped[str | None] = mapped_column(String, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     display_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    dress_code_info: Mapped[str | None] = mapped_column(Text, nullable=True)
+    dress_colors: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    food_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    dietary_options: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
     # Relationships
     wedding: Mapped["Wedding"] = relationship("Wedding", back_populates="activities")

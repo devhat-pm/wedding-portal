@@ -659,6 +659,8 @@ const MediaGallery: React.FC = () => {
         footer={null}
         width={800}
         centered
+        destroyOnClose
+        maskClosable
       >
         {previewItem && (
           <>

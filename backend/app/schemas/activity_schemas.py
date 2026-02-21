@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, computed_field, model_validator
-from typing import Optional, Any
+from typing import Optional, Any, List
 from datetime import datetime
 from uuid import UUID
 
@@ -19,6 +19,10 @@ class ActivityCreate(BaseModel):
     image_url: Optional[str] = None
     notes: Optional[str] = None
     display_order: Optional[int] = None
+    dress_code_info: Optional[str] = None
+    dress_colors: Optional[List[Any]] = None
+    food_description: Optional[str] = None
+    dietary_options: Optional[List[str]] = None
 
     @model_validator(mode='before')
     @classmethod
@@ -48,6 +52,10 @@ class ActivityUpdate(BaseModel):
     image_url: Optional[str] = None
     notes: Optional[str] = None
     display_order: Optional[int] = None
+    dress_code_info: Optional[str] = None
+    dress_colors: Optional[List[Any]] = None
+    food_description: Optional[str] = None
+    dietary_options: Optional[List[str]] = None
 
     @model_validator(mode='before')
     @classmethod
@@ -80,6 +88,10 @@ class ActivityResponse(BaseSchema):
     notes: Optional[str] = None
     display_order: Optional[int] = None
     participant_count: int = 0
+    dress_code_info: Optional[str] = None
+    dress_colors: Optional[List[Any]] = None
+    food_description: Optional[str] = None
+    dietary_options: Optional[List[str]] = None
 
     @computed_field
     @property

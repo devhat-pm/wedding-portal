@@ -58,6 +58,8 @@ export interface Guest {
   number_of_guests?: number;
   dietary_restrictions?: string;
   special_requests?: string;
+  song_requests?: string;
+  notes_to_couple?: string;
   guest_side?: 'bride' | 'groom' | 'both';
   is_vip?: boolean;
   table_number?: string;
@@ -84,6 +86,9 @@ export interface GuestRSVP {
   number_of_guests?: number;
   dietary_restrictions?: string;
   special_requests?: string;
+  song_requests?: string;
+  notes_to_couple?: string;
+  activity_ids?: string[];
 }
 
 // Guest list item for admin list (lighter version)
@@ -164,6 +169,8 @@ export interface GuestInfo {
   number_of_guests?: number;
   dietary_restrictions?: string;
   special_requests?: string;
+  song_requests?: string;
+  notes_to_couple?: string;
   guest_side?: 'bride' | 'groom' | 'both';
   is_vip?: boolean;
   table_number?: string;

@@ -7,9 +7,6 @@ import {
   SendOutlined,
   CarOutlined,
   BankOutlined,
-  SkinOutlined,
-  CoffeeOutlined,
-  StarOutlined,
   HomeOutlined,
 } from '@ant-design/icons';
 import { GuestPortalProvider, useGuestPortal } from '../../context/GuestPortalContext';
@@ -18,9 +15,7 @@ import WelcomeSection from './sections/WelcomeSection';
 import RSVPSection from './sections/RSVPSection';
 import TravelSection from './sections/TravelSection';
 import HotelSection from './sections/HotelSection';
-import DressCodeSection from './sections/DressCodeSection';
-import FoodSection from './sections/FoodSection';
-import ActivitiesSection from './sections/ActivitiesSection';
+import RadaChatbot from '../../components/chat/RadaChatbot';
 import { colors, shadows, borderRadius } from '../../styles/theme';
 
 // Section configuration
@@ -37,9 +32,6 @@ const SECTIONS: SectionConfig[] = [
   { key: 'rsvp', label: 'RSVP', arabicLabel: 'تأكيد الحضور', icon: <SendOutlined />, component: RSVPSection },
   { key: 'travel', label: 'Travel', arabicLabel: 'السفر', icon: <CarOutlined />, component: TravelSection },
   { key: 'hotel', label: 'Hotel', arabicLabel: 'الفندق', icon: <BankOutlined />, component: HotelSection },
-  { key: 'dress', label: 'Dress Code', arabicLabel: 'اللباس', icon: <SkinOutlined />, component: DressCodeSection },
-  { key: 'food', label: 'Food', arabicLabel: 'الطعام', icon: <CoffeeOutlined />, component: FoodSection },
-  { key: 'activities', label: 'Activities', arabicLabel: 'الأنشطة', icon: <StarOutlined />, component: ActivitiesSection },
 ];
 
 // Styled components
@@ -343,7 +335,7 @@ const MobileNavLabel = styled.span<{ $active: boolean }>`
 
 // Inner portal content component
 const PortalContent: React.FC = () => {
-  const { portalData, isLoading, error, sectionCompletion, completionPercentage } = useGuestPortal();
+  const { portalData, isLoading, error, sectionCompletion, completionPercentage, token } = useGuestPortal();
   const [activeSection, setActiveSection] = useState('welcome');
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -539,6 +531,15 @@ const PortalContent: React.FC = () => {
           </MobileNavItem>
         ))}
       </MobileNav>
+
+      {/* Rada Chatbot */}
+      {token && (
+        <RadaChatbot
+          guestToken={token}
+          guestName={portalData?.guest?.full_name?.split(' ')[0]}
+          position="bottom-right"
+        />
+      )}
     </PortalWrapper>
   );
 };

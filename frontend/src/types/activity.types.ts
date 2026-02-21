@@ -22,6 +22,10 @@ export interface Activity {
   image_url?: string;
   notes?: string;
   display_order?: number;
+  dress_code_info?: string;
+  dress_colors?: Array<{ name: string; hex: string }>;
+  food_description?: string;
+  dietary_options?: string[];
   created_at?: string;
   updated_at?: string;
 }
@@ -50,6 +54,10 @@ export interface ActivityCreate {
   image_url?: string;
   notes?: string;
   display_order?: number;
+  dress_code_info?: string;
+  dress_colors?: Array<{ name: string; hex: string }>;
+  food_description?: string;
+  dietary_options?: string[];
 }
 
 export interface ActivityUpdate {
@@ -69,6 +77,10 @@ export interface ActivityUpdate {
   image_url?: string;
   notes?: string;
   display_order?: number;
+  dress_code_info?: string;
+  dress_colors?: Array<{ name: string; hex: string }>;
+  food_description?: string;
+  dietary_options?: string[];
 }
 
 // Guest activity registration interface

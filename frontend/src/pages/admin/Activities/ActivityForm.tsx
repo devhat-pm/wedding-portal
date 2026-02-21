@@ -14,8 +14,17 @@ import {
   Row,
   Col,
   Upload,
+  Checkbox,
+  Tag,
 } from 'antd';
-import { PlusOutlined, EnvironmentOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  EnvironmentOutlined,
+  ClockCircleOutlined,
+  DeleteOutlined,
+  SkinOutlined,
+  CoffeeOutlined,
+} from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
@@ -74,6 +83,9 @@ const SectionTitle = styled.h4`
   color: ${colors.secondary};
   margin: 24px 0 16px;
   font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
   &:first-of-type {
     margin-top: 0;
@@ -99,11 +111,63 @@ const CapacityInfo = styled.div`
   margin-top: 8px;
 `;
 
+const ColorPaletteWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+`;
+
+const ColorItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: ${colors.creamLight};
+  border-radius: ${borderRadius.md}px;
+  border: 1px solid ${colors.creamDark};
+`;
+
+const ColorSwatch = styled.div<{ $color: string }>`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: ${(props) => props.$color};
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+`;
+
+const ColorName = styled.span`
+  font-size: 13px;
+  color: ${colors.textPrimary};
+`;
+
+const AddColorRow = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+`;
+
+const DIETARY_OPTIONS = [
+  'Vegetarian',
+  'Vegan',
+  'Halal',
+  'Gluten-Free',
+  'Dairy-Free',
+  'Nut-Free',
+  'Kosher',
+  'Seafood-Free',
+];
+
 const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, onSubmit }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [hasCapacityLimit, setHasCapacityLimit] = useState(false);
+  const [dressColors, setDressColors] = useState<Array<{ name: string; hex: string }>>([]);
+  const [newColorName, setNewColorName] = useState('');
+  const [newColorHex, setNewColorHex] = useState('#B7A89A');
+  const [selectedDietaryOptions, setSelectedDietaryOptions] = useState<string[]>([]);
 
   useEffect(() => {
     if (activity) {
@@ -111,7 +175,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
       const endTime = activity.end_time ? dayjs(activity.end_time) : null;
 
       form.setFieldsValue({
-        title: activity.title,
+        title: activity.title || activity.activity_name,
         description: activity.description,
         date: startTime,
         start_time: startTime,
@@ -119,6 +183,8 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
         location: activity.location,
         max_participants: activity.max_participants,
         notes: activity.notes,
+        dress_code_info: activity.dress_code_info,
+        food_description: activity.food_description,
       });
       setHasCapacityLimit(!!activity.max_participants);
       setFileList(
@@ -126,12 +192,27 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
           ? [{ uid: '0', name: 'image', status: 'done', url: activity.image_url }]
           : []
       );
+      setDressColors(activity.dress_colors || []);
+      setSelectedDietaryOptions(activity.dietary_options || []);
     } else {
       form.resetFields();
       setFileList([]);
       setHasCapacityLimit(false);
+      setDressColors([]);
+      setSelectedDietaryOptions([]);
     }
   }, [activity, form, open]);
+
+  const handleAddColor = () => {
+    if (!newColorName.trim()) return;
+    setDressColors((prev) => [...prev, { name: newColorName.trim(), hex: newColorHex }]);
+    setNewColorName('');
+    setNewColorHex('#B7A89A');
+  };
+
+  const handleRemoveColor = (index: number) => {
+    setDressColors((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async () => {
     try {
@@ -151,6 +232,10 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
         max_participants: hasCapacityLimit ? values.max_participants : undefined,
         notes: values.notes,
         image_url: fileList[0]?.url || fileList[0]?.response?.url,
+        dress_code_info: values.dress_code_info || undefined,
+        dress_colors: dressColors.length > 0 ? dressColors : undefined,
+        food_description: values.food_description || undefined,
+        dietary_options: selectedDietaryOptions.length > 0 ? selectedDietaryOptions : undefined,
       };
 
       await onSubmit(data);
@@ -167,6 +252,8 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
     form.resetFields();
     setFileList([]);
     setHasCapacityLimit(false);
+    setDressColors([]);
+    setSelectedDietaryOptions([]);
     onClose();
   };
 
@@ -175,6 +262,8 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
       title={activity ? 'Edit Activity' : 'Add Activity'}
       open={open}
       onCancel={handleClose}
+      destroyOnClose
+      maskClosable
       width={700}
       footer={[
         <Button key="cancel" onClick={handleClose}>
@@ -272,6 +361,79 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
             </CapacityInfo>
           </>
         )}
+
+        {/* Dress Code Section */}
+        <SectionTitle><SkinOutlined /> Dress Code</SectionTitle>
+        <Form.Item name="dress_code_info" label="Dress Code Description">
+          <TextArea
+            placeholder="e.g., Smart casual, Traditional attire, Black tie..."
+            rows={2}
+          />
+        </Form.Item>
+
+        <div style={{ marginBottom: 16 }}>
+          <Text strong style={{ display: 'block', marginBottom: 8 }}>Color Palette</Text>
+          {dressColors.length > 0 && (
+            <ColorPaletteWrapper>
+              {dressColors.map((color, index) => (
+                <ColorItem key={index}>
+                  <ColorSwatch $color={color.hex} />
+                  <ColorName>{color.name}</ColorName>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleRemoveColor(index)}
+                    style={{ color: colors.textSecondary, padding: '0 4px' }}
+                  />
+                </ColorItem>
+              ))}
+            </ColorPaletteWrapper>
+          )}
+          <AddColorRow>
+            <Input
+              placeholder="Color name"
+              value={newColorName}
+              onChange={(e) => setNewColorName(e.target.value)}
+              style={{ width: 160 }}
+              onPressEnter={handleAddColor}
+            />
+            <Input
+              type="color"
+              value={newColorHex}
+              onChange={(e) => setNewColorHex(e.target.value)}
+              style={{ width: 50, padding: 2, height: 32 }}
+            />
+            <Button onClick={handleAddColor} icon={<PlusOutlined />} disabled={!newColorName.trim()}>
+              Add
+            </Button>
+          </AddColorRow>
+        </div>
+
+        {/* Food Section */}
+        <SectionTitle><CoffeeOutlined /> Food & Dining</SectionTitle>
+        <Form.Item name="food_description" label="Food Description">
+          <TextArea
+            placeholder="e.g., Buffet dinner with live cooking stations, Seated 5-course meal..."
+            rows={2}
+          />
+        </Form.Item>
+
+        <div style={{ marginBottom: 24 }}>
+          <Text strong style={{ display: 'block', marginBottom: 8 }}>Dietary Options Available</Text>
+          <Checkbox.Group
+            value={selectedDietaryOptions}
+            onChange={(values) => setSelectedDietaryOptions(values as string[])}
+          >
+            <Row gutter={[8, 8]}>
+              {DIETARY_OPTIONS.map((option) => (
+                <Col key={option} xs={12} sm={8}>
+                  <Checkbox value={option}>{option}</Checkbox>
+                </Col>
+              ))}
+            </Row>
+          </Checkbox.Group>
+        </div>
 
         <SectionTitle>Activity Image</SectionTitle>
         <ImageUploadWrapper>

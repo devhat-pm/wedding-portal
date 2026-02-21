@@ -13,6 +13,8 @@ from app.models.guest_activity import GuestActivity
 from app.models.media_upload import MediaUpload, FileType
 from app.models.event import Event
 from app.models.invitation import Invitation
+from app.models.chatbot_settings import ChatbotSettings
+from app.models.chatbot_log import ChatbotLog
 
 __all__ = [
     "Base",
@@ -34,4 +36,6 @@ __all__ = [
     "FileType",
     "Event",
     "Invitation",
+    "ChatbotSettings",
+    "ChatbotLog",
 ]

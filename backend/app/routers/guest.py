@@ -31,6 +31,9 @@ class RSVPUpdate(BaseModel):
     country: Optional[str] = None
     number_of_attendees: Optional[int] = Field(default=1, ge=1)
     special_requests: Optional[str] = None
+    song_requests: Optional[str] = None
+    notes_to_couple: Optional[str] = None
+    activity_ids: Optional[List[str]] = None
 
 
 class TravelInfoUpdate(BaseModel):
@@ -130,6 +133,45 @@ async def update_rsvp(
         guest.number_of_attendees = data.number_of_attendees
     if data.special_requests is not None:
         guest.special_requests = data.special_requests
+    if data.song_requests is not None:
+        guest.song_requests = data.song_requests
+    if data.notes_to_couple is not None:
+        guest.notes_to_couple = data.notes_to_couple
+
+    # Handle activity registrations
+    if data.activity_ids is not None:
+        # Clear existing registrations
+        existing_result = await db.execute(
+            select(GuestActivity).where(GuestActivity.guest_id == guest.id)
+        )
+        existing_registrations = existing_result.scalars().all()
+        for reg in existing_registrations:
+            await db.delete(reg)
+        await db.flush()
+
+        # Create new registrations
+        for activity_id_str in data.activity_ids:
+            try:
+                activity_uuid = UUID(activity_id_str)
+            except ValueError:
+                continue
+
+            # Verify activity exists and belongs to same wedding
+            activity_result = await db.execute(
+                select(Activity).where(
+                    Activity.id == activity_uuid,
+                    Activity.wedding_id == guest.wedding_id
+                )
+            )
+            activity = activity_result.scalar_one_or_none()
+            if activity:
+                registration = GuestActivity(
+                    guest_id=guest.id,
+                    activity_id=activity_uuid,
+                    number_of_participants=guest.number_of_attendees,
+                    registered_at=datetime.utcnow()
+                )
+                db.add(registration)
 
     await db.flush()
     await db.refresh(guest)
@@ -142,6 +184,8 @@ async def update_rsvp(
         "country": guest.country_of_origin,
         "number_of_attendees": guest.number_of_attendees,
         "special_requests": guest.special_requests,
+        "song_requests": guest.song_requests,
+        "notes_to_couple": guest.notes_to_couple,
         "rsvp_submitted_at": guest.rsvp_submitted_at.isoformat() if guest.rsvp_submitted_at else None
     }
 

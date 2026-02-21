@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Form, Input, Select, Button, InputNumber, message } from 'antd';
+import { Form, Input, Select, Button, Checkbox, message } from 'antd';
 import {
   CheckCircleFilled,
   CloseCircleFilled,
@@ -10,11 +10,18 @@ import {
   PlusOutlined,
   EditOutlined,
   HeartFilled,
+  EnvironmentOutlined,
+  ClockCircleOutlined,
+  CalendarOutlined,
+  SkinOutlined,
+  CoffeeOutlined,
 } from '@ant-design/icons';
 import confetti from 'canvas-confetti';
+import dayjs from 'dayjs';
 import { colors, shadows, borderRadius } from '../../../styles/theme';
 import { useGuestPortal } from '../../../context/GuestPortalContext';
 import SectionHeader from '../../../components/guest/SectionHeader';
+import type { ActivityWithRegistration } from '../../../types';
 
 const { TextArea } = Input;
 
@@ -395,6 +402,124 @@ const SubmitButton = styled(Button)`
   }
 `;
 
+// Activity card styles
+const ActivityCard = styled.div<{ $selected: boolean }>`
+  border: 2px solid ${(props) => (props.$selected ? colors.primary : colors.creamDark)};
+  border-radius: ${borderRadius.lg}px;
+  padding: 20px;
+  margin-bottom: 16px;
+  background: ${(props) => (props.$selected ? colors.goldPale : 'white')};
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    border-color: ${colors.primary};
+    box-shadow: 0 2px 8px rgba(183, 168, 154, 0.15);
+  }
+`;
+
+const ActivityHeader = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+`;
+
+const ActivityCheckbox = styled.div`
+  padding-top: 2px;
+`;
+
+const ActivityInfo = styled.div`
+  flex: 1;
+`;
+
+const ActivityName = styled.div`
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: ${colors.secondary};
+  margin-bottom: 8px;
+`;
+
+const ActivityMeta = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 8px;
+`;
+
+const ActivityMetaItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: ${colors.textSecondary};
+`;
+
+const ActivityDescription = styled.div`
+  font-size: 14px;
+  color: ${colors.textPrimary};
+  margin-top: 8px;
+  line-height: 1.5;
+`;
+
+const ActivityDetails = styled.div`
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid ${colors.creamDark};
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const ActivityDetailRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+`;
+
+const DetailIcon = styled.span`
+  color: ${colors.primary};
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+`;
+
+const DetailLabel = styled.span`
+  color: ${colors.textSecondary};
+  font-weight: 500;
+  min-width: 80px;
+`;
+
+const DetailValue = styled.span`
+  color: ${colors.textPrimary};
+`;
+
+const ColorDots = styled.div`
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+`;
+
+const ColorDot = styled.div<{ $color: string }>`
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: ${(props) => props.$color};
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+`;
+
+const NoActivitiesMessage = styled.div`
+  text-align: center;
+  padding: 32px 16px;
+  color: ${colors.textSecondary};
+  font-size: 14px;
+  background: ${colors.creamLight};
+  border-radius: ${borderRadius.lg}px;
+`;
+
 // Success overlay
 const SuccessOverlay = styled(motion.div)`
   position: fixed;
@@ -445,17 +570,17 @@ const SuccessMessage = styled.p`
 
 // Country codes for phone
 const COUNTRY_CODES = [
-  { value: '+971', label: '🇦🇪 +971' },
-  { value: '+966', label: '🇸🇦 +966' },
-  { value: '+965', label: '🇰🇼 +965' },
-  { value: '+973', label: '🇧🇭 +973' },
-  { value: '+974', label: '🇶🇦 +974' },
-  { value: '+968', label: '🇴🇲 +968' },
-  { value: '+20', label: '🇪🇬 +20' },
-  { value: '+962', label: '🇯🇴 +962' },
-  { value: '+961', label: '🇱🇧 +961' },
-  { value: '+1', label: '🇺🇸 +1' },
-  { value: '+44', label: '🇬🇧 +44' },
+  { value: '+971', label: '+971' },
+  { value: '+966', label: '+966' },
+  { value: '+965', label: '+965' },
+  { value: '+973', label: '+973' },
+  { value: '+974', label: '+974' },
+  { value: '+968', label: '+968' },
+  { value: '+20', label: '+20' },
+  { value: '+962', label: '+962' },
+  { value: '+961', label: '+961' },
+  { value: '+1', label: '+1' },
+  { value: '+44', label: '+44' },
 ];
 
 const COUNTRIES = [
@@ -476,6 +601,7 @@ const RSVPSection: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (portalData?.guest) {
@@ -511,7 +637,20 @@ const RSVPSection: React.FC = () => {
         last_name: lastName,
         country: guest.country,
         special_requests: guest.special_requests,
+        song_requests: guestData.song_requests || '',
+        notes_to_couple: guestData.notes_to_couple || '',
       });
+
+      // Initialize selected activities from existing registrations
+      if (portalData.activities) {
+        const registered = new Set<string>();
+        portalData.activities.forEach((act: any) => {
+          if (act.is_registered) {
+            registered.add(act.id);
+          }
+        });
+        setSelectedActivities(registered);
+      }
 
       setIsEditing(guest.rsvp_status === 'pending');
     }
@@ -521,19 +660,32 @@ const RSVPSection: React.FC = () => {
     setRsvpStatus(status);
   };
 
+  const toggleActivity = (activityId: string) => {
+    setSelectedActivities((prev) => {
+      const next = new Set(prev);
+      if (next.has(activityId)) {
+        next.delete(activityId);
+      } else {
+        next.add(activityId);
+      }
+      return next;
+    });
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
 
-      // Backend only accepts: rsvp_status, phone, country, number_of_attendees, special_requests
-      // first_name and last_name are not updated via RSVP endpoint
       const data = {
         rsvp_status: rsvpStatus,
         number_of_attendees: rsvpStatus === 'declined' ? 0 : attendeeCount,
         phone: countryCode + values.phone,
         country: values.country,
         special_requests: values.special_requests,
+        song_requests: values.song_requests,
+        notes_to_couple: values.notes_to_couple,
+        activity_ids: rsvpStatus !== 'declined' ? Array.from(selectedActivities) : [],
       };
 
       await updateRSVP(data);
@@ -541,7 +693,6 @@ const RSVPSection: React.FC = () => {
       // Show success animation
       if (rsvpStatus === 'confirmed') {
         setShowSuccess(true);
-        // Trigger confetti
         confetti({
           particleCount: 100,
           spread: 70,
@@ -572,7 +723,24 @@ const RSVPSection: React.FC = () => {
     }
   };
 
+  const formatDateTime = (dateTime: string) => {
+    const d = dayjs(dateTime);
+    return d.format('ddd, MMM D [at] h:mm A');
+  };
+
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) return `${minutes} min`;
+    const hrs = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
+  };
+
   if (!portalData) return null;
+
+  // Get activities that require signup
+  const signupActivities = (portalData.activities || []).filter(
+    (a: any) => a.requires_signup !== false
+  );
 
   return (
     <SectionWrapper>
@@ -616,6 +784,7 @@ const RSVPSection: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
+          {/* 1. RSVP Status Selection */}
           <RSVPOptionsWrapper>
             <RSVPOption
               $selected={rsvpStatus === 'confirmed'}
@@ -669,6 +838,7 @@ const RSVPSection: React.FC = () => {
             </RSVPOption>
           </RSVPOptionsWrapper>
 
+          {/* 2. Number of Attendees */}
           {rsvpStatus !== 'declined' && rsvpStatus !== 'pending' && (
             <FormSection>
               <FormSectionTitle>Number of Attendees</FormSectionTitle>
@@ -694,6 +864,7 @@ const RSVPSection: React.FC = () => {
           )}
 
           <StyledForm form={form} layout="vertical" requiredMark={false}>
+            {/* 3. Contact Information */}
             <FormSection>
               <FormSectionTitle>Your Information</FormSectionTitle>
 
@@ -742,18 +913,143 @@ const RSVPSection: React.FC = () => {
               </Form.Item>
             </FormSection>
 
+            {/* 4. Activities Selection */}
+            {rsvpStatus !== 'declined' && rsvpStatus !== 'pending' && signupActivities.length > 0 && (
+              <FormSection>
+                <FormSectionTitle>Activities & Events</FormSectionTitle>
+                <p style={{ color: colors.textSecondary, fontSize: 14, marginTop: -12, marginBottom: 20 }}>
+                  Select the activities you'd like to attend
+                </p>
+                {signupActivities.map((activity: any) => (
+                  <ActivityCard
+                    key={activity.id}
+                    $selected={selectedActivities.has(activity.id)}
+                    onClick={() => toggleActivity(activity.id)}
+                  >
+                    <ActivityHeader>
+                      <ActivityCheckbox>
+                        <Checkbox
+                          checked={selectedActivities.has(activity.id)}
+                          onChange={() => toggleActivity(activity.id)}
+                        />
+                      </ActivityCheckbox>
+                      <ActivityInfo>
+                        <ActivityName>{activity.activity_name || activity.title}</ActivityName>
+                        <ActivityMeta>
+                          {activity.date_time && (
+                            <ActivityMetaItem>
+                              <CalendarOutlined />
+                              {formatDateTime(activity.date_time)}
+                            </ActivityMetaItem>
+                          )}
+                          {activity.duration_minutes && (
+                            <ActivityMetaItem>
+                              <ClockCircleOutlined />
+                              {formatDuration(activity.duration_minutes)}
+                            </ActivityMetaItem>
+                          )}
+                          {activity.location && (
+                            <ActivityMetaItem>
+                              <EnvironmentOutlined />
+                              {activity.location}
+                            </ActivityMetaItem>
+                          )}
+                        </ActivityMeta>
+                        {activity.description && (
+                          <ActivityDescription>{activity.description}</ActivityDescription>
+                        )}
+
+                        {/* Per-activity dress code and food info */}
+                        {(activity.dress_code_info || activity.dress_colors?.length > 0 || activity.food_description) && (
+                          <ActivityDetails>
+                            {activity.dress_code_info && (
+                              <ActivityDetailRow>
+                                <DetailIcon><SkinOutlined /></DetailIcon>
+                                <DetailLabel>Dress Code:</DetailLabel>
+                                <DetailValue>{activity.dress_code_info}</DetailValue>
+                              </ActivityDetailRow>
+                            )}
+                            {activity.dress_colors?.length > 0 && (
+                              <ActivityDetailRow>
+                                <DetailIcon><SkinOutlined /></DetailIcon>
+                                <DetailLabel>Colors:</DetailLabel>
+                                <ColorDots>
+                                  {activity.dress_colors.map((c: any, i: number) => (
+                                    <ColorDot key={i} $color={c.hex || c} title={c.name || ''} />
+                                  ))}
+                                </ColorDots>
+                              </ActivityDetailRow>
+                            )}
+                            {activity.food_description && (
+                              <ActivityDetailRow>
+                                <DetailIcon><CoffeeOutlined /></DetailIcon>
+                                <DetailLabel>Food:</DetailLabel>
+                                <DetailValue>{activity.food_description}</DetailValue>
+                              </ActivityDetailRow>
+                            )}
+                            {activity.dietary_options?.length > 0 && (
+                              <ActivityDetailRow>
+                                <DetailIcon><CoffeeOutlined /></DetailIcon>
+                                <DetailLabel>Dietary:</DetailLabel>
+                                <DetailValue>{activity.dietary_options.join(', ')}</DetailValue>
+                              </ActivityDetailRow>
+                            )}
+                          </ActivityDetails>
+                        )}
+                      </ActivityInfo>
+                    </ActivityHeader>
+                  </ActivityCard>
+                ))}
+              </FormSection>
+            )}
+
+            {rsvpStatus !== 'declined' && rsvpStatus !== 'pending' && signupActivities.length === 0 && (
+              <FormSection>
+                <FormSectionTitle>Activities & Events</FormSectionTitle>
+                <NoActivitiesMessage>
+                  No activities have been added yet. Check back later!
+                </NoActivitiesMessage>
+              </FormSection>
+            )}
+
+            {/* 5. Song Requests */}
             <FormSection>
-              <FormSectionTitle>Special Requests or Message</FormSectionTitle>
+              <FormSectionTitle>Song Requests</FormSectionTitle>
+              <Form.Item name="song_requests">
+                <TextArea
+                  placeholder="Enter your favorite songs for the DJ..."
+                  rows={3}
+                  style={{ resize: 'none' }}
+                />
+              </Form.Item>
+            </FormSection>
+
+            {/* 6. Notes to Couple */}
+            <FormSection>
+              <FormSectionTitle>Notes to the Couple</FormSectionTitle>
+              <Form.Item name="notes_to_couple">
+                <TextArea
+                  placeholder="Share your wishes, memories, or special requests..."
+                  rows={3}
+                  style={{ resize: 'none' }}
+                />
+              </Form.Item>
+            </FormSection>
+
+            {/* 7. Special Requests */}
+            <FormSection>
+              <FormSectionTitle>Special Requests</FormSectionTitle>
               <Form.Item name="special_requests">
                 <TextArea
-                  placeholder="Any dietary requirements, accessibility needs, or a message for the couple..."
-                  rows={4}
+                  placeholder="Any dietary requirements, accessibility needs, or other requests..."
+                  rows={3}
                   style={{ resize: 'none' }}
                 />
               </Form.Item>
             </FormSection>
           </StyledForm>
 
+          {/* 8. Save Button */}
           <SubmitButton
             type="primary"
             size="large"

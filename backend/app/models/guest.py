@@ -44,6 +44,8 @@ class Guest(Base, TimestampMixin):
     )
     number_of_attendees: Mapped[int] = mapped_column(Integer, default=1)
     special_requests: Mapped[str | None] = mapped_column(Text, nullable=True)
+    song_requests: Mapped[str | None] = mapped_column(Text, nullable=True)
+    notes_to_couple: Mapped[str | None] = mapped_column(Text, nullable=True)
     rsvp_submitted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     last_accessed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

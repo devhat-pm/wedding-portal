@@ -10,6 +10,7 @@ from app.routers.guest import router as guest_router
 from app.routers.chat import router as chat_router
 from app.routers.events import router as events_router
 from app.routers.invitations import router as invitations_router
+from app.routers.chatbot import router as chatbot_router
 
 __all__ = [
     "auth_router",
@@ -24,4 +25,5 @@ __all__ = [
     "chat_router",
     "events_router",
     "invitations_router",
+    "chatbot_router",
 ]

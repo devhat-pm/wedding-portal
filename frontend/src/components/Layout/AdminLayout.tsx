@@ -8,6 +8,7 @@ import {
   CoffeeOutlined,
   CalendarOutlined,
   PictureOutlined,
+  RobotOutlined,
   SettingOutlined,
   LogoutOutlined,
   UserOutlined,
@@ -300,6 +301,21 @@ const menuItems = [
     key: '/admin/media',
     icon: <PictureOutlined />,
     label: 'Media Gallery',
+  },
+  {
+    key: 'chatbot-group',
+    icon: <RobotOutlined />,
+    label: 'Chatbot',
+    children: [
+      {
+        key: '/admin/chatbot',
+        label: 'Settings',
+      },
+      {
+        key: '/admin/chatbot/analytics',
+        label: 'Analytics',
+      },
+    ],
   },
   {
     key: '/admin/settings',

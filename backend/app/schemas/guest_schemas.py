@@ -96,6 +96,9 @@ class GuestRSVPUpdate(BaseModel):
     phone: Optional[str] = Field(None, max_length=50)
     country_of_origin: Optional[str] = Field(None, max_length=100)
     special_requests: Optional[str] = None
+    song_requests: Optional[str] = None
+    notes_to_couple: Optional[str] = None
+    activity_ids: Optional[List[str]] = None
 
 
 class GuestListResponse(PaginatedResponse[GuestResponse]):

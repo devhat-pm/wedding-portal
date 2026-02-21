@@ -718,29 +718,10 @@ a:hover {
   color: #4A433B !important;
 }
 
-/* Modal centering fix */
-.ant-modal-root .ant-modal-wrap {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 100px;
-}
-
-.ant-modal-root .ant-modal {
-  top: 0;
-  padding-bottom: 24px;
-  margin: 0 auto;
-}
-
+/* Modal styling - do NOT override .ant-modal-wrap display or position */
 .ant-modal-content {
   border-radius: var(--radius-xl) !important;
   overflow: hidden;
-}
-
-.ant-modal-centered .ant-modal {
-  display: inline-block;
-  vertical-align: middle;
-  top: 0;
 }
 
 .ant-drawer-content {

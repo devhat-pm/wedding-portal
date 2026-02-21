@@ -268,6 +268,8 @@ const DressCodeForm: React.FC<DressCodeFormProps> = ({ open, dressCode, onClose,
       title={dressCode ? 'Edit Dress Code' : 'Add Dress Code'}
       open={open}
       onCancel={handleClose}
+      destroyOnClose
+      maskClosable
       width={700}
       footer={[
         <Button key="cancel" onClick={handleClose}>

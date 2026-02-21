@@ -132,6 +132,8 @@ async def get_complete_portal_data(guest: Guest, db: AsyncSession) -> dict:
             "rsvp_status": guest.rsvp_status.value if guest.rsvp_status else None,
             "number_of_attendees": guest.number_of_attendees,
             "special_requests": guest.special_requests,
+            "song_requests": guest.song_requests,
+            "notes_to_couple": guest.notes_to_couple,
         },
         "wedding": {
             "id": str(wedding.id),
@@ -311,7 +313,11 @@ def _serialize_activity(a: Activity) -> dict:
         "is_optional": a.is_optional,
         "requires_signup": a.requires_signup,
         "image_url": a.image_url,
-        "notes": a.notes
+        "notes": a.notes,
+        "dress_code_info": a.dress_code_info,
+        "dress_colors": a.dress_colors,
+        "food_description": a.food_description,
+        "dietary_options": a.dietary_options,
     }
 
 

@@ -328,7 +328,7 @@ const GuestList: React.FC = () => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       setUploadFile(file);
-      // Mock parsing - in real app, would parse Excel/CSV
+      // Parse Excel/CSV for preview before upload
       parseFile(file);
     }
   }, []);
@@ -936,6 +936,8 @@ const GuestList: React.FC = () => {
         title={`Share Link - ${(selectedGuest as any)?.full_name || `${selectedGuest?.first_name} ${selectedGuest?.last_name}`}`}
         open={linkModalOpen}
         onCancel={() => setLinkModalOpen(false)}
+        destroyOnClose
+        maskClosable
         footer={[
           <Button key="close" onClick={() => setLinkModalOpen(false)}>
             Close

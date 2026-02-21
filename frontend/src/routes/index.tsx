@@ -16,6 +16,8 @@ const DressCodeList = lazy(() => import('../pages/admin/DressCodes/DressCodeList
 const FoodMenuList = lazy(() => import('../pages/admin/FoodMenu/FoodMenuList'));
 const ActivityList = lazy(() => import('../pages/admin/Activities/ActivityList'));
 const MediaGallery = lazy(() => import('../pages/admin/Media/MediaGallery'));
+const ChatbotSettingsPage = lazy(() => import('../pages/admin/Chatbot/ChatbotSettingsPage'));
+const ChatbotAnalytics = lazy(() => import('../pages/admin/Chatbot/ChatbotAnalytics'));
 const GuestPortal = lazy(() => import('../pages/guest/GuestPortal'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 const InvalidLink = lazy(() => import('../pages/InvalidLink'));
@@ -132,6 +134,10 @@ const AppRoutes: React.FC = () => {
         <Route path="food-menu" element={<FoodMenuList />} />
         <Route path="activities" element={<ActivityList />} />
         <Route path="media" element={<MediaGallery />} />
+
+        {/* Chatbot */}
+        <Route path="chatbot" element={<ChatbotSettingsPage />} />
+        <Route path="chatbot/analytics" element={<ChatbotAnalytics />} />
 
         {/* Settings */}
         <Route path="settings" element={<AdminSettings />} />

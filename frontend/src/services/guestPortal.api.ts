@@ -18,7 +18,7 @@ export const getPortalData = async (token: string): Promise<GuestPortalData> => 
   return response.data;
 };
 
-// Update RSVP
+// Update RSVP (includes activities, song requests, notes to couple)
 export const updateRSVP = async (
   token: string,
   data: GuestRSVP
@@ -30,6 +30,8 @@ export const updateRSVP = async (
   country?: string;
   number_of_attendees: number;
   special_requests?: string;
+  song_requests?: string;
+  notes_to_couple?: string;
   rsvp_submitted_at?: string;
 }> => {
   const response = await api.put(`/api/guest/${token}/rsvp`, data);

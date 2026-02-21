@@ -83,3 +83,6 @@ credentials.json
 # ESLint cache
 .eslintcache
 aws-credentials.txt
+
+# Claude Code
+.claude/

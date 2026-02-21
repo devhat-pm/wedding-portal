@@ -37,6 +37,10 @@ class ActivityWithCount(BaseModel):
     display_order: int | None = None
     participant_count: int = 0
     total_attendees: int = 0
+    dress_code_info: str | None = None
+    dress_colors: list | None = None
+    food_description: str | None = None
+    dietary_options: list | None = None
 
     # Frontend alias fields
     title: str | None = None
@@ -77,7 +81,11 @@ async def create_activity(
         requires_signup=data.requires_signup,
         image_url=data.image_url,
         notes=data.notes,
-        display_order=data.display_order
+        display_order=data.display_order,
+        dress_code_info=data.dress_code_info,
+        dress_colors=data.dress_colors,
+        food_description=data.food_description,
+        dietary_options=data.dietary_options,
     )
 
     db.add(activity)
@@ -99,7 +107,11 @@ async def create_activity(
         image_url=activity.image_url,
         notes=activity.notes,
         display_order=activity.display_order,
-        participant_count=0
+        participant_count=0,
+        dress_code_info=activity.dress_code_info,
+        dress_colors=activity.dress_colors,
+        food_description=activity.food_description,
+        dietary_options=activity.dietary_options,
     )
 
 
@@ -150,6 +162,10 @@ async def list_activities(
             display_order=activity.display_order,
             participant_count=participant_count,
             total_attendees=total_attendees,
+            dress_code_info=activity.dress_code_info,
+            dress_colors=activity.dress_colors,
+            food_description=activity.food_description,
+            dietary_options=activity.dietary_options,
             title=activity.activity_name,
             start_time=dt_iso,
             capacity=activity.max_participants,
@@ -210,7 +226,11 @@ async def update_activity(
         image_url=activity.image_url,
         notes=activity.notes,
         display_order=activity.display_order,
-        participant_count=participant_count
+        participant_count=participant_count,
+        dress_code_info=activity.dress_code_info,
+        dress_colors=activity.dress_colors,
+        food_description=activity.food_description,
+        dietary_options=activity.dietary_options,
     )
 
 
