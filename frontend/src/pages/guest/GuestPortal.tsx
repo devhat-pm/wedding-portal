@@ -348,6 +348,20 @@ const PortalContent: React.FC = () => {
     }
   };
 
+  // Handle both API formats: couple_names or groom_name/bride_name
+  const weddingData = portalData?.wedding as any;
+  const coupleNames = portalData?.wedding?.couple_names ||
+    (weddingData?.groom_name && weddingData?.bride_name
+      ? `${weddingData.groom_name} & ${weddingData.bride_name}`
+      : 'Wedding Portal');
+
+  // Set document title to couple names
+  useEffect(() => {
+    if (coupleNames) {
+      document.title = coupleNames;
+    }
+  }, [coupleNames]);
+
   // Track active section on scroll
   useEffect(() => {
     const handleScroll = () => {
@@ -434,20 +448,6 @@ const PortalContent: React.FC = () => {
   }
 
   const { wedding } = portalData;
-
-  // Handle both API formats: couple_names or groom_name/bride_name
-  const weddingData = wedding as any;
-  const coupleNames = wedding.couple_names ||
-    (weddingData.groom_name && weddingData.bride_name
-      ? `${weddingData.groom_name} & ${weddingData.bride_name}`
-      : 'Wedding Portal');
-
-  // Set document title to couple names
-  useEffect(() => {
-    if (coupleNames) {
-      document.title = coupleNames;
-    }
-  }, [coupleNames]);
 
   // Get completion status for sections (excluding welcome)
   const getSectionCompletion = (key: string) => {
