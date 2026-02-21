@@ -426,6 +426,10 @@ export const weddingTheme: ThemeConfig = {
     Switch: {
       colorPrimary: '#B7A89A',
       colorPrimaryHover: '#9A9187',
+      trackHeight: 22,
+      trackMinWidth: 44,
+      trackPadding: 2,
+      handleSize: 18,
     },
     Checkbox: {
       colorPrimary: '#B7A89A',

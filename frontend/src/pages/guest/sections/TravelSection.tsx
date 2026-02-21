@@ -117,15 +117,6 @@ const ToggleArabic = styled.div`
   color: ${colors.textSecondary};
 `;
 
-const StyledSwitch = styled(Switch)`
-  &&& {
-    background: ${colors.creamDark};
-
-    &.ant-switch-checked {
-      background: ${colors.primary};
-    }
-  }
-`;
 
 const StyledForm = styled(Form)`
   .ant-form-item {
@@ -520,7 +511,7 @@ const TravelSection: React.FC = () => {
                 <ToggleArabic>هل ستصل بالطائرة؟</ToggleArabic>
               </ToggleText>
             </ToggleLabel>
-            <StyledSwitch
+            <Switch
               checked={isFlightTravel}
               onChange={setIsFlightTravel}
             />
@@ -672,7 +663,7 @@ const TravelSection: React.FC = () => {
                         <ToggleArabic>هل تحتاج توصيل من المطار؟</ToggleArabic>
                       </ToggleText>
                     </ToggleLabel>
-                    <StyledSwitch
+                    <Switch
                       checked={needsPickup}
                       onChange={setNeedsPickup}
                     />

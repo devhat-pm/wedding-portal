@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Form, Input, Select, Button, Checkbox, message } from 'antd';
+import { Form, Input, Button, Checkbox, message } from 'antd';
 import {
   CheckCircleFilled,
   CloseCircleFilled,
@@ -366,19 +366,6 @@ const StyledForm = styled(Form)`
   }
 `;
 
-const PhoneInputWrapper = styled.div`
-  display: flex;
-  gap: 8px;
-
-  .ant-select {
-    width: 110px;
-    flex-shrink: 0;
-  }
-
-  .ant-input {
-    flex: 1;
-  }
-`;
 
 const SubmitButton = styled(Button)`
   && {
@@ -568,29 +555,6 @@ const SuccessMessage = styled.p`
   margin: 0;
 `;
 
-// Country codes for phone
-const COUNTRY_CODES = [
-  { value: '+971', label: '+971' },
-  { value: '+966', label: '+966' },
-  { value: '+965', label: '+965' },
-  { value: '+973', label: '+973' },
-  { value: '+974', label: '+974' },
-  { value: '+968', label: '+968' },
-  { value: '+20', label: '+20' },
-  { value: '+962', label: '+962' },
-  { value: '+961', label: '+961' },
-  { value: '+92', label: '+92' },
-  { value: '+91', label: '+91' },
-  { value: '+90', label: '+90' },
-  { value: '+98', label: '+98' },
-  { value: '+33', label: '+33' },
-  { value: '+49', label: '+49' },
-  { value: '+61', label: '+61' },
-  { value: '+1', label: '+1' },
-  { value: '+44', label: '+44' },
-];
-
-
 type RSVPStatus = 'pending' | 'confirmed' | 'declined' | 'maybe';
 
 const RSVPSection: React.FC = () => {
@@ -599,7 +563,6 @@ const RSVPSection: React.FC = () => {
 
   const [rsvpStatus, setRsvpStatus] = useState<RSVPStatus>('pending');
   const [attendeeCount, setAttendeeCount] = useState(1);
-  const [countryCode, setCountryCode] = useState('+971');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -613,30 +576,7 @@ const RSVPSection: React.FC = () => {
       setRsvpStatus(guest.rsvp_status as RSVPStatus || 'pending');
       setAttendeeCount(guestData.number_of_attendees || guest.number_of_guests || 1);
 
-      // Parse phone number - handle double country codes (e.g. "+971+923045958258")
-      const phone = guest.phone || '';
-      let parsedCode = '';
-      let localNumber = phone;
-
-      const matchedCode = COUNTRY_CODES.find((c) => phone.startsWith(c.value));
-      if (matchedCode) {
-        parsedCode = matchedCode.value;
-        localNumber = phone.slice(matchedCode.value.length);
-
-        // If remaining part starts with '+', there's a double country code
-        if (localNumber.startsWith('+')) {
-          const innerMatch = COUNTRY_CODES.find((c) => localNumber.startsWith(c.value));
-          if (innerMatch) {
-            parsedCode = innerMatch.value;
-            localNumber = localNumber.slice(innerMatch.value.length);
-          }
-        }
-      }
-
-      if (parsedCode) {
-        setCountryCode(parsedCode);
-      }
-      form.setFieldsValue({ phone: localNumber });
+      form.setFieldsValue({ phone: guest.phone || '' });
 
       // Handle both API formats: full_name or first_name/last_name
       let firstName = guest.first_name || '';
@@ -694,7 +634,7 @@ const RSVPSection: React.FC = () => {
       const data = {
         rsvp_status: rsvpStatus,
         number_of_attendees: rsvpStatus === 'declined' ? 0 : attendeeCount,
-        phone: countryCode + values.phone,
+        phone: values.phone,
         special_requests: values.special_requests,
         song_requests: values.song_requests,
         notes_to_couple: values.notes_to_couple,
@@ -899,25 +839,11 @@ const RSVPSection: React.FC = () => {
               </Form.Item>
 
               <Form.Item
+                name="phone"
                 label="Phone Number"
-                required={rsvpStatus !== 'declined'}
-                style={{ marginBottom: 24 }}
+                rules={[{ required: rsvpStatus !== 'declined', message: 'Please enter your phone number' }]}
               >
-                <PhoneInputWrapper>
-                  <Select
-                    value={countryCode}
-                    onChange={setCountryCode}
-                    options={COUNTRY_CODES}
-                    size="large"
-                  />
-                  <Form.Item
-                    name="phone"
-                    noStyle
-                    rules={[{ required: rsvpStatus !== 'declined', message: 'Please enter your phone number' }]}
-                  >
-                    <Input placeholder="Phone number" size="large" />
-                  </Form.Item>
-                </PhoneInputWrapper>
+                <Input placeholder="Phone number" size="large" />
               </Form.Item>
             </FormSection>
             )}
