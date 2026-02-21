@@ -257,6 +257,8 @@ interface WeddingFormData {
   coupleNames: string;
   weddingDate: dayjs.Dayjs | null;
   venueName: string;
+  venueCity: string;
+  venueCountry: string;
   venueAddress: string;
   welcomeMessage: string;
 }
@@ -287,6 +289,8 @@ const Settings: React.FC = () => {
         coupleNames: wedding.couple_names || '',
         weddingDate: wedding.wedding_date ? dayjs(wedding.wedding_date) : null,
         venueName: wedding.venue_name || '',
+        venueCity: wedding.venue_city || '',
+        venueCountry: wedding.venue_country || '',
         venueAddress: wedding.venue_address || '',
         welcomeMessage: wedding.welcome_message || '',
       });
@@ -303,6 +307,8 @@ const Settings: React.FC = () => {
         couple_names: values.coupleNames,
         wedding_date: values.weddingDate?.toISOString(),
         venue_name: values.venueName || undefined,
+        venue_city: values.venueCity || undefined,
+        venue_country: values.venueCountry || undefined,
         venue_address: values.venueAddress || undefined,
         welcome_message: values.welcomeMessage || undefined,
       });
@@ -568,6 +574,19 @@ const Settings: React.FC = () => {
                 size="large"
               />
             </Form.Item>
+
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <Form.Item name="venueCity" label="Venue City">
+                  <Input placeholder="e.g., Dubai" size="large" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item name="venueCountry" label="Venue Country">
+                  <Input placeholder="e.g., UAE" size="large" />
+                </Form.Item>
+              </Col>
+            </Row>
 
             <Form.Item name="venueAddress" label="Venue Address">
               <TextArea
