@@ -120,77 +120,60 @@ export const generateRandomColor = (): string => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-// Copy to clipboard with robust fallback for non-HTTPS contexts
+// Synchronous copy using execCommand - must be called directly from user gesture
+const execCopy = (text: string): boolean => {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  textarea.style.top = '-9999px';
+  textarea.style.width = '100px';
+  textarea.style.height = '100px';
+  textarea.style.opacity = '0';
+  textarea.style.zIndex = '99999';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  textarea.setSelectionRange(0, text.length);
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch {
+    ok = false;
+  }
+  document.body.removeChild(textarea);
+  return ok;
+};
+
+// Copy to clipboard - tries synchronous execCommand first to preserve user gesture,
+// then async clipboard API, then falls back to prompt dialog
 export const copyToClipboard = async (text: string): Promise<boolean> => {
-  // Primary: modern Clipboard API (requires HTTPS or localhost)
-  if (navigator.clipboard && window.isSecureContext) {
+  // On non-secure contexts (HTTP), execCommand is the only option.
+  // It MUST run synchronously within the user gesture - no await before it.
+  if (!window.isSecureContext) {
+    const ok = execCopy(text);
+    if (ok) return true;
+    // Last resort: show a prompt so user can manually Ctrl+C
+    window.prompt('Copy this text (Ctrl+C, Enter):', text);
+    return true;
+  }
+
+  // On secure contexts (HTTPS/localhost), prefer Clipboard API
+  if (navigator.clipboard) {
     try {
       await navigator.clipboard.writeText(text);
       return true;
     } catch {
-      // fall through to fallback
+      // fall through to execCommand
     }
   }
 
-  // Fallback 1: textarea + execCommand (works on HTTP in most browsers)
-  try {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    // Make it visible enough for selection but positioned off-screen
-    // Some browsers need the element to be "visible" for execCommand to work
-    textarea.style.position = 'fixed';
-    textarea.style.left = '-9999px';
-    textarea.style.top = '-9999px';
-    textarea.style.width = '100px';
-    textarea.style.height = '100px';
-    textarea.style.opacity = '0';
-    textarea.style.zIndex = '99999';
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
-    textarea.setSelectionRange(0, text.length);
-    const ok = document.execCommand('copy');
-    document.body.removeChild(textarea);
-    if (ok) return true;
-  } catch {
-    // fall through to next fallback
-  }
+  // Fallback for HTTPS where clipboard API failed
+  const ok = execCopy(text);
+  if (ok) return true;
 
-  // Fallback 2: Try with a visible input briefly (some mobile browsers need this)
-  try {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = text;
-    input.style.position = 'fixed';
-    input.style.top = '0';
-    input.style.left = '0';
-    input.style.width = '2em';
-    input.style.height = '2em';
-    input.style.padding = '0';
-    input.style.border = 'none';
-    input.style.outline = 'none';
-    input.style.boxShadow = 'none';
-    input.style.background = 'transparent';
-    input.style.color = 'transparent';
-    input.style.zIndex = '99999';
-    document.body.appendChild(input);
-    input.focus();
-    input.select();
-    input.setSelectionRange(0, text.length);
-    const ok = document.execCommand('copy');
-    document.body.removeChild(input);
-    if (ok) return true;
-  } catch {
-    // fall through
-  }
-
-  // Fallback 3: Prompt user to copy manually
-  try {
-    window.prompt('Copy this link (Ctrl+C):', text);
-    return true;
-  } catch {
-    return false;
-  }
+  window.prompt('Copy this text (Ctrl+C, Enter):', text);
+  return true;
 };
 
 // Truncate text

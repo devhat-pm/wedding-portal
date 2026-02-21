@@ -276,14 +276,18 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
     return (
       <CompactWrapper className={className}>
         <Text
-          copyable={{
-            text: fullUrl,
-            tooltips: ['Copy link', 'Copied!'],
-          }}
           style={{ fontFamily: 'monospace', fontSize: 12, color: colors.textSecondary }}
         >
           {uniqueToken.slice(0, 8)}...
         </Text>
+        <Tooltip title="Copy link">
+          <Button
+            type="text"
+            size="small"
+            icon={<CopyOutlined style={{ color: colors.primary }} />}
+            onClick={handleCopyLinkOnly}
+          />
+        </Tooltip>
         <Tooltip title="Share via WhatsApp">
           <Button
             type="text"
