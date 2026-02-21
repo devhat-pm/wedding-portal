@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Card,
   Form,
@@ -15,6 +15,7 @@ import {
   Alert,
   Modal,
   Spin,
+  Tag,
 } from 'antd';
 import {
   SaveOutlined,
@@ -29,6 +30,8 @@ import {
   EnvironmentOutlined,
   FileTextOutlined,
   UserOutlined,
+  MessageOutlined,
+  UndoOutlined,
 } from '@ant-design/icons';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { motion } from 'framer-motion';
@@ -203,6 +206,53 @@ const PreviewMessage = styled.p`
   line-height: 1.6;
 `;
 
+const PlaceholderTagsWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+`;
+
+const PlaceholderTag = styled(Tag)`
+  && {
+    cursor: pointer;
+    border: 1px solid ${colors.primary};
+    color: ${colors.primary};
+    background: ${colors.goldPale};
+    border-radius: 12px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 12px;
+    padding: 2px 10px;
+    transition: all 0.2s;
+
+    &:hover {
+      background: ${colors.primary};
+      color: white;
+    }
+  }
+`;
+
+const InvitationPreview = styled.div`
+  background: linear-gradient(135deg, ${colors.goldPale} 0%, ${colors.creamLight} 100%);
+  border-radius: ${borderRadius.md}px;
+  padding: 20px;
+  margin-top: 16px;
+  border: 1px solid ${colors.borderGold};
+  white-space: pre-wrap;
+  line-height: 1.6;
+  color: ${colors.textPrimary};
+  font-size: 14px;
+`;
+
+const DEFAULT_INVITATION_TEMPLATE = 'Hi {guest_name}! {couple_names} would love to have you at their wedding ceremony on {wedding_date} at {venue_name}. Please RSVP using the link below. We look forward to celebrating with you!';
+
+const PLACEHOLDERS = [
+  { key: '{guest_name}', label: '{guest_name}' },
+  { key: '{couple_names}', label: '{couple_names}' },
+  { key: '{wedding_date}', label: '{wedding_date}' },
+  { key: '{venue_name}', label: '{venue_name}' },
+];
+
 interface WeddingFormData {
   coupleNames: string;
   weddingDate: dayjs.Dayjs | null;
@@ -225,8 +275,11 @@ const Settings: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
+  const [invitationLoading, setInvitationLoading] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [welcomeMessagePreview, setWelcomeMessagePreview] = useState('');
+  const [invitationTemplate, setInvitationTemplate] = useState(DEFAULT_INVITATION_TEMPLATE);
+  const invitationTextAreaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (wedding) {
@@ -239,6 +292,7 @@ const Settings: React.FC = () => {
       });
       setCoverImageUrl(wedding.cover_image_url || null);
       setWelcomeMessagePreview(wedding.welcome_message || '');
+      setInvitationTemplate(wedding.invitation_message_template || DEFAULT_INVITATION_TEMPLATE);
     }
   }, [wedding, weddingForm]);
 
@@ -292,6 +346,58 @@ const Settings: React.FC = () => {
       message.error(error.response?.data?.detail || error?.detail || 'Failed to change password');
     } finally {
       setPasswordLoading(false);
+    }
+  };
+
+  const handleInsertPlaceholder = (placeholder: string) => {
+    const textarea = invitationTextAreaRef.current;
+    if (!textarea) {
+      setInvitationTemplate((prev) => prev + placeholder);
+      return;
+    }
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = invitationTemplate.slice(0, start);
+    const after = invitationTemplate.slice(end);
+    const newValue = before + placeholder + after;
+    setInvitationTemplate(newValue);
+    // Restore cursor position after React re-render
+    setTimeout(() => {
+      textarea.focus();
+      const newPos = start + placeholder.length;
+      textarea.setSelectionRange(newPos, newPos);
+    }, 0);
+  };
+
+  const getInvitationPreview = () => {
+    const coupleNames = weddingForm.getFieldValue('coupleNames') || wedding?.couple_names || 'Couple';
+    const weddingDate = weddingForm.getFieldValue('weddingDate');
+    const dateStr = weddingDate
+      ? dayjs(weddingDate).format('MMMM D, YYYY')
+      : wedding?.wedding_date
+        ? dayjs(wedding.wedding_date).format('MMMM D, YYYY')
+        : 'Wedding Date';
+    const venueName = weddingForm.getFieldValue('venueName') || wedding?.venue_name || 'Venue';
+
+    return invitationTemplate
+      .replace(/{guest_name}/g, 'Ahmed')
+      .replace(/{couple_names}/g, coupleNames)
+      .replace(/{wedding_date}/g, dateStr)
+      .replace(/{venue_name}/g, venueName);
+  };
+
+  const handleSaveInvitationTemplate = async () => {
+    setInvitationLoading(true);
+    try {
+      const updatedWedding = await adminApi.updateWedding({
+        invitation_message_template: invitationTemplate,
+      });
+      updateWedding(updatedWedding);
+      message.success('Invitation template saved!');
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || 'Failed to save invitation template');
+    } finally {
+      setInvitationLoading(false);
     }
   };
 
@@ -509,6 +615,66 @@ const Settings: React.FC = () => {
               </SaveButton>
             </Form.Item>
           </StyledForm>
+        </SectionCard>
+
+        {/* Invitation Message Template Section */}
+        <SectionCard
+          title={
+            <Space>
+              <MessageOutlined style={{ color: colors.primary }} />
+              <span>Invitation Message Template</span>
+            </Space>
+          }
+        >
+          <Paragraph type="secondary" style={{ marginBottom: 16 }}>
+            Customize the message sent with each guest's invitation link. Click a placeholder below
+            to insert it at the cursor position.
+          </Paragraph>
+
+          <PlaceholderTagsWrapper>
+            {PLACEHOLDERS.map((p) => (
+              <PlaceholderTag key={p.key} onClick={() => handleInsertPlaceholder(p.key)}>
+                {p.label}
+              </PlaceholderTag>
+            ))}
+          </PlaceholderTagsWrapper>
+
+          <TextArea
+            ref={invitationTextAreaRef as any}
+            value={invitationTemplate}
+            onChange={(e) => setInvitationTemplate(e.target.value)}
+            rows={5}
+            maxLength={500}
+            showCount
+            placeholder="Type your invitation message..."
+            style={{ resize: 'none', borderRadius: borderRadius.md }}
+          />
+
+          {invitationTemplate && (
+            <InvitationPreview>
+              <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+                Preview (sample guest: Ahmed)
+              </Text>
+              {getInvitationPreview()}
+            </InvitationPreview>
+          )}
+
+          <Space style={{ marginTop: 16 }}>
+            <SaveButton
+              type="primary"
+              loading={invitationLoading}
+              icon={<SaveOutlined />}
+              onClick={handleSaveInvitationTemplate}
+            >
+              Save Template
+            </SaveButton>
+            <Button
+              icon={<UndoOutlined />}
+              onClick={() => setInvitationTemplate(DEFAULT_INVITATION_TEMPLATE)}
+            >
+              Reset to Default
+            </Button>
+          </Space>
         </SectionCard>
 
         {/* Change Password Section */}

@@ -34,6 +34,7 @@ class WeddingUpdate(BaseModel):
     venue_city: Optional[str] = Field(None, max_length=100)
     venue_country: Optional[str] = Field(None, max_length=100)
     welcome_message: Optional[str] = None
+    invitation_message_template: Optional[str] = None
     cover_image_url: Optional[str] = None
     is_active: Optional[bool] = None
 
@@ -54,6 +55,7 @@ class WeddingResponse(BaseSchema, TimestampMixin):
     venue_city: Optional[str] = None
     venue_country: Optional[str] = None
     welcome_message: Optional[str] = None
+    invitation_message_template: Optional[str] = None
     cover_image_url: Optional[str] = None
     admin_email: str
     is_active: bool

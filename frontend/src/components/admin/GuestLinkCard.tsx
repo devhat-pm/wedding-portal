@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Button, Input, Typography, Tooltip, message, Modal, QRCode } from 'antd';
+import { Card, Button, Input, Typography, Tooltip, message, Modal, QRCode, Space } from 'antd';
 import {
   CopyOutlined,
   WhatsAppOutlined,
@@ -7,11 +7,17 @@ import {
   QrcodeOutlined,
   CheckOutlined,
   LinkOutlined,
+  MessageOutlined,
 } from '@ant-design/icons';
 import styled from '@emotion/styled';
+import dayjs from 'dayjs';
 import { colors, shadows, borderRadius } from '../../styles/theme';
+import { copyToClipboard, formatDate } from '../../utils/helpers';
+import type { Wedding } from '../../types/wedding.types';
 
 const { Text, Paragraph } = Typography;
+
+const DEFAULT_INVITATION_TEMPLATE = 'Hi {guest_name}! {couple_names} would love to have you at their wedding ceremony on {wedding_date} at {venue_name}. Please RSVP using the link below. We look forward to celebrating with you!';
 
 interface GuestLinkCardProps {
   guestName: string;
@@ -19,7 +25,25 @@ interface GuestLinkCardProps {
   compact?: boolean;
   showQRCode?: boolean;
   className?: string;
+  wedding?: Wedding | null;
 }
+
+const generateInvitationMessage = (guestName: string, wedding: Wedding | null | undefined, link: string): string => {
+  const template = wedding?.invitation_message_template || DEFAULT_INVITATION_TEMPLATE;
+  const coupleNames = wedding?.couple_names || 'The Couple';
+  const weddingDate = wedding?.wedding_date
+    ? dayjs(wedding.wedding_date).format('MMMM D, YYYY')
+    : 'the wedding date';
+  const venueName = wedding?.venue_name || 'the venue';
+
+  const msg = template
+    .replace(/{guest_name}/g, guestName)
+    .replace(/{couple_names}/g, coupleNames)
+    .replace(/{wedding_date}/g, weddingDate)
+    .replace(/{venue_name}/g, venueName);
+
+  return `${msg}\n\n${link}`;
+};
 
 const StyledCard = styled(Card)<{ $compact: boolean }>`
   border-radius: ${borderRadius.lg}px;
@@ -136,6 +160,17 @@ const ShareButton = styled(Button)<{ $variant: 'whatsapp' | 'email' | 'qr' | 'co
               color: ${colors.primary} !important;
             }
           `;
+        case 'copy':
+          return `
+            background: ${colors.primary};
+            border-color: ${colors.primary};
+            color: white;
+            &:hover {
+              background: ${colors.goldDark} !important;
+              border-color: ${colors.goldDark} !important;
+              color: white !important;
+            }
+          `;
         default:
           return '';
       }
@@ -175,42 +210,65 @@ const CompactWrapper = styled.div`
   gap: 8px;
 `;
 
+const MessagePreviewBox = styled.div`
+  background: linear-gradient(135deg, ${colors.goldPale} 0%, ${colors.creamLight} 100%);
+  border: 1px solid ${colors.borderGold};
+  border-radius: ${borderRadius.md}px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.6;
+  color: ${colors.textPrimary};
+`;
+
 const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
   guestName,
   uniqueToken,
   compact = false,
   showQRCode = true,
   className,
+  wedding,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
 
   const baseUrl = window.location.origin;
   const fullUrl = `${baseUrl}/guest/${uniqueToken}`;
+  const invitationMessage = generateInvitationMessage(guestName, wedding, fullUrl);
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(fullUrl);
+  const handleCopyMessageAndLink = async () => {
+    const ok = await copyToClipboard(invitationMessage);
+    if (ok) {
       setCopied(true);
-      message.success('Link copied to clipboard!');
+      message.success('Message & link copied!');
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } else {
+      message.error('Failed to copy');
+    }
+  };
+
+  const handleCopyLinkOnly = async () => {
+    const ok = await copyToClipboard(fullUrl);
+    if (ok) {
+      setCopiedLink(true);
+      message.success('Link copied!');
+      setTimeout(() => setCopiedLink(false), 2000);
+    } else {
       message.error('Failed to copy link');
     }
   };
 
   const handleWhatsAppShare = () => {
-    const text = encodeURIComponent(
-      `You're invited! Please use this link to RSVP and provide your details for our wedding: ${fullUrl}`
-    );
+    const text = encodeURIComponent(invitationMessage);
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
   const handleEmailShare = () => {
-    const subject = encodeURIComponent('Wedding Invitation - RSVP Link');
-    const body = encodeURIComponent(
-      `Dear Guest,\n\nYou're cordially invited to our wedding celebration!\n\nPlease use the link below to RSVP and provide your details:\n${fullUrl}\n\nWe look forward to celebrating with you!\n\nWarm regards`
-    );
+    const coupleNames = wedding?.couple_names || 'The Couple';
+    const subject = encodeURIComponent(`Wedding Invitation from ${coupleNames}`);
+    const body = encodeURIComponent(invitationMessage);
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
   };
 
@@ -255,16 +313,35 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
           </div>
         </LinkHeader>
 
+        {wedding && (
+          <MessagePreviewBox>
+            <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 6 }}>
+              <MessageOutlined style={{ marginRight: 4 }} />
+              Invitation Message Preview
+            </Text>
+            {invitationMessage}
+          </MessagePreviewBox>
+        )}
+
         <LinkInputWrapper>
           <StyledInput value={fullUrl} readOnly size="large" />
           <CopyButton
             type="text"
-            icon={copied ? <CheckOutlined style={{ color: colors.success }} /> : <CopyOutlined />}
-            onClick={handleCopy}
+            icon={copiedLink ? <CheckOutlined style={{ color: colors.success }} /> : <CopyOutlined />}
+            onClick={handleCopyLinkOnly}
           />
         </LinkInputWrapper>
 
         <ShareButtonsWrapper>
+          <ShareButton
+            $variant="copy"
+            type="primary"
+            icon={copied ? <CheckOutlined /> : <CopyOutlined />}
+            onClick={handleCopyMessageAndLink}
+          >
+            {copied ? 'Copied!' : 'Copy Message & Link'}
+          </ShareButton>
+
           <ShareButton
             $variant="whatsapp"
             icon={<WhatsAppOutlined />}

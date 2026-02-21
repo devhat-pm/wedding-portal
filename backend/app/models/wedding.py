@@ -22,6 +22,7 @@ class Wedding(Base, TimestampMixin):
     venue_city: Mapped[str | None] = mapped_column(String(100), nullable=True)
     venue_country: Mapped[str | None] = mapped_column(String(100), nullable=True)
     welcome_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    invitation_message_template: Mapped[str | None] = mapped_column(Text, nullable=True)
     cover_image_url: Mapped[str | None] = mapped_column(String, nullable=True)
     admin_email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     admin_password_hash: Mapped[str] = mapped_column(String, nullable=False)

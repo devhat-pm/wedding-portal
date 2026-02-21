@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import styled from '@emotion/styled';
 import { guestsApi } from '../../../services';
 import GuestLinkCard from '../../../components/admin/GuestLinkCard';
+import { useAuth } from '../../../context/AuthContext';
 import { colors, borderRadius } from '../../../styles/theme';
 import type { Guest } from '../../../types';
 
@@ -163,6 +164,7 @@ interface FormValues {
 }
 
 const AddGuestModal: React.FC<AddGuestModalProps> = ({ open, onClose, onSuccess }) => {
+  const { wedding } = useAuth();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [createdGuest, setCreatedGuest] = useState<Guest | null>(null);
@@ -316,6 +318,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({ open, onClose, onSuccess 
                 <GuestLinkCard
                   guestName={(createdGuest as any)?.full_name || `${createdGuest.first_name} ${createdGuest.last_name}`}
                   uniqueToken={createdGuest.unique_token}
+                  wedding={wedding}
                 />
               )}
 

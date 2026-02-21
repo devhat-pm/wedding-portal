@@ -8,6 +8,7 @@ export interface Wedding {
   venue_city?: string;
   venue_country?: string;
   welcome_message?: string;
+  invitation_message_template?: string;
   cover_image_url?: string;
   theme_color_primary?: string;
   theme_color_secondary?: string;
@@ -53,6 +54,7 @@ export interface WeddingUpdate {
   venue_city?: string;
   venue_country?: string;
   welcome_message?: string;
+  invitation_message_template?: string;
   cover_image_url?: string;
   theme_color_primary?: string;
   theme_color_secondary?: string;

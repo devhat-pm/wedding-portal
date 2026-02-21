@@ -52,7 +52,9 @@ import { guestsApi } from '../../../services';
 import AddGuestModal from './AddGuestModal';
 import GuestLinkCard from '../../../components/admin/GuestLinkCard';
 import { GoldDivider } from '../../../components';
+import { useAuth } from '../../../context/AuthContext';
 import { colors, shadows, borderRadius } from '../../../styles/theme';
+import { copyToClipboard } from '../../../utils/helpers';
 import type { GuestListItem, RSVPStatus } from '../../../types';
 
 const { Text, Title, Paragraph } = Typography;
@@ -294,6 +296,7 @@ interface UploadedGuest {
 
 const GuestList: React.FC = () => {
   const navigate = useNavigate();
+  const { wedding } = useAuth();
   const [guests, setGuests] = useState<GuestListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -455,10 +458,10 @@ const GuestList: React.FC = () => {
 
   const handleCopyLink = async (token: string) => {
     const url = `${window.location.origin}/guest/${token}`;
-    try {
-      await navigator.clipboard.writeText(url);
+    const ok = await copyToClipboard(url);
+    if (ok) {
       message.success('Link copied to clipboard!');
-    } catch (err) {
+    } else {
       message.error('Failed to copy link');
     }
   };
@@ -949,6 +952,7 @@ const GuestList: React.FC = () => {
           <GuestLinkCard
             guestName={(selectedGuest as any).full_name || `${selectedGuest.first_name} ${selectedGuest.last_name}`}
             uniqueToken={selectedGuest.unique_token}
+            wedding={wedding}
           />
         )}
       </Modal>
