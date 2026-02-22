@@ -347,9 +347,8 @@ const GuestList: React.FC = () => {
   });
 
   const parseFile = async (file: File) => {
-    // Show file details as preview - the actual parsing happens server-side
-    const fileInfo = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-    setUploadParsedData([fileInfo]);
+    // Show file info as preview - actual parsing happens server-side
+    setUploadParsedData([file.name]);
     setUploadStep('preview');
   };
 
@@ -360,21 +359,17 @@ const GuestList: React.FC = () => {
     setUploadStep('uploading');
     setUploadProgress(0);
 
+    let progressInterval: ReturnType<typeof setInterval> | null = null;
+
     try {
       // Simulate progress while uploading
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return prev + 10;
-        });
-      }, 200);
+      progressInterval = setInterval(() => {
+        setUploadProgress((prev) => (prev >= 90 ? 90 : prev + 10));
+      }, 300);
 
       const result = await guestsApi.uploadGuestsExcel(uploadFile);
 
-      clearInterval(progressInterval);
+      if (progressInterval) clearInterval(progressInterval);
       setUploadProgress(100);
 
       // Populate uploaded guests from API response for display
@@ -391,9 +386,11 @@ const GuestList: React.FC = () => {
       }
       fetchGuests();
     } catch (error: any) {
+      if (progressInterval) clearInterval(progressInterval);
       message.error(error.response?.data?.detail || error?.detail || 'Failed to upload file');
       setUploadStep('preview');
     } finally {
+      if (progressInterval) clearInterval(progressInterval);
       setUploadLoading(false);
     }
   };
@@ -409,6 +406,23 @@ const GuestList: React.FC = () => {
   const closeUploadModal = () => {
     setUploadModalOpen(false);
     resetUpload();
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await guestsApi.downloadUploadTemplate();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'guest_upload_template.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      message.success('Template downloaded!');
+    } catch {
+      message.error('Failed to download template');
+    }
   };
 
   // Fetch guests
@@ -805,7 +819,7 @@ const GuestList: React.FC = () => {
                   Choose Different File
                 </Button>,
                 <Button key="upload" type="primary" onClick={handleUpload} loading={uploadLoading}>
-                  Upload {uploadParsedData.length} Guests
+                  Upload Guests
                 </Button>,
               ]
             : uploadStep === 'success'
@@ -818,23 +832,37 @@ const GuestList: React.FC = () => {
         }
       >
         {uploadStep === 'select' && (
-          <div {...getRootProps()}>
-            <input {...getInputProps()} />
-            <DropzoneArea $isDragActive={isDragActive} $hasFile={false}>
-              <DropzoneIcon>
-                <FileExcelOutlined />
-              </DropzoneIcon>
-              <Title level={5} style={{ marginBottom: 8 }}>
-                {isDragActive ? 'Drop your file here' : 'Drag & drop your Excel file'}
-              </Title>
-              <Text type="secondary">or click to browse</Text>
-              <div style={{ marginTop: 16 }}>
-                <Tag>.xlsx</Tag>
-                <Tag>.xls</Tag>
-                <Tag>.csv</Tag>
-              </div>
-            </DropzoneArea>
-          </div>
+          <>
+            <div {...getRootProps()}>
+              <input {...getInputProps()} />
+              <DropzoneArea $isDragActive={isDragActive} $hasFile={false}>
+                <DropzoneIcon>
+                  <FileExcelOutlined />
+                </DropzoneIcon>
+                <Title level={5} style={{ marginBottom: 8 }}>
+                  {isDragActive ? 'Drop your file here' : 'Drag & drop your Excel file'}
+                </Title>
+                <Text type="secondary">or click to browse</Text>
+                <div style={{ marginTop: 16 }}>
+                  <Tag>.xlsx</Tag>
+                  <Tag>.xls</Tag>
+                  <Tag>.csv</Tag>
+                </div>
+              </DropzoneArea>
+            </div>
+            <div style={{ marginTop: 16, textAlign: 'center' }}>
+              <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                Need a template? The file must have a <Text strong>full_name</Text> column.
+              </Text>
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={handleDownloadTemplate}
+                type="link"
+              >
+                Download Template
+              </Button>
+            </div>
+          </>
         )}
 
         {uploadStep === 'preview' && (
@@ -845,7 +873,7 @@ const GuestList: React.FC = () => {
                 <div>
                   <Text strong>{uploadFile?.name}</Text>
                   <Text type="secondary" style={{ display: 'block' }}>
-                    {uploadParsedData.length} guests found
+                    {(uploadFile?.size ? (uploadFile.size / 1024).toFixed(1) : '0')} KB - Ready to upload
                   </Text>
                 </div>
               </Space>
@@ -853,14 +881,8 @@ const GuestList: React.FC = () => {
 
             <PreviewSection>
               <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
-                Preview of guests to be imported:
+                File will be processed on the server. Duplicate names will be skipped automatically.
               </Text>
-              {uploadParsedData.map((name, index) => (
-                <PreviewItem key={index}>
-                  <Checkbox checked style={{ marginRight: 12 }} />
-                  <Text>{name}</Text>
-                </PreviewItem>
-              ))}
             </PreviewSection>
           </>
         )}

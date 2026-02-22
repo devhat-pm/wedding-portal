@@ -75,6 +75,48 @@ def generate_guest_link(unique_token: str) -> str:
     return f"{settings.FRONTEND_URL}/guest/{unique_token}"
 
 
+@router.get("/upload-template")
+async def download_upload_template():
+    """Download an Excel template for bulk guest upload."""
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Guests"
+
+    headers = ["full_name", "email", "phone"]
+    header_fill = PatternFill(start_color="C9A961", end_color="C9A961", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center")
+
+    # Sample rows
+    sample_data = [
+        ["Ahmed Al-Rashid", "ahmed@example.com", "+966501234567"],
+        ["Fatima Hassan", "fatima@example.com", "+971501234567"],
+    ]
+    for row_idx, row_data in enumerate(sample_data, 2):
+        for col_idx, value in enumerate(row_data, 1):
+            ws.cell(row=row_idx, column=col_idx, value=value)
+
+    # Adjust column widths
+    ws.column_dimensions['A'].width = 25
+    ws.column_dimensions['B'].width = 30
+    ws.column_dimensions['C'].width = 20
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=guest_upload_template.xlsx"}
+    )
+
+
 @router.post("/upload-excel", response_model=BulkUploadResponse)
 async def bulk_upload_guests(
     file: UploadFile = File(...),

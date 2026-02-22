@@ -1,5 +1,5 @@
-import React, { useState, useEffect, Suspense } from 'react';
-import { Layout, Menu, Dropdown, Avatar, Breadcrumb, Button, Drawer, Spin } from 'antd';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import { Layout, Menu, Dropdown, Avatar, Breadcrumb, Button, Drawer, Spin, Badge, Empty, Typography } from 'antd';
 import {
   DashboardOutlined,
   TeamOutlined,
@@ -13,12 +13,21 @@ import {
   MenuOutlined,
   BellOutlined,
   LoadingOutlined,
+  CheckCircleOutlined,
+  CarOutlined,
+  CameraOutlined,
+  LoginOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import styled from '@emotion/styled';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { colors, shadows, borderRadius } from '../../styles/theme';
 import ChatBot from '../chat/ChatBot';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
+
+dayjs.extend(relativeTime);
 
 const { Header, Sider, Content } = Layout;
 
@@ -190,6 +199,76 @@ const NotificationButton = styled(Button)`
   }
 `;
 
+const NotificationDropdownContent = styled.div`
+  width: 360px;
+  max-height: 420px;
+  overflow-y: auto;
+  background: ${colors.cardBg};
+  border-radius: ${borderRadius.lg}px;
+  box-shadow: ${shadows.lg};
+  border: 1px solid ${colors.borderGold};
+`;
+
+const NotificationHeader = styled.div`
+  padding: 14px 16px;
+  border-bottom: 1px solid ${colors.creamDark};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const NotificationItem = styled.div`
+  padding: 12px 16px;
+  border-bottom: 1px solid ${colors.creamLight};
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: ${colors.goldPale};
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const NotificationIcon = styled.span<{ $type: string }>`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 14px;
+  flex-shrink: 0;
+
+  ${(props) => {
+    switch (props.$type) {
+      case 'rsvp':
+        return `background: rgba(74, 124, 89, 0.1); color: ${colors.success};`;
+      case 'travel':
+        return `background: rgba(59, 130, 246, 0.1); color: #3b82f6;`;
+      case 'hotel':
+        return `background: rgba(183, 168, 154, 0.15); color: ${colors.primary};`;
+      case 'media':
+        return `background: rgba(168, 85, 247, 0.1); color: #a855f7;`;
+      case 'activity':
+        return `background: rgba(249, 115, 22, 0.1); color: #f97316;`;
+      default:
+        return `background: ${colors.creamMedium}; color: ${colors.textSecondary};`;
+    }
+  }}
+`;
+
+interface RecentActivity {
+  guest_name: string;
+  action: string;
+  action_type: string;
+  time: string;
+  detail?: string;
+}
+
 const WeddingName = styled.span`
   font-family: 'Playfair Display', serif;
   font-size: 16px;
@@ -319,9 +398,28 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [notifications, setNotifications] = useState<RecentActivity[]>([]);
+  const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await api.get('/api/admin/wedding/dashboard-stats');
+      const data = res.data;
+      setNotifications(data.recent_activity || []);
+    } catch {
+      // silent fail
+    }
+  }, []);
+
+  // Fetch notifications on mount and every 60 seconds
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   // Handle responsive behavior
   useEffect(() => {
@@ -333,6 +431,62 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const getNotifIcon = (type: string) => {
+    switch (type) {
+      case 'rsvp': return <CheckCircleOutlined />;
+      case 'travel': return <CarOutlined />;
+      case 'hotel': return <HomeOutlined />;
+      case 'media': return <CameraOutlined />;
+      case 'activity': return <CalendarOutlined />;
+      case 'access': return <LoginOutlined />;
+      default: return <BellOutlined />;
+    }
+  };
+
+  const notificationDropdown = (
+    <NotificationDropdownContent>
+      <NotificationHeader>
+        <Typography.Text strong style={{ fontSize: 15 }}>Notifications</Typography.Text>
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          {notifications.length} recent
+        </Typography.Text>
+      </NotificationHeader>
+      {notifications.length > 0 ? (
+        notifications.map((n, i) => (
+          <NotificationItem key={i} onClick={() => {
+            setNotifOpen(false);
+            if (n.action_type === 'rsvp' || n.action_type === 'access') navigate('/admin/guests');
+            else if (n.action_type === 'media') navigate('/admin/media');
+            else if (n.action_type === 'activity') navigate('/admin/activities');
+            else if (n.action_type === 'hotel') navigate('/admin/hotels');
+            else navigate('/admin');
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+              <NotificationIcon $type={n.action_type}>
+                {getNotifIcon(n.action_type)}
+              </NotificationIcon>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 500, fontSize: 13, marginBottom: 2 }}>
+                  {n.guest_name}
+                </div>
+                <div style={{ fontSize: 12, color: colors.textSecondary }}>
+                  {n.action}{n.detail ? ` - ${n.detail}` : ''}
+                </div>
+                <div style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>
+                  {n.time ? dayjs(n.time).fromNow() : ''}
+                </div>
+              </div>
+            </div>
+          </NotificationItem>
+        ))
+      ) : (
+        <div style={{ padding: 32, textAlign: 'center' }}>
+          <Empty description="No recent activity" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        </div>
+      )}
+    </NotificationDropdownContent>
+  );
 
   const siderWidth = collapsed ? SIDER_COLLAPSED_WIDTH : SIDER_WIDTH;
 
@@ -437,10 +591,20 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
 
           <HeaderRight>
             <WeddingName>{weddingName}</WeddingName>
-            <NotificationButton
-              type="text"
-              icon={<BellOutlined style={{ fontSize: 18 }} />}
-            />
+            <Dropdown
+              dropdownRender={() => notificationDropdown}
+              trigger={['click']}
+              placement="bottomRight"
+              open={notifOpen}
+              onOpenChange={setNotifOpen}
+            >
+              <Badge count={notifications.length} size="small" offset={[-2, 2]}>
+                <NotificationButton
+                  type="text"
+                  icon={<BellOutlined style={{ fontSize: 18 }} />}
+                />
+              </Badge>
+            </Dropdown>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <UserDropdownTrigger>
                 <Avatar

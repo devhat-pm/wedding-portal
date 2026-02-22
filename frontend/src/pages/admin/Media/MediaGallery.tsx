@@ -4,21 +4,16 @@ import {
   Button,
   Space,
   Typography,
-  Tabs,
-  Badge,
   Spin,
   message,
   Checkbox,
-  Image,
   Modal,
   Row,
   Col,
   Tooltip,
-  Empty,
 } from 'antd';
 import {
   CheckOutlined,
-  CloseOutlined,
   DeleteOutlined,
   DownloadOutlined,
   PictureOutlined,
@@ -52,29 +47,6 @@ const PageHeader = styled.div`
   gap: 16px;
 `;
 
-const FilterTabs = styled(Tabs)`
-  && {
-    .ant-tabs-nav {
-      margin-bottom: 0;
-    }
-
-    .ant-tabs-tab {
-      padding: 12px 20px;
-      font-weight: 500;
-    }
-
-    .ant-tabs-tab-active {
-      .ant-tabs-tab-btn {
-        color: ${colors.primary};
-      }
-    }
-
-    .ant-tabs-ink-bar {
-      background: ${colors.primary};
-    }
-  }
-`;
-
 const BulkActionsBar = styled(motion.div)`
   position: sticky;
   top: 0;
@@ -96,17 +68,12 @@ const MediaGrid = styled.div`
   gap: 16px;
 `;
 
-const MediaCard = styled(motion.div)<{ $selected?: boolean; $status?: string }>`
+const MediaCard = styled(motion.div)<{ $selected?: boolean }>`
   position: relative;
   border-radius: ${borderRadius.lg}px;
   overflow: hidden;
   background: ${colors.cardBg};
-  border: 2px solid ${(props) => {
-    if (props.$selected) return colors.primary;
-    if (props.$status === 'pending') return colors.warning;
-    if (props.$status === 'rejected') return colors.error;
-    return colors.borderGold;
-  }};
+  border: 2px solid ${(props) => props.$selected ? colors.primary : colors.borderGold};
   box-shadow: ${shadows.sm};
   cursor: pointer;
   transition: all 0.2s ease;
@@ -173,31 +140,6 @@ const SelectionCheckbox = styled.div<{ $selected?: boolean }>`
   transition: all 0.2s ease;
 `;
 
-const StatusBadge = styled.div<{ $status: string }>`
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  z-index: 2;
-
-  ${(props) => {
-    switch (props.$status) {
-      case 'pending':
-        return `background: ${colors.warning}; color: #fff;`;
-      case 'approved':
-        return `background: ${colors.success}; color: #fff;`;
-      case 'rejected':
-        return `background: ${colors.error}; color: #fff;`;
-      default:
-        return '';
-    }
-  }}
-`;
-
 const MediaInfo = styled.div`
   padding: 12px;
   border-top: 1px solid ${colors.creamDark};
@@ -219,46 +161,6 @@ const UploadDate = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
-`;
-
-const QuickActions = styled.div`
-  display: flex;
-  gap: 4px;
-  margin-top: 8px;
-`;
-
-const QuickActionButton = styled(Button)<{ $variant?: 'approve' | 'reject' }>`
-  && {
-    flex: 1;
-    height: 28px;
-    font-size: 12px;
-
-    ${(props) => {
-      if (props.$variant === 'approve') {
-        return `
-          background: ${colors.success};
-          border-color: ${colors.success};
-          color: white;
-          &:hover {
-            background: #9A9187 !important;
-            border-color: #9A9187 !important;
-          }
-        `;
-      }
-      if (props.$variant === 'reject') {
-        return `
-          background: ${colors.error};
-          border-color: ${colors.error};
-          color: white;
-          &:hover {
-            background: #7B756D !important;
-            border-color: #7B756D !important;
-          }
-        `;
-      }
-      return '';
-    }}
-  }
 `;
 
 const EmptyStateWrapper = styled.div`
@@ -301,12 +203,9 @@ const PreviewInfo = styled.div`
   background: ${colors.creamLight};
 `;
 
-type MediaStatus = 'all' | 'pending' | 'approved' | 'rejected';
-
 const MediaGallery: React.FC = () => {
   const [media, setMedia] = useState<GuestMedia[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<MediaStatus>('all');
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [previewItem, setPreviewItem] = useState<GuestMedia | null>(null);
 
@@ -318,7 +217,6 @@ const MediaGallery: React.FC = () => {
     setLoading(true);
     try {
       const response = await mediaApi.getMedia({});
-      // Map API response to GuestMedia format
       const items = (response.items || []).map((item: any) => ({
         id: item.id,
         guest_id: item.guest_id,
@@ -326,7 +224,6 @@ const MediaGallery: React.FC = () => {
         file_url: item.file_url,
         thumbnail_url: item.thumbnail_url || item.file_url,
         caption: item.caption,
-        status: item.is_approved ? 'approved' : (item.is_rejected ? 'rejected' : 'pending'),
         uploaded_at: item.uploaded_at,
         guest_name: item.guest_name || 'Unknown Guest',
       })) as GuestMedia[];
@@ -336,18 +233,6 @@ const MediaGallery: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const filteredMedia = media.filter((item) => {
-    if (activeTab === 'all') return true;
-    return item.status === activeTab;
-  });
-
-  const counts = {
-    all: media.length,
-    pending: media.filter((m) => m.status === 'pending').length,
-    approved: media.filter((m) => m.status === 'approved').length,
-    rejected: media.filter((m) => m.status === 'rejected').length,
   };
 
   const handleSelect = (id: number, event: React.MouseEvent) => {
@@ -364,36 +249,10 @@ const MediaGallery: React.FC = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedItems.size === filteredMedia.length) {
+    if (selectedItems.size === media.length) {
       setSelectedItems(new Set());
     } else {
-      setSelectedItems(new Set(filteredMedia.map((m) => m.id)));
-    }
-  };
-
-  const handleApprove = async (ids: number[]) => {
-    try {
-      await Promise.all(ids.map((id) => mediaApi.approveMedia(String(id))));
-      setMedia((prev) =>
-        prev.map((m) => (ids.includes(m.id) ? { ...m, status: 'approved' as const } : m))
-      );
-      setSelectedItems(new Set());
-      message.success(`${ids.length} item(s) approved`);
-    } catch (error) {
-      message.error('Failed to approve media');
-    }
-  };
-
-  const handleReject = async (ids: number[]) => {
-    try {
-      await Promise.all(ids.map((id) => mediaApi.rejectMedia(String(id))));
-      setMedia((prev) =>
-        prev.map((m) => (ids.includes(m.id) ? { ...m, status: 'rejected' as const } : m))
-      );
-      setSelectedItems(new Set());
-      message.success(`${ids.length} item(s) rejected`);
-    } catch (error) {
-      message.error('Failed to reject media');
+      setSelectedItems(new Set(media.map((m) => m.id)));
     }
   };
 
@@ -417,9 +276,9 @@ const MediaGallery: React.FC = () => {
     });
   };
 
-  const handleDownload = async (ids: number[]) => {
+  const handleDownload = async () => {
     try {
-      message.info(`Downloading media...`);
+      message.info('Downloading media...');
       const blob = await mediaApi.downloadAllMedia();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -433,41 +292,6 @@ const MediaGallery: React.FC = () => {
       message.error('Failed to download media');
     }
   };
-
-  const tabItems = [
-    {
-      key: 'all',
-      label: (
-        <span>
-          All <Badge count={counts.all} style={{ backgroundColor: colors.textSecondary, marginLeft: 8 }} />
-        </span>
-      ),
-    },
-    {
-      key: 'pending',
-      label: (
-        <span>
-          Pending <Badge count={counts.pending} style={{ backgroundColor: colors.warning, marginLeft: 8 }} />
-        </span>
-      ),
-    },
-    {
-      key: 'approved',
-      label: (
-        <span>
-          Approved <Badge count={counts.approved} style={{ backgroundColor: colors.success, marginLeft: 8 }} />
-        </span>
-      ),
-    },
-    {
-      key: 'rejected',
-      label: (
-        <span>
-          Rejected <Badge count={counts.rejected} style={{ backgroundColor: colors.error, marginLeft: 8 }} />
-        </span>
-      ),
-    },
-  ];
 
   if (loading) {
     return (
@@ -486,27 +310,16 @@ const MediaGallery: React.FC = () => {
             Guest Media
           </Title>
           <Text type="secondary">
-            Review and manage photos and videos uploaded by guests
+            Photos and videos uploaded by guests
           </Text>
         </div>
 
         <Space>
-          <Button icon={<DownloadOutlined />} onClick={() => handleDownload(Array.from(selectedItems))}>
-            Download Selected
+          <Button icon={<DownloadOutlined />} onClick={handleDownload}>
+            Download All
           </Button>
         </Space>
       </PageHeader>
-
-      <Card style={{ marginBottom: 24 }}>
-        <FilterTabs
-          activeKey={activeTab}
-          onChange={(key) => {
-            setActiveTab(key as MediaStatus);
-            setSelectedItems(new Set());
-          }}
-          items={tabItems}
-        />
-      </Card>
 
       <AnimatePresence>
         {selectedItems.size > 0 && (
@@ -517,37 +330,21 @@ const MediaGallery: React.FC = () => {
           >
             <Space>
               <Checkbox
-                checked={selectedItems.size === filteredMedia.length}
-                indeterminate={selectedItems.size > 0 && selectedItems.size < filteredMedia.length}
+                checked={selectedItems.size === media.length}
+                indeterminate={selectedItems.size > 0 && selectedItems.size < media.length}
                 onChange={handleSelectAll}
               />
               <Text style={{ color: 'white' }}>
-                {selectedItems.size} of {filteredMedia.length} selected
+                {selectedItems.size} of {media.length} selected
               </Text>
             </Space>
 
             <Space>
               <Button
+                danger
                 type="primary"
-                icon={<CheckOutlined />}
-                onClick={() => handleApprove(Array.from(selectedItems))}
-                style={{ background: colors.success, borderColor: colors.success }}
-              >
-                Approve
-              </Button>
-              <Button
-                danger
-                icon={<CloseOutlined />}
-                onClick={() => handleReject(Array.from(selectedItems))}
-              >
-                Reject
-              </Button>
-              <Button
-                danger
-                type="text"
                 icon={<DeleteOutlined />}
                 onClick={() => handleDelete(Array.from(selectedItems))}
-                style={{ color: 'white' }}
               >
                 Delete
               </Button>
@@ -557,18 +354,17 @@ const MediaGallery: React.FC = () => {
       </AnimatePresence>
 
       <GoldDivider
-        text={`${filteredMedia.length} ${activeTab === 'all' ? 'Items' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`}
+        text={`${media.length} Items`}
         variant="simple"
         margin="0 0 24px 0"
       />
 
-      {filteredMedia.length > 0 ? (
+      {media.length > 0 ? (
         <MediaGrid>
-          {filteredMedia.map((item, index) => (
+          {media.map((item, index) => (
             <MediaCard
               key={item.id}
               $selected={selectedItems.has(item.id)}
-              $status={item.status}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.05 }}
@@ -585,8 +381,6 @@ const MediaGallery: React.FC = () => {
                 <MediaTypeIcon $type={item.media_type}>
                   {item.media_type === 'video' ? <VideoCameraOutlined /> : <PictureOutlined />}
                 </MediaTypeIcon>
-
-                <StatusBadge $status={item.status}>{item.status}</StatusBadge>
 
                 <MediaOverlay className="media-overlay">
                   <Tooltip title="View full size">
@@ -612,25 +406,6 @@ const MediaGallery: React.FC = () => {
                   <CalendarOutlined />
                   {dayjs(item.uploaded_at).format('MMM D, h:mm A')}
                 </UploadDate>
-
-                {item.status === 'pending' && (
-                  <QuickActions onClick={(e) => e.stopPropagation()}>
-                    <QuickActionButton
-                      $variant="approve"
-                      icon={<CheckOutlined />}
-                      onClick={() => handleApprove([item.id])}
-                    >
-                      Approve
-                    </QuickActionButton>
-                    <QuickActionButton
-                      $variant="reject"
-                      icon={<CloseOutlined />}
-                      onClick={() => handleReject([item.id])}
-                    >
-                      Reject
-                    </QuickActionButton>
-                  </QuickActions>
-                )}
               </MediaInfo>
             </MediaCard>
           ))}
@@ -645,9 +420,7 @@ const MediaGallery: React.FC = () => {
               No Media Found
             </Title>
             <Paragraph type="secondary" style={{ maxWidth: 400, margin: '0 auto' }}>
-              {activeTab === 'all'
-                ? 'No media has been uploaded by guests yet.'
-                : `No ${activeTab} media items.`}
+              No media has been uploaded by guests yet.
             </Paragraph>
           </EmptyStateWrapper>
         </Card>
@@ -694,29 +467,8 @@ const MediaGallery: React.FC = () => {
                 <Col span={24}>
                   <Space>
                     <Button
-                      type="primary"
-                      icon={<CheckOutlined />}
-                      onClick={() => {
-                        handleApprove([previewItem.id]);
-                        setPreviewItem(null);
-                      }}
-                      style={{ background: colors.success, borderColor: colors.success }}
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      danger
-                      icon={<CloseOutlined />}
-                      onClick={() => {
-                        handleReject([previewItem.id]);
-                        setPreviewItem(null);
-                      }}
-                    >
-                      Reject
-                    </Button>
-                    <Button
                       icon={<DownloadOutlined />}
-                      onClick={() => handleDownload([previewItem.id])}
+                      onClick={handleDownload}
                     >
                       Download
                     </Button>

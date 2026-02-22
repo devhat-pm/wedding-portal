@@ -2,11 +2,11 @@ from typing import List, Optional, Any
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update as sa_update
 from pydantic import BaseModel, model_validator
 
 from app.database import get_db
-from app.models import Wedding, SuggestedHotel
+from app.models import Wedding, SuggestedHotel, HotelInfo
 from app.schemas import (
     SuggestedHotelCreate,
     SuggestedHotelUpdate,
@@ -141,6 +141,13 @@ async def delete_hotel(
             detail="Hotel not found"
         )
 
+    # Nullify references in hotel_infos to avoid FK constraint violations
+    await db.execute(
+        sa_update(HotelInfo)
+        .where(HotelInfo.suggested_hotel_id == hotel.id)
+        .values(suggested_hotel_id=None)
+    )
+
     await db.delete(hotel)
     await db.flush()
 
@@ -156,7 +163,7 @@ async def reorder_hotels(
     """Update display order of hotels."""
     for item in data.items:
         await db.execute(
-            update(SuggestedHotel)
+            sa_update(SuggestedHotel)
             .where(
                 SuggestedHotel.id == item.hotel_id,
                 SuggestedHotel.wedding_id == wedding.id

@@ -86,6 +86,14 @@ export const exportGuests = async (): Promise<Blob> => {
   return response.data;
 };
 
+// Download guest upload template
+export const downloadUploadTemplate = async (): Promise<Blob> => {
+  const response = await api.get('/api/admin/guests/upload-template', {
+    responseType: 'blob',
+  });
+  return response.data;
+};
+
 // Export as object for convenient usage
 export const guestsApi = {
   uploadGuestsExcel,
@@ -96,4 +104,5 @@ export const guestsApi = {
   deleteGuest,
   regenerateLink,
   exportGuests,
+  downloadUploadTemplate,
 };

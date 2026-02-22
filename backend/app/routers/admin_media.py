@@ -161,14 +161,11 @@ async def download_all_media(
     wedding: Wedding = Depends(get_current_wedding),
     db: AsyncSession = Depends(get_db)
 ):
-    """Download all approved media as zip."""
+    """Download all media as zip."""
     result = await db.execute(
         select(MediaUpload)
         .options(selectinload(MediaUpload.guest))
-        .where(
-            MediaUpload.wedding_id == wedding.id,
-            MediaUpload.is_approved == True
-        )
+        .where(MediaUpload.wedding_id == wedding.id)
         .order_by(MediaUpload.event_tag, MediaUpload.uploaded_at)
     )
     media_items = result.scalars().all()
@@ -176,7 +173,7 @@ async def download_all_media(
     if not media_items:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No approved media found"
+            detail="No media found"
         )
 
     # Create zip file in memory

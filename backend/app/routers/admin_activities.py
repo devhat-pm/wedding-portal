@@ -2,7 +2,7 @@ from typing import List
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete as sa_delete
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
 
@@ -254,6 +254,11 @@ async def delete_activity(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Activity not found"
         )
+
+    # Delete related guest_activities first to avoid FK constraint violations
+    await db.execute(
+        sa_delete(GuestActivity).where(GuestActivity.activity_id == activity.id)
+    )
 
     await db.delete(activity)
     await db.flush()
