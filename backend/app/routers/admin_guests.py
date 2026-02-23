@@ -294,7 +294,9 @@ async def list_guests(
             special_requests=g.special_requests,
             last_accessed_at=g.last_accessed_at,
             created_at=g.created_at,
-            updated_at=g.updated_at
+            updated_at=g.updated_at,
+            has_travel_info=g.id in travel_submitted,
+            has_hotel_info=g.id in hotel_submitted,
         )
         for g in guests
     ]

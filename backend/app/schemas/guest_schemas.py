@@ -55,6 +55,8 @@ class GuestResponse(BaseSchema, TimestampMixin):
     special_requests: Optional[str] = None
     rsvp_submitted_at: Optional[datetime] = None
     last_accessed_at: Optional[datetime] = None
+    has_travel_info: bool = False
+    has_hotel_info: bool = False
 
     @computed_field
     @property
