@@ -236,6 +236,8 @@ const EmptyIcon = styled.div`
 
 const ActivityList = styled.div`
   padding: 8px 0;
+  max-height: 360px;
+  overflow-y: auto;
 `;
 
 const ActivityItem = styled.div`
