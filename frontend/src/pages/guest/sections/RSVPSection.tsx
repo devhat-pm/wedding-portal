@@ -389,8 +389,9 @@ const SubmitButton = styled(Button)`
 `;
 
 // Activity card styles
-const ActivityCard = styled.div<{ $selected: boolean }>`
+const ActivityCard = styled.div<{ $selected: boolean; $themeColor?: string }>`
   border: 2px solid ${(props) => (props.$selected ? colors.primary : colors.creamDark)};
+  border-left: 5px solid ${(props) => props.$themeColor || (props.$selected ? colors.primary : colors.creamDark)};
   border-radius: ${borderRadius.lg}px;
   padding: 20px;
   margin-bottom: 16px;
@@ -400,6 +401,7 @@ const ActivityCard = styled.div<{ $selected: boolean }>`
 
   &:hover {
     border-color: ${colors.primary};
+    border-left-color: ${(props) => props.$themeColor || colors.primary};
     box-shadow: 0 2px 8px rgba(183, 168, 154, 0.15);
   }
 `;
@@ -479,6 +481,30 @@ const DetailLabel = styled.span`
 
 const DetailValue = styled.span`
   color: ${colors.textPrimary};
+`;
+
+const ColorPalette = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+`;
+
+const ColorSwatch = styled.div<{ $color: string }>`
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: ${(props) => props.$color};
+  border: 2.5px solid white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  flex-shrink: 0;
+`;
+
+const ColorSwatchLabel = styled.span`
+  font-size: 12px;
+  color: ${colors.textSecondary};
+  margin-left: 2px;
 `;
 
 const ColorDots = styled.div`
@@ -917,89 +943,96 @@ const RSVPSection: React.FC = () => {
                       <FormSectionTitle>
                         <CalendarOutlined /> Which events will you attend?
                       </FormSectionTitle>
-                      {signupActivities.map((activity: any) => (
-                        <ActivityCard
-                          key={activity.id}
-                          $selected={selectedActivities.has(activity.id)}
-                          onClick={() => toggleActivity(activity.id)}
-                        >
-                          <ActivityHeader>
-                            <ActivityCheckbox>
-                              <Checkbox
-                                checked={selectedActivities.has(activity.id)}
-                                onChange={(e) => {
-                                  e.stopPropagation();
-                                  toggleActivity(activity.id);
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </ActivityCheckbox>
-                            <ActivityInfo>
-                              <ActivityName>{activity.activity_name || activity.title}</ActivityName>
-                              <ActivityMeta>
-                                {activity.date_time && (
-                                  <ActivityMetaItem>
-                                    <CalendarOutlined />
-                                    {formatDateTime(activity.date_time)}
-                                  </ActivityMetaItem>
-                                )}
-                                {activity.duration_minutes && (
-                                  <ActivityMetaItem>
-                                    <ClockCircleOutlined />
-                                    {formatDuration(activity.duration_minutes)}
-                                  </ActivityMetaItem>
-                                )}
-                                {activity.location && (
-                                  <ActivityMetaItem>
-                                    <EnvironmentOutlined />
-                                    {activity.location}
-                                  </ActivityMetaItem>
-                                )}
-                              </ActivityMeta>
-                              {activity.description && (
-                                <ActivityDescription>{activity.description}</ActivityDescription>
-                              )}
+                      {signupActivities.map((activity: any) => {
+                        const themeColor = activity.dress_colors?.[0]?.hex || activity.dress_colors?.[0] || undefined;
+                        return (
+                          <ActivityCard
+                            key={activity.id}
+                            $selected={selectedActivities.has(activity.id)}
+                            $themeColor={themeColor}
+                            onClick={() => toggleActivity(activity.id)}
+                          >
+                            <ActivityHeader>
+                              <ActivityCheckbox>
+                                <Checkbox
+                                  checked={selectedActivities.has(activity.id)}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    toggleActivity(activity.id);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </ActivityCheckbox>
+                              <ActivityInfo>
+                                <ActivityName>{activity.activity_name || activity.title}</ActivityName>
+                                <ActivityMeta>
+                                  {activity.date_time && (
+                                    <ActivityMetaItem>
+                                      <CalendarOutlined />
+                                      {formatDateTime(activity.date_time)}
+                                    </ActivityMetaItem>
+                                  )}
+                                  {activity.duration_minutes && (
+                                    <ActivityMetaItem>
+                                      <ClockCircleOutlined />
+                                      {formatDuration(activity.duration_minutes)}
+                                    </ActivityMetaItem>
+                                  )}
+                                  {activity.location && (
+                                    <ActivityMetaItem>
+                                      <EnvironmentOutlined />
+                                      {activity.location}
+                                    </ActivityMetaItem>
+                                  )}
+                                </ActivityMeta>
 
-                              {(activity.dress_code_info || activity.dress_colors?.length > 0 || activity.food_description) && (
-                                <ActivityDetails>
-                                  {activity.dress_code_info && (
-                                    <ActivityDetailRow>
-                                      <DetailIcon><SkinOutlined /></DetailIcon>
-                                      <DetailLabel>Dress Code:</DetailLabel>
-                                      <DetailValue>{activity.dress_code_info}</DetailValue>
-                                    </ActivityDetailRow>
-                                  )}
-                                  {activity.dress_colors?.length > 0 && (
-                                    <ActivityDetailRow>
-                                      <DetailIcon><SkinOutlined /></DetailIcon>
-                                      <DetailLabel>Colors:</DetailLabel>
-                                      <ColorDots>
-                                        {activity.dress_colors.map((c: any, i: number) => (
-                                          <ColorDot key={i} $color={c.hex || c} title={c.name || ''} />
-                                        ))}
-                                      </ColorDots>
-                                    </ActivityDetailRow>
-                                  )}
-                                  {activity.food_description && (
-                                    <ActivityDetailRow>
-                                      <DetailIcon><CoffeeOutlined /></DetailIcon>
-                                      <DetailLabel>Food:</DetailLabel>
-                                      <DetailValue>{activity.food_description}</DetailValue>
-                                    </ActivityDetailRow>
-                                  )}
-                                  {activity.dietary_options?.length > 0 && (
-                                    <ActivityDetailRow>
-                                      <DetailIcon><CoffeeOutlined /></DetailIcon>
-                                      <DetailLabel>Dietary:</DetailLabel>
-                                      <DetailValue>{activity.dietary_options.join(', ')}</DetailValue>
-                                    </ActivityDetailRow>
-                                  )}
-                                </ActivityDetails>
-                              )}
-                            </ActivityInfo>
-                          </ActivityHeader>
-                        </ActivityCard>
-                      ))}
+                                {/* Prominent color palette */}
+                                {activity.dress_colors?.length > 0 && (
+                                  <ColorPalette>
+                                    <SkinOutlined style={{ color: colors.primary, fontSize: 14 }} />
+                                    {activity.dress_colors.map((c: any, i: number) => (
+                                      <ColorSwatch key={i} $color={c.hex || c} title={c.name || ''} />
+                                    ))}
+                                    {activity.dress_colors[0]?.name && (
+                                      <ColorSwatchLabel>{activity.dress_colors.map((c: any) => c.name).join(', ')}</ColorSwatchLabel>
+                                    )}
+                                  </ColorPalette>
+                                )}
+
+                                {activity.description && (
+                                  <ActivityDescription>{activity.description}</ActivityDescription>
+                                )}
+
+                                {(activity.dress_code_info || activity.food_description) && (
+                                  <ActivityDetails>
+                                    {activity.dress_code_info && (
+                                      <ActivityDetailRow>
+                                        <DetailIcon><SkinOutlined /></DetailIcon>
+                                        <DetailLabel>Dress Code:</DetailLabel>
+                                        <DetailValue>{activity.dress_code_info}</DetailValue>
+                                      </ActivityDetailRow>
+                                    )}
+                                    {activity.food_description && (
+                                      <ActivityDetailRow>
+                                        <DetailIcon><CoffeeOutlined /></DetailIcon>
+                                        <DetailLabel>Food:</DetailLabel>
+                                        <DetailValue>{activity.food_description}</DetailValue>
+                                      </ActivityDetailRow>
+                                    )}
+                                    {activity.dietary_options?.length > 0 && (
+                                      <ActivityDetailRow>
+                                        <DetailIcon><CoffeeOutlined /></DetailIcon>
+                                        <DetailLabel>Dietary:</DetailLabel>
+                                        <DetailValue>{activity.dietary_options.join(', ')}</DetailValue>
+                                      </ActivityDetailRow>
+                                    )}
+                                  </ActivityDetails>
+                                )}
+                              </ActivityInfo>
+                            </ActivityHeader>
+                          </ActivityCard>
+                        );
+                      })}
                     </FormSection>
                   </>
                 )}

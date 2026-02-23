@@ -29,10 +29,11 @@ const SectionWrapper = styled.section`
   }
 `;
 
-const ActivityCard = styled(motion.div)`
+const ActivityCard = styled(motion.div)<{ $themeColor?: string }>`
   background: ${colors.cardBg};
   border-radius: ${borderRadius.xl}px;
   border: 1px solid ${colors.borderGold};
+  border-left: 5px solid ${(props) => props.$themeColor || colors.borderGold};
   box-shadow: ${shadows.md};
   overflow: hidden;
   margin-bottom: 20px;
@@ -41,6 +42,7 @@ const ActivityCard = styled(motion.div)`
   &:hover {
     box-shadow: ${shadows.lg};
     transform: translateY(-2px);
+    border-left-color: ${(props) => props.$themeColor || colors.primary};
   }
 `;
 
@@ -154,6 +156,30 @@ const ColorDot = styled.div<{ $color: string }>`
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 `;
 
+const ColorPalette = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+`;
+
+const ColorSwatch = styled.div<{ $color: string }>`
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: ${(props) => props.$color};
+  border: 2.5px solid white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  flex-shrink: 0;
+`;
+
+const ColorSwatchLabel = styled.span`
+  font-size: 12px;
+  color: ${colors.textSecondary};
+  margin-left: 2px;
+`;
+
 const EmptyState = styled(motion.div)`
   text-align: center;
   padding: 60px 20px;
@@ -240,95 +266,101 @@ const ThingsToDoSection: React.FC = () => {
         subtitle="Explore activities and things to do during your stay"
       />
 
-      {thingsToDo.map((activity: any, index: number) => (
-        <ActivityCard
-          key={activity.id}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: index * 0.1, duration: 0.4 }}
-        >
-          {activity.image_url && (
-            <CardImage $imageUrl={getImageUrl(activity.image_url)} />
-          )}
-
-          <CardBody>
-            <ActivityTitle>
-              {activity.activity_name || activity.title}
-            </ActivityTitle>
-
-            <MetaRow>
-              {(activity.date_time || activity.start_time) && (
-                <MetaItem>
-                  <CalendarOutlined />
-                  {formatDateTime(activity.date_time || activity.start_time)}
-                </MetaItem>
-              )}
-              {activity.duration_minutes && (
-                <MetaItem>
-                  <ClockCircleOutlined />
-                  {formatDuration(activity.duration_minutes)}
-                </MetaItem>
-              )}
-              {activity.location && (
-                <MetaItem>
-                  <EnvironmentOutlined />
-                  {activity.location}
-                </MetaItem>
-              )}
-            </MetaRow>
-
-            {activity.description && (
-              <Description>{activity.description}</Description>
+      {thingsToDo.map((activity: any, index: number) => {
+        const themeColor = activity.dress_colors?.[0]?.hex || activity.dress_colors?.[0] || undefined;
+        return (
+          <ActivityCard
+            key={activity.id}
+            $themeColor={themeColor}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.1, duration: 0.4 }}
+          >
+            {activity.image_url && (
+              <CardImage $imageUrl={getImageUrl(activity.image_url)} />
             )}
 
-            {(activity.dress_code_info || activity.dress_colors?.length > 0 || activity.food_description || activity.dietary_options?.length > 0) && (
-              <DetailSection>
-                {activity.dress_code_info && (
-                  <DetailRow>
-                    <DetailIcon><SkinOutlined /></DetailIcon>
-                    <DetailLabel>Dress Code:</DetailLabel>
-                    <DetailValue>{activity.dress_code_info}</DetailValue>
-                  </DetailRow>
-                )}
-                {activity.dress_colors?.length > 0 && (
-                  <DetailRow>
-                    <DetailIcon><SkinOutlined /></DetailIcon>
-                    <DetailLabel>Colors:</DetailLabel>
-                    <ColorDots>
-                      {activity.dress_colors.map((c: any, i: number) => (
-                        <ColorDot key={i} $color={c.hex || c} title={c.name || ''} />
-                      ))}
-                    </ColorDots>
-                  </DetailRow>
-                )}
-                {activity.food_description && (
-                  <DetailRow>
-                    <DetailIcon><CoffeeOutlined /></DetailIcon>
-                    <DetailLabel>Food:</DetailLabel>
-                    <DetailValue>{activity.food_description}</DetailValue>
-                  </DetailRow>
-                )}
-                {activity.dietary_options?.length > 0 && (
-                  <DetailRow>
-                    <DetailIcon><CoffeeOutlined /></DetailIcon>
-                    <DetailLabel>Dietary:</DetailLabel>
-                    <DetailValue>{activity.dietary_options.join(', ')}</DetailValue>
-                  </DetailRow>
-                )}
-              </DetailSection>
-            )}
+            <CardBody>
+              <ActivityTitle>
+                {activity.activity_name || activity.title}
+              </ActivityTitle>
 
-            {activity.notes && (
-              <DetailSection>
-                <Description style={{ fontStyle: 'italic', color: colors.textSecondary }}>
-                  {activity.notes}
-                </Description>
-              </DetailSection>
-            )}
-          </CardBody>
-        </ActivityCard>
-      ))}
+              <MetaRow>
+                {(activity.date_time || activity.start_time) && (
+                  <MetaItem>
+                    <CalendarOutlined />
+                    {formatDateTime(activity.date_time || activity.start_time)}
+                  </MetaItem>
+                )}
+                {activity.duration_minutes && (
+                  <MetaItem>
+                    <ClockCircleOutlined />
+                    {formatDuration(activity.duration_minutes)}
+                  </MetaItem>
+                )}
+                {activity.location && (
+                  <MetaItem>
+                    <EnvironmentOutlined />
+                    {activity.location}
+                  </MetaItem>
+                )}
+              </MetaRow>
+
+              {/* Prominent color palette */}
+              {activity.dress_colors?.length > 0 && (
+                <ColorPalette>
+                  <SkinOutlined style={{ color: themeColor || colors.primary, fontSize: 14 }} />
+                  {activity.dress_colors.map((c: any, i: number) => (
+                    <ColorSwatch key={i} $color={c.hex || c} title={c.name || ''} />
+                  ))}
+                  {activity.dress_colors[0]?.name && (
+                    <ColorSwatchLabel>{activity.dress_colors.map((c: any) => c.name).join(', ')}</ColorSwatchLabel>
+                  )}
+                </ColorPalette>
+              )}
+
+              {activity.description && (
+                <Description>{activity.description}</Description>
+              )}
+
+              {(activity.dress_code_info || activity.food_description || activity.dietary_options?.length > 0) && (
+                <DetailSection>
+                  {activity.dress_code_info && (
+                    <DetailRow>
+                      <DetailIcon><SkinOutlined /></DetailIcon>
+                      <DetailLabel>Dress Code:</DetailLabel>
+                      <DetailValue>{activity.dress_code_info}</DetailValue>
+                    </DetailRow>
+                  )}
+                  {activity.food_description && (
+                    <DetailRow>
+                      <DetailIcon><CoffeeOutlined /></DetailIcon>
+                      <DetailLabel>Food:</DetailLabel>
+                      <DetailValue>{activity.food_description}</DetailValue>
+                    </DetailRow>
+                  )}
+                  {activity.dietary_options?.length > 0 && (
+                    <DetailRow>
+                      <DetailIcon><CoffeeOutlined /></DetailIcon>
+                      <DetailLabel>Dietary:</DetailLabel>
+                      <DetailValue>{activity.dietary_options.join(', ')}</DetailValue>
+                    </DetailRow>
+                  )}
+                </DetailSection>
+              )}
+
+              {activity.notes && (
+                <DetailSection>
+                  <Description style={{ fontStyle: 'italic', color: colors.textSecondary }}>
+                    {activity.notes}
+                  </Description>
+                </DetailSection>
+              )}
+            </CardBody>
+          </ActivityCard>
+        );
+      })}
     </SectionWrapper>
   );
 };

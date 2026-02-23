@@ -23,6 +23,7 @@ import {
   TeamOutlined,
   StarOutlined,
   CompassOutlined,
+  SkinOutlined,
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import styled from '@emotion/styled';
@@ -106,16 +107,18 @@ const TimelineDot = styled.div<{ $isFirst?: boolean }>`
   z-index: 1;
 `;
 
-const ActivityCard = styled(Card)`
+const ActivityCard = styled(Card)<{ $themeColor?: string }>`
   && {
     border-radius: ${borderRadius.xl}px;
     border: 1px solid ${colors.borderGold};
+    border-left: 4px solid ${(props) => props.$themeColor || colors.borderGold};
     box-shadow: ${shadows.sm};
     overflow: hidden;
 
     &:hover {
       box-shadow: ${shadows.md};
       border-color: ${colors.primary};
+      border-left-color: ${(props) => props.$themeColor || colors.primary};
     }
 
     .ant-card-body {
@@ -272,6 +275,30 @@ const TypeBadge = styled(Tag)<{ $isMainEvent: boolean }>`
     border-color: ${(props) => (props.$isMainEvent ? colors.borderGold : '#A5D6A7')};
     color: ${(props) => (props.$isMainEvent ? colors.primary : '#2E7D32')};
   }
+`;
+
+const ColorSwatches = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+`;
+
+const ColorSwatchDot = styled.div<{ $color: string }>`
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: ${(props) => props.$color};
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+`;
+
+const ColorSwatchLabel = styled.span`
+  font-size: 11px;
+  color: ${colors.textSecondary};
+  margin-left: 2px;
 `;
 
 interface GroupedActivities {
@@ -464,6 +491,7 @@ const ActivityList: React.FC = () => {
           <TimelineWrapper>
             {groupedActivities[effectiveActiveDay]?.map((activity, index) => {
               const isMainEvent = activity.requires_signup !== false;
+              const themeColor = activity.dress_colors?.[0]?.hex || activity.dress_colors?.[0] || undefined;
               return (
                 <TimelineItem
                   key={activity.id}
@@ -472,7 +500,7 @@ const ActivityList: React.FC = () => {
                   transition={{ delay: index * 0.1 }}
                 >
                   <TimelineDot $isFirst={index === 0} />
-                  <ActivityCard>
+                  <ActivityCard $themeColor={themeColor}>
                     <ActivityCardContent>
                       <ActivityImage $imageUrl={getImageUrl(activity.image_url)}>
                         {!activity.image_url && (isMainEvent ? <StarOutlined /> : <CompassOutlined />)}
@@ -515,6 +543,20 @@ const ActivityList: React.FC = () => {
                             </MetaItem>
                           )}
                         </ActivityMeta>
+
+                        {activity.dress_colors?.length > 0 && (
+                          <ColorSwatches>
+                            <SkinOutlined style={{ color: colors.primary, fontSize: 13 }} />
+                            {activity.dress_colors.map((c: any, i: number) => (
+                              <ColorSwatchDot key={i} $color={c.hex || c} title={c.name || ''} />
+                            ))}
+                            {activity.dress_colors[0]?.name && (
+                              <ColorSwatchLabel>
+                                {activity.dress_colors.map((c: any) => c.name).filter(Boolean).join(', ')}
+                              </ColorSwatchLabel>
+                            )}
+                          </ColorSwatches>
+                        )}
 
                         {isMainEvent && activity.max_participants && (
                           <CapacityWrapper>
