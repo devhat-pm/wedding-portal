@@ -5,3 +5,4 @@ export { default as HotelSection } from './HotelSection';
 export { default as DressCodeSection } from './DressCodeSection';
 export { default as FoodSection } from './FoodSection';
 export { default as ActivitiesSection } from './ActivitiesSection';
+export { default as ThingsToDoSection } from './ThingsToDoSection';

@@ -16,6 +16,7 @@ import {
   Upload,
   Checkbox,
   Tag,
+  Radio,
 } from 'antd';
 import {
   PlusOutlined,
@@ -24,6 +25,8 @@ import {
   DeleteOutlined,
   SkinOutlined,
   CoffeeOutlined,
+  CalendarOutlined,
+  CompassOutlined,
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import styled from '@emotion/styled';
@@ -161,10 +164,13 @@ const DIETARY_OPTIONS = [
   'Seafood-Free',
 ];
 
+type ActivityType = 'main_event' | 'things_to_do';
+
 const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, onSubmit }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [activityType, setActivityType] = useState<ActivityType>('main_event');
   const [hasCapacityLimit, setHasCapacityLimit] = useState(false);
   const [dressColors, setDressColors] = useState<Array<{ name: string; hex: string }>>([]);
   const [newColorName, setNewColorName] = useState('');
@@ -175,6 +181,10 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
     if (activity) {
       const startTime = activity.start_time ? dayjs(activity.start_time) : null;
       const endTime = activity.end_time ? dayjs(activity.end_time) : null;
+
+      // Determine activity type from requires_signup
+      const isMainEvent = activity.requires_signup !== false;
+      setActivityType(isMainEvent ? 'main_event' : 'things_to_do');
 
       form.setFieldsValue({
         title: activity.title || activity.activity_name,
@@ -199,6 +209,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
     } else {
       form.resetFields();
       setFileList([]);
+      setActivityType('main_event');
       setHasCapacityLimit(false);
       setDressColors([]);
       setSelectedDietaryOptions([]);
@@ -238,13 +249,16 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
       const startTimeStr = values.start_time?.format('HH:mm:ss');
       const endTimeStr = values.end_time?.format('HH:mm:ss');
 
+      const isMainEvent = activityType === 'main_event';
+
       const data: Partial<Activity> = {
         title: values.title,
         description: values.description,
         start_time: date && startTimeStr ? `${date}T${startTimeStr}` : undefined,
         end_time: date && endTimeStr ? `${date}T${endTimeStr}` : undefined,
         location: values.location,
-        max_participants: hasCapacityLimit ? values.max_participants : undefined,
+        max_participants: isMainEvent && hasCapacityLimit ? values.max_participants : undefined,
+        requires_signup: isMainEvent,
         notes: values.notes,
         image_url: imageUrl,
         dress_code_info: values.dress_code_info || undefined,
@@ -266,6 +280,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
   const handleClose = () => {
     form.resetFields();
     setFileList([]);
+    setActivityType('main_event');
     setHasCapacityLimit(false);
     setDressColors([]);
     setSelectedDietaryOptions([]);
@@ -290,6 +305,32 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
       ]}
     >
       <StyledForm form={form} layout="vertical" requiredMark={false}>
+        <div style={{ marginBottom: 24 }}>
+          <Text strong style={{ display: 'block', marginBottom: 12 }}>Activity Type</Text>
+          <Radio.Group
+            value={activityType}
+            onChange={(e) => setActivityType(e.target.value)}
+            optionType="button"
+            buttonStyle="solid"
+            size="large"
+            style={{ width: '100%', display: 'flex' }}
+          >
+            <Radio.Button value="main_event" style={{ flex: 1, textAlign: 'center' }}>
+              <CalendarOutlined style={{ marginRight: 8 }} />
+              Main Event
+            </Radio.Button>
+            <Radio.Button value="things_to_do" style={{ flex: 1, textAlign: 'center' }}>
+              <CompassOutlined style={{ marginRight: 8 }} />
+              Things to Do
+            </Radio.Button>
+          </Radio.Group>
+          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+            {activityType === 'main_event'
+              ? 'Main events appear on the RSVP page for guest registration.'
+              : 'Things to Do are informational - shown as suggestions, no registration needed.'}
+          </Text>
+        </div>
+
         <Form.Item
           name="title"
           label="Activity Title"
@@ -341,39 +382,43 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
           />
         </Form.Item>
 
-        <SectionTitle>Capacity</SectionTitle>
-        <Space>
-          <Switch
-            checked={hasCapacityLimit}
-            onChange={setHasCapacityLimit}
-          />
-          <Text>Limit number of participants</Text>
-        </Space>
-
-        {hasCapacityLimit && (
+        {activityType === 'main_event' && (
           <>
-            <Form.Item
-              name="max_participants"
-              label="Maximum Participants"
-              style={{ marginTop: 16 }}
-              rules={[
-                { required: hasCapacityLimit, message: 'Please enter max participants' },
-              ]}
-            >
-              <InputNumber
-                min={1}
-                max={1000}
-                style={{ width: 200 }}
-                size="large"
-                placeholder="e.g., 50"
+            <SectionTitle>Capacity</SectionTitle>
+            <Space>
+              <Switch
+                checked={hasCapacityLimit}
+                onChange={setHasCapacityLimit}
               />
-            </Form.Item>
-            <CapacityInfo>
-              <ClockCircleOutlined style={{ color: colors.primary }} />
-              <Text type="secondary" style={{ fontSize: 13 }}>
-                Guests will only be able to register if spots are available
-              </Text>
-            </CapacityInfo>
+              <Text>Limit number of participants</Text>
+            </Space>
+
+            {hasCapacityLimit && (
+              <>
+                <Form.Item
+                  name="max_participants"
+                  label="Maximum Participants"
+                  style={{ marginTop: 16 }}
+                  rules={[
+                    { required: hasCapacityLimit, message: 'Please enter max participants' },
+                  ]}
+                >
+                  <InputNumber
+                    min={1}
+                    max={1000}
+                    style={{ width: 200 }}
+                    size="large"
+                    placeholder="e.g., 50"
+                  />
+                </Form.Item>
+                <CapacityInfo>
+                  <ClockCircleOutlined style={{ color: colors.primary }} />
+                  <Text type="secondary" style={{ fontSize: 13 }}>
+                    Guests will only be able to register if spots are available
+                  </Text>
+                </CapacityInfo>
+              </>
+            )}
           </>
         )}
 

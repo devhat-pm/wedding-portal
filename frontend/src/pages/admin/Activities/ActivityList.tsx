@@ -22,6 +22,7 @@ import {
   ClockCircleOutlined,
   TeamOutlined,
   StarOutlined,
+  CompassOutlined,
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import styled from '@emotion/styled';
@@ -233,6 +234,46 @@ const EmptyStateIcon = styled.div`
   color: ${colors.primary};
 `;
 
+const TypeFilterWrapper = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+`;
+
+const TypeFilterButton = styled.button<{ $active: boolean; $variant: 'all' | 'main' | 'things' }>`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: ${borderRadius.lg}px;
+  border: 1px solid ${(props) => (props.$active ? colors.primary : colors.creamDark)};
+  background: ${(props) => (props.$active ? colors.goldPale : 'white')};
+  color: ${(props) => (props.$active ? colors.primary : colors.textSecondary)};
+  cursor: pointer;
+  font-weight: ${(props) => (props.$active ? 600 : 400)};
+  font-size: 14px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${colors.primary};
+    background: ${colors.goldPale};
+  }
+`;
+
+const TypeBadge = styled(Tag)<{ $isMainEvent: boolean }>`
+  && {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin: 0;
+    background: ${(props) => (props.$isMainEvent ? colors.goldPale : '#E8F5E9')};
+    border-color: ${(props) => (props.$isMainEvent ? colors.borderGold : '#A5D6A7')};
+    color: ${(props) => (props.$isMainEvent ? colors.primary : '#2E7D32')};
+  }
+`;
+
 interface GroupedActivities {
   [date: string]: Activity[];
 }
@@ -243,6 +284,7 @@ const ActivityList: React.FC = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [activeDay, setActiveDay] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'main' | 'things'>('all');
 
   useEffect(() => {
     fetchActivities();
@@ -264,26 +306,6 @@ const ActivityList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const groupActivitiesByDay = (): GroupedActivities => {
-    const grouped: GroupedActivities = {};
-    activities.forEach((activity) => {
-      const date = dayjs(activity.start_time).format('YYYY-MM-DD');
-      if (!grouped[date]) {
-        grouped[date] = [];
-      }
-      grouped[date].push(activity);
-    });
-
-    // Sort activities within each day by start time
-    Object.keys(grouped).forEach((date) => {
-      grouped[date].sort((a, b) =>
-        dayjs(a.start_time).unix() - dayjs(b.start_time).unix()
-      );
-    });
-
-    return grouped;
   };
 
   const handleEdit = (activity: Activity) => {
@@ -342,8 +364,41 @@ const ActivityList: React.FC = () => {
     );
   }
 
-  const groupedActivities = groupActivitiesByDay();
+  // Filter activities by type
+  const filteredActivities = activities.filter((a) => {
+    if (typeFilter === 'main') return a.requires_signup !== false;
+    if (typeFilter === 'things') return a.requires_signup === false;
+    return true;
+  });
+
+  const mainCount = activities.filter((a) => a.requires_signup !== false).length;
+  const thingsCount = activities.filter((a) => a.requires_signup === false).length;
+
+  const groupedActivities = (() => {
+    const grouped: GroupedActivities = {};
+    filteredActivities.forEach((activity) => {
+      const date = dayjs(activity.start_time).format('YYYY-MM-DD');
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(activity);
+    });
+    Object.keys(grouped).forEach((date) => {
+      grouped[date].sort((a, b) =>
+        dayjs(a.start_time).unix() - dayjs(b.start_time).unix()
+      );
+    });
+    return grouped;
+  })();
+
   const sortedDates = Object.keys(groupedActivities).sort();
+
+  // Reset active day if current one has no activities after filter
+  if (sortedDates.length > 0 && !groupedActivities[activeDay]) {
+    // Will be set on next render
+  }
+
+  const effectiveActiveDay = groupedActivities[activeDay] ? activeDay : sortedDates[0] || '';
 
   const tabItems = sortedDates.map((date) => ({
     key: date,
@@ -382,110 +437,152 @@ const ActivityList: React.FC = () => {
 
       <GoldDivider text={`${activities.length} Activities`} variant="simple" margin="0 0 24px 0" />
 
-      {activities.length > 0 ? (
+      {/* Type Filter */}
+      {activities.length > 0 && (
+        <TypeFilterWrapper>
+          <TypeFilterButton $active={typeFilter === 'all'} $variant="all" onClick={() => setTypeFilter('all')}>
+            All ({activities.length})
+          </TypeFilterButton>
+          <TypeFilterButton $active={typeFilter === 'main'} $variant="main" onClick={() => setTypeFilter('main')}>
+            <CalendarOutlined /> Main Events ({mainCount})
+          </TypeFilterButton>
+          <TypeFilterButton $active={typeFilter === 'things'} $variant="things" onClick={() => setTypeFilter('things')}>
+            <CompassOutlined /> Things to Do ({thingsCount})
+          </TypeFilterButton>
+        </TypeFilterWrapper>
+      )}
+
+      {filteredActivities.length > 0 ? (
         <>
           <DayTabs
-            activeKey={activeDay}
+            activeKey={effectiveActiveDay}
             onChange={setActiveDay}
             items={tabItems}
             style={{ marginBottom: 24 }}
           />
 
           <TimelineWrapper>
-            {groupedActivities[activeDay]?.map((activity, index) => (
-              <TimelineItem
-                key={activity.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <TimelineDot $isFirst={index === 0} />
-                <ActivityCard>
-                  <ActivityCardContent>
-                    <ActivityImage $imageUrl={getImageUrl(activity.image_url)}>
-                      {!activity.image_url && <StarOutlined />}
-                    </ActivityImage>
+            {groupedActivities[effectiveActiveDay]?.map((activity, index) => {
+              const isMainEvent = activity.requires_signup !== false;
+              return (
+                <TimelineItem
+                  key={activity.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <TimelineDot $isFirst={index === 0} />
+                  <ActivityCard>
+                    <ActivityCardContent>
+                      <ActivityImage $imageUrl={getImageUrl(activity.image_url)}>
+                        {!activity.image_url && (isMainEvent ? <StarOutlined /> : <CompassOutlined />)}
+                      </ActivityImage>
 
-                    <ActivityInfo>
-                      <TimeTag>
-                        <ClockCircleOutlined style={{ marginRight: 6 }} />
-                        {formatTimeRange(activity.start_time, activity.end_time)}
-                      </TimeTag>
+                      <ActivityInfo>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                          <TimeTag>
+                            <ClockCircleOutlined style={{ marginRight: 6 }} />
+                            {formatTimeRange(activity.start_time, activity.end_time)}
+                          </TimeTag>
+                          <TypeBadge $isMainEvent={isMainEvent}>
+                            {isMainEvent ? 'Main Event' : 'Things to Do'}
+                          </TypeBadge>
+                        </div>
 
-                      <ActivityTitle>{activity.title}</ActivityTitle>
+                        <ActivityTitle>{activity.title}</ActivityTitle>
 
-                      {activity.description && (
-                        <Paragraph
-                          type="secondary"
-                          ellipsis={{ rows: 2 }}
-                          style={{ marginBottom: 8 }}
-                        >
-                          {activity.description}
-                        </Paragraph>
-                      )}
-
-                      <ActivityMeta>
-                        {activity.location && (
-                          <MetaItem>
-                            <EnvironmentOutlined />
-                            {activity.location}
-                          </MetaItem>
+                        {activity.description && (
+                          <Paragraph
+                            type="secondary"
+                            ellipsis={{ rows: 2 }}
+                            style={{ marginBottom: 8 }}
+                          >
+                            {activity.description}
+                          </Paragraph>
                         )}
-                        {activity.current_participants !== undefined && (
-                          <MetaItem>
-                            <TeamOutlined />
-                            {activity.current_participants} registered
-                          </MetaItem>
+
+                        <ActivityMeta>
+                          {activity.location && (
+                            <MetaItem>
+                              <EnvironmentOutlined />
+                              {activity.location}
+                            </MetaItem>
+                          )}
+                          {isMainEvent && activity.current_participants !== undefined && (
+                            <MetaItem>
+                              <TeamOutlined />
+                              {activity.current_participants} registered
+                            </MetaItem>
+                          )}
+                        </ActivityMeta>
+
+                        {isMainEvent && activity.max_participants && (
+                          <CapacityWrapper>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                              <Text type="secondary" style={{ fontSize: 12 }}>Capacity</Text>
+                              <Text type="secondary" style={{ fontSize: 12 }}>
+                                {activity.current_participants || 0}/{activity.max_participants}
+                              </Text>
+                            </div>
+                            <Progress
+                              percent={Math.round(((activity.current_participants || 0) / activity.max_participants) * 100)}
+                              showInfo={false}
+                              strokeColor={colors.primary}
+                              trailColor={colors.creamDark}
+                              size="small"
+                            />
+                          </CapacityWrapper>
                         )}
-                      </ActivityMeta>
+                      </ActivityInfo>
 
-                      {activity.max_participants && (
-                        <CapacityWrapper>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                            <Text type="secondary" style={{ fontSize: 12 }}>Capacity</Text>
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              {activity.current_participants || 0}/{activity.max_participants}
-                            </Text>
-                          </div>
-                          <Progress
-                            percent={Math.round(((activity.current_participants || 0) / activity.max_participants) * 100)}
-                            showInfo={false}
-                            strokeColor={colors.primary}
-                            trailColor={colors.creamDark}
-                            size="small"
-                          />
-                        </CapacityWrapper>
-                      )}
-                    </ActivityInfo>
-
-                    <CardActions>
-                      <Space direction="vertical" size={8}>
-                        <Button
-                          type="text"
-                          icon={<EditOutlined />}
-                          onClick={() => handleEdit(activity)}
-                        >
-                          Edit
-                        </Button>
-                        <Popconfirm
-                          title="Delete this activity?"
-                          description="This action cannot be undone."
-                          onConfirm={() => handleDelete(activity.id)}
-                          okText="Delete"
-                          okButtonProps={{ danger: true }}
-                        >
-                          <Button type="text" danger icon={<DeleteOutlined />}>
-                            Delete
+                      <CardActions>
+                        <Space direction="vertical" size={8}>
+                          <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            onClick={() => handleEdit(activity)}
+                          >
+                            Edit
                           </Button>
-                        </Popconfirm>
-                      </Space>
-                    </CardActions>
-                  </ActivityCardContent>
-                </ActivityCard>
-              </TimelineItem>
-            ))}
+                          <Popconfirm
+                            title="Delete this activity?"
+                            description="This action cannot be undone."
+                            onConfirm={() => handleDelete(activity.id)}
+                            okText="Delete"
+                            okButtonProps={{ danger: true }}
+                          >
+                            <Button type="text" danger icon={<DeleteOutlined />}>
+                              Delete
+                            </Button>
+                          </Popconfirm>
+                        </Space>
+                      </CardActions>
+                    </ActivityCardContent>
+                  </ActivityCard>
+                </TimelineItem>
+              );
+            })}
           </TimelineWrapper>
         </>
+      ) : activities.length > 0 ? (
+        <Card>
+          <EmptyStateWrapper>
+            <EmptyStateIcon>
+              {typeFilter === 'things' ? <CompassOutlined /> : <CalendarOutlined />}
+            </EmptyStateIcon>
+            <Title level={4} style={{ color: colors.secondary }}>
+              No {typeFilter === 'main' ? 'Main Events' : typeFilter === 'things' ? 'Things to Do' : 'Activities'} Yet
+            </Title>
+            <Paragraph type="secondary" style={{ maxWidth: 400, margin: '0 auto 24px' }}>
+              {typeFilter === 'things'
+                ? 'Add informational activities and suggestions for your guests.'
+                : 'Create main events that guests can register for.'}
+            </Paragraph>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setFormOpen(true)}>
+              Add Activity
+            </Button>
+          </EmptyStateWrapper>
+        </Card>
       ) : (
         <Card>
           <EmptyStateWrapper>

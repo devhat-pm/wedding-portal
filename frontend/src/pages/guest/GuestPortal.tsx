@@ -6,10 +6,12 @@ import { Button, Result } from 'antd';
 import {
   SendOutlined,
   HomeOutlined,
+  CompassOutlined,
 } from '@ant-design/icons';
 import { GuestPortalProvider, useGuestPortal } from '../../context/GuestPortalContext';
 import WelcomeSection from './sections/WelcomeSection';
 import RSVPSection from './sections/RSVPSection';
+import ThingsToDoSection from './sections/ThingsToDoSection';
 import RadaChatbot from '../../components/chat/RadaChatbot';
 import { colors, shadows, borderRadius } from '../../styles/theme';
 
@@ -25,6 +27,7 @@ interface SectionConfig {
 const SECTIONS: SectionConfig[] = [
   { key: 'welcome', label: 'Welcome', arabicLabel: 'أهلاً', icon: <HomeOutlined />, component: WelcomeSection },
   { key: 'rsvp', label: 'RSVP', arabicLabel: 'تأكيد الحضور', icon: <SendOutlined />, component: RSVPSection },
+  { key: 'things-to-do', label: 'Things to Do', arabicLabel: 'أنشطة مقترحة', icon: <CompassOutlined />, component: ThingsToDoSection },
 ];
 
 // Styled components
