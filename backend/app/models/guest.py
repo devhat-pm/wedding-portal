@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Text, DateTime, ForeignKey, Enum as SQLEnum
+from sqlalchemy import String, Integer, Text, DateTime, ForeignKey, Enum as SQLEnum, JSON
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
@@ -46,6 +46,7 @@ class Guest(Base, TimestampMixin):
     special_requests: Mapped[str | None] = mapped_column(Text, nullable=True)
     song_requests: Mapped[str | None] = mapped_column(Text, nullable=True)
     notes_to_couple: Mapped[str | None] = mapped_column(Text, nullable=True)
+    party_members: Mapped[list | None] = mapped_column(JSON, nullable=True)
     rsvp_submitted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     last_accessed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

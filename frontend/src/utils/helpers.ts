@@ -25,10 +25,10 @@ export const getRSVPStatusColor = (status: RSVPStatus): string => {
 
 export const getRSVPStatusLabel = (status: RSVPStatus): string => {
   const labels: Record<RSVPStatus, string> = {
-    confirmed: 'Confirmed',
+    confirmed: 'Accepted',
     pending: 'Pending',
     declined: 'Declined',
-    maybe: 'Maybe',
+    maybe: 'Pending',
   };
   return labels[status] || status;
 };

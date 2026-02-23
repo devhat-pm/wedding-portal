@@ -5,9 +5,8 @@ import { Form, Input, Button, Checkbox, message } from 'antd';
 import {
   CheckCircleFilled,
   CloseCircleFilled,
-  QuestionCircleFilled,
-  MinusOutlined,
   PlusOutlined,
+  DeleteOutlined,
   EditOutlined,
   HeartFilled,
   EnvironmentOutlined,
@@ -15,16 +14,30 @@ import {
   CalendarOutlined,
   SkinOutlined,
   CoffeeOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import confetti from 'canvas-confetti';
 import dayjs from 'dayjs';
 import { colors, shadows, borderRadius } from '../../../styles/theme';
 import { useGuestPortal } from '../../../context/GuestPortalContext';
 import SectionHeader from '../../../components/guest/SectionHeader';
-import type { ActivityWithRegistration } from '../../../types';
 
 const { TextArea } = Input;
 
+// ============================================
+// Types
+// ============================================
+interface PartyMember {
+  first_name: string;
+  last_name: string;
+  phone: string;
+}
+
+type RSVPStatus = 'pending' | 'confirmed' | 'declined';
+
+// ============================================
+// Styled Components
+// ============================================
 const SectionWrapper = styled.section`
   padding: 80px 24px;
   max-width: 720px;
@@ -132,24 +145,36 @@ const FormCard = styled(motion.div)`
   }
 `;
 
-const RSVPOptionsWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 40px;
+const RSVPQuestion = styled.h3`
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: ${colors.secondary};
+  text-align: center;
+  margin: 0 0 28px;
 `;
 
-const RSVPOption = styled(motion.button)<{ $selected: boolean; $variant: 'accept' | 'decline' | 'maybe' }>`
+const RSVPOptionsWrapper = styled.div`
   display: flex;
+  gap: 16px;
+  margin-bottom: 40px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+  }
+`;
+
+const RSVPOption = styled(motion.button)<{ $selected: boolean; $variant: 'accept' | 'decline' }>`
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 20px;
-  padding: 24px 28px;
+  gap: 12px;
+  padding: 28px 24px;
   border-radius: ${borderRadius.lg}px;
   border: 2px solid;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-align: left;
-  width: 100%;
+  text-align: center;
+  flex: 1;
   background: transparent;
 
   ${(props) => {
@@ -169,32 +194,19 @@ const RSVPOption = styled(motion.button)<{ $selected: boolean; $variant: 'accept
           box-shadow: ${isSelected ? '0 4px 12px rgba(244, 67, 54, 0.15)' : 'none'};
           &:hover { border-color: ${colors.error}; background: #EEE8DF; }
         `;
-      case 'maybe':
-        return `
-          border-color: ${isSelected ? colors.warning : colors.creamDark};
-          background: ${isSelected ? '#F3F1ED' : 'transparent'};
-          box-shadow: ${isSelected ? '0 4px 12px rgba(255, 152, 0, 0.15)' : 'none'};
-          &:hover { border-color: ${colors.warning}; background: #F3F1ED; }
-        `;
     }
   }}
-
-  @media (max-width: 480px) {
-    padding: 20px 20px;
-    gap: 16px;
-  }
 `;
 
-const OptionIcon = styled.div<{ $variant: 'accept' | 'decline' | 'maybe'; $selected: boolean }>`
-  width: 48px;
-  height: 48px;
+const OptionIcon = styled.div<{ $variant: 'accept' | 'decline'; $selected: boolean }>`
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 26px;
   transition: all 0.3s ease;
-  flex-shrink: 0;
 
   ${(props) => {
     const bgOpacity = props.$selected ? 1 : 0.12;
@@ -209,23 +221,8 @@ const OptionIcon = styled.div<{ $variant: 'accept' | 'decline' | 'maybe'; $selec
           background: rgba(244, 67, 54, ${bgOpacity});
           color: ${props.$selected ? 'white' : colors.error};
         `;
-      case 'maybe':
-        return `
-          background: rgba(255, 152, 0, ${bgOpacity});
-          color: ${props.$selected ? 'white' : colors.warning};
-        `;
     }
   }}
-
-  @media (max-width: 480px) {
-    width: 44px;
-    height: 44px;
-    font-size: 20px;
-  }
-`;
-
-const OptionText = styled.div`
-  flex: 1;
 `;
 
 const OptionLabel = styled.div`
@@ -239,28 +236,6 @@ const OptionArabic = styled.div`
   font-family: 'Amiri', serif;
   font-size: 14px;
   color: ${colors.textSecondary};
-  margin-top: 2px;
-`;
-
-const OptionRadio = styled.div<{ $selected: boolean }>`
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid ${(props) => (props.$selected ? colors.primary : colors.creamDark)};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-
-  &::after {
-    content: '';
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: ${colors.primary};
-    transform: scale(${(props) => (props.$selected ? 1 : 0)});
-    transition: transform 0.2s ease;
-  }
 `;
 
 const FormSection = styled.div`
@@ -278,65 +253,9 @@ const FormSectionTitle = styled.h4`
   letter-spacing: 0.5px;
 `;
 
-const AttendeeCounter = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-  padding: 28px 24px;
-  background: ${colors.creamLight};
-  border-radius: ${borderRadius.lg}px;
-  border: 1px solid ${colors.creamDark};
-`;
-
-const CounterButton = styled.button<{ $disabled?: boolean }>`
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 2px solid ${(props) => (props.$disabled ? colors.creamDark : colors.primary)};
-  background: ${(props) => (props.$disabled ? colors.creamMedium : 'white')};
-  color: ${(props) => (props.$disabled ? colors.textSecondary : colors.primary)};
-  cursor: ${(props) => (props.$disabled ? 'not-allowed' : 'pointer')};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-
-  &:hover:not(:disabled) {
-    background: ${colors.primary};
-    color: white;
-    transform: scale(1.05);
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-`;
-
-const CounterValue = styled.div`
-  min-width: 80px;
-  text-align: center;
-`;
-
-const CounterNumber = styled.div`
-  font-family: 'Playfair Display', serif;
-  font-size: 42px;
-  font-weight: 600;
-  color: ${colors.secondary};
-`;
-
-const CounterLabel = styled.div`
-  font-size: 12px;
-  color: ${colors.textSecondary};
-  text-transform: uppercase;
-  letter-spacing: 1px;
-`;
-
 const StyledForm = styled(Form)`
   .ant-form-item {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
   }
 
   .ant-form-item-label > label {
@@ -356,16 +275,96 @@ const StyledForm = styled(Form)`
     padding: 12px 16px !important;
   }
 
-  .ant-select-lg .ant-select-selector {
-    padding: 8px 16px !important;
-  }
-
   textarea.ant-input {
     min-height: 100px !important;
     padding: 14px 16px !important;
   }
 `;
 
+// Guest Card styles
+const GuestCardWrapper = styled(motion.div)`
+  border: 1px solid ${colors.borderGold};
+  border-radius: ${borderRadius.lg}px;
+  padding: 20px;
+  margin-bottom: 16px;
+  background: ${colors.creamLight};
+  position: relative;
+`;
+
+const GuestCardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+`;
+
+const GuestCardLabel = styled.div`
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: ${colors.secondary};
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const GuestCardNumber = styled.span`
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: ${colors.primary};
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-family: inherit;
+`;
+
+const GuestFieldsRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const GuestFieldFull = styled.div`
+  grid-column: 1 / -1;
+
+  @media (max-width: 480px) {
+    grid-column: auto;
+  }
+`;
+
+const AddGuestButton = styled(Button)`
+  && {
+    width: 100%;
+    height: 52px;
+    border: 2px dashed ${colors.borderGold};
+    border-radius: ${borderRadius.lg}px;
+    color: ${colors.primary};
+    font-weight: 500;
+    font-size: 15px;
+    background: transparent;
+    margin-bottom: 8px;
+
+    &:hover {
+      border-color: ${colors.primary};
+      color: ${colors.primary};
+      background: ${colors.goldPale};
+    }
+  }
+`;
+
+const MaxGuestsNote = styled.div`
+  text-align: center;
+  font-size: 13px;
+  color: ${colors.textSecondary};
+  margin-top: 4px;
+`;
 
 const SubmitButton = styled(Button)`
   && {
@@ -498,15 +497,6 @@ const ColorDot = styled.div<{ $color: string }>`
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 `;
 
-const NoActivitiesMessage = styled.div`
-  text-align: center;
-  padding: 32px 16px;
-  color: ${colors.textSecondary};
-  font-size: 14px;
-  background: ${colors.creamLight};
-  border-radius: ${borderRadius.lg}px;
-`;
-
 // Success overlay
 const SuccessOverlay = styled(motion.div)`
   position: fixed;
@@ -529,7 +519,7 @@ const SuccessCard = styled(motion.div)`
   box-shadow: ${shadows.xl};
 `;
 
-const SuccessIcon = styled(motion.div)`
+const SuccessIconWrapper = styled(motion.div)`
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -555,43 +545,64 @@ const SuccessMessage = styled.p`
   margin: 0;
 `;
 
-type RSVPStatus = 'pending' | 'confirmed' | 'declined' | 'maybe';
+const Divider = styled.div`
+  height: 1px;
+  background: ${colors.creamDark};
+  margin: 32px 0;
+`;
 
+const MAX_GUESTS = 10;
+
+// ============================================
+// Component
+// ============================================
 const RSVPSection: React.FC = () => {
   const { portalData, updateRSVP } = useGuestPortal();
   const [form] = Form.useForm();
 
   const [rsvpStatus, setRsvpStatus] = useState<RSVPStatus>('pending');
-  const [attendeeCount, setAttendeeCount] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
+  const [partyMembers, setPartyMembers] = useState<PartyMember[]>([
+    { first_name: '', last_name: '', phone: '' },
+  ]);
 
   useEffect(() => {
     if (portalData?.guest) {
       const guest = portalData.guest;
       const guestData = guest as any;
 
-      setRsvpStatus(guest.rsvp_status as RSVPStatus || 'pending');
-      setAttendeeCount(guestData.number_of_attendees || guest.number_of_guests || 1);
+      const status = guest.rsvp_status as RSVPStatus;
+      // Map 'maybe' to 'pending' for legacy data
+      setRsvpStatus(status === 'maybe' ? 'pending' : (status || 'pending'));
 
-      form.setFieldsValue({ phone: guest.phone || '' });
-
-      // Handle both API formats: full_name or first_name/last_name
-      let firstName = guest.first_name || '';
-      let lastName = guest.last_name || '';
-      if (guestData.full_name && !firstName && !lastName) {
-        const nameParts = guestData.full_name.split(' ');
-        firstName = nameParts[0] || '';
-        lastName = nameParts.slice(1).join(' ') || '';
+      // Load party members from API or derive from guest name
+      if (guestData.party_members && Array.isArray(guestData.party_members) && guestData.party_members.length > 0) {
+        setPartyMembers(guestData.party_members.map((m: any) => ({
+          first_name: m.first_name || '',
+          last_name: m.last_name || '',
+          phone: m.phone || '',
+        })));
+      } else {
+        // Pre-fill first guest with the main guest's name
+        let firstName = guest.first_name || '';
+        let lastName = guest.last_name || '';
+        if (guestData.full_name && !firstName && !lastName) {
+          const nameParts = guestData.full_name.split(' ');
+          firstName = nameParts[0] || '';
+          lastName = nameParts.slice(1).join(' ') || '';
+        }
+        setPartyMembers([{
+          first_name: firstName,
+          last_name: lastName,
+          phone: guest.phone || '',
+        }]);
       }
 
+      // Set form fields for decline message
       form.setFieldsValue({
-        first_name: firstName,
-        last_name: lastName,
-        special_requests: guest.special_requests,
-        song_requests: guestData.song_requests || '',
         notes_to_couple: guestData.notes_to_couple || '',
       });
 
@@ -606,7 +617,7 @@ const RSVPSection: React.FC = () => {
         setSelectedActivities(registered);
       }
 
-      setIsEditing(guest.rsvp_status === 'pending');
+      setIsEditing(guest.rsvp_status === 'pending' || guest.rsvp_status === 'maybe');
     }
   }, [portalData, form]);
 
@@ -626,20 +637,67 @@ const RSVPSection: React.FC = () => {
     });
   };
 
+  const updatePartyMember = (index: number, field: keyof PartyMember, value: string) => {
+    setPartyMembers((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const addPartyMember = () => {
+    if (partyMembers.length >= MAX_GUESTS) return;
+    setPartyMembers((prev) => [...prev, { first_name: '', last_name: '', phone: '' }]);
+  };
+
+  const removePartyMember = (index: number) => {
+    if (index === 0) return; // Cannot remove first guest
+    setPartyMembers((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const validatePartyMembers = (): boolean => {
+    for (let i = 0; i < partyMembers.length; i++) {
+      const m = partyMembers[i];
+      if (!m.first_name.trim() || !m.last_name.trim()) {
+        message.error(`Please fill in the name for Guest ${i + 1}`);
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleSubmit = async () => {
     try {
-      const values = await form.validateFields();
+      if (rsvpStatus === 'confirmed') {
+        if (!validatePartyMembers()) return;
+      }
+
+      if (rsvpStatus === 'declined') {
+        await form.validateFields();
+      }
+
       setLoading(true);
 
-      const data = {
+      const data: any = {
         rsvp_status: rsvpStatus,
-        number_of_attendees: rsvpStatus === 'declined' ? 0 : attendeeCount,
-        phone: values.phone,
-        special_requests: values.special_requests,
-        song_requests: values.song_requests,
-        notes_to_couple: values.notes_to_couple,
-        activity_ids: rsvpStatus !== 'declined' ? Array.from(selectedActivities) : [],
+        activity_ids: rsvpStatus === 'confirmed' ? Array.from(selectedActivities) : [],
       };
+
+      if (rsvpStatus === 'confirmed') {
+        data.party_members = partyMembers.map((m) => ({
+          first_name: m.first_name.trim(),
+          last_name: m.last_name.trim(),
+          phone: m.phone.trim(),
+        }));
+        data.number_of_attendees = partyMembers.length;
+        // Use the first party member's phone as the main guest phone
+        data.phone = partyMembers[0]?.phone || undefined;
+      } else {
+        data.number_of_attendees = 0;
+        data.party_members = [];
+        const values = form.getFieldsValue();
+        data.notes_to_couple = values.notes_to_couple || undefined;
+      }
 
       await updateRSVP(data);
 
@@ -666,11 +724,9 @@ const RSVPSection: React.FC = () => {
   const getStatusLabel = () => {
     switch (rsvpStatus) {
       case 'confirmed':
-        return 'Joyfully Attending';
+        return 'Attending';
       case 'declined':
-        return 'Regretfully Declined';
-      case 'maybe':
-        return 'Maybe Attending';
+        return 'Declined';
       default:
         return 'Awaiting Response';
     }
@@ -700,9 +756,10 @@ const RSVPSection: React.FC = () => {
       <SectionHeader
         title="RSVP"
         arabicTitle="تأكيد الحضور"
-        subtitle="Please let us know if you'll be joining us for our special day"
+        subtitle="Please let us know if you'll be joining us"
       />
 
+      {/* Current Status Display (when not editing) */}
       {!isEditing && rsvpStatus !== 'pending' && (
         <CurrentStatusCard
           $status={rsvpStatus}
@@ -713,13 +770,12 @@ const RSVPSection: React.FC = () => {
             <StatusIcon $status={rsvpStatus}>
               {rsvpStatus === 'confirmed' && <CheckCircleFilled />}
               {rsvpStatus === 'declined' && <CloseCircleFilled />}
-              {rsvpStatus === 'maybe' && <QuestionCircleFilled />}
             </StatusIcon>
             <StatusText>
               <StatusLabel>Your Response</StatusLabel>
               <StatusValue>
                 {getStatusLabel()}
-                {rsvpStatus === 'confirmed' && ` - ${attendeeCount} guest${attendeeCount > 1 ? 's' : ''}`}
+                {rsvpStatus === 'confirmed' && ` - ${partyMembers.length} guest${partyMembers.length > 1 ? 's' : ''}`}
               </StatusValue>
             </StatusText>
           </StatusInfo>
@@ -732,267 +788,251 @@ const RSVPSection: React.FC = () => {
         </CurrentStatusCard>
       )}
 
+      {/* RSVP Form */}
       {(isEditing || rsvpStatus === 'pending') && (
         <FormCard
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          {/* 1. RSVP Status Selection */}
+          {/* Step 1: Accept or Decline */}
+          <RSVPQuestion>Will you be attending?</RSVPQuestion>
           <RSVPOptionsWrapper>
             <RSVPOption
               $selected={rsvpStatus === 'confirmed'}
               $variant="accept"
               onClick={() => handleRSVPChange('confirmed')}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               <OptionIcon $variant="accept" $selected={rsvpStatus === 'confirmed'}>
                 <CheckCircleFilled />
               </OptionIcon>
-              <OptionText>
-                <OptionLabel>Joyfully Accept</OptionLabel>
-                <OptionArabic>سأحضر بكل سرور</OptionArabic>
-              </OptionText>
-              <OptionRadio $selected={rsvpStatus === 'confirmed'} />
-            </RSVPOption>
-
-            <RSVPOption
-              $selected={rsvpStatus === 'maybe'}
-              $variant="maybe"
-              onClick={() => handleRSVPChange('maybe')}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-            >
-              <OptionIcon $variant="maybe" $selected={rsvpStatus === 'maybe'}>
-                <QuestionCircleFilled />
-              </OptionIcon>
-              <OptionText>
-                <OptionLabel>Maybe</OptionLabel>
-                <OptionArabic>ربما</OptionArabic>
-              </OptionText>
-              <OptionRadio $selected={rsvpStatus === 'maybe'} />
+              <OptionLabel>Accept</OptionLabel>
+              <OptionArabic>سأحضر</OptionArabic>
             </RSVPOption>
 
             <RSVPOption
               $selected={rsvpStatus === 'declined'}
               $variant="decline"
               onClick={() => handleRSVPChange('declined')}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               <OptionIcon $variant="decline" $selected={rsvpStatus === 'declined'}>
                 <CloseCircleFilled />
               </OptionIcon>
-              <OptionText>
-                <OptionLabel>Regretfully Decline</OptionLabel>
-                <OptionArabic>أعتذر عن الحضور</OptionArabic>
-              </OptionText>
-              <OptionRadio $selected={rsvpStatus === 'declined'} />
+              <OptionLabel>Decline</OptionLabel>
+              <OptionArabic>أعتذر</OptionArabic>
             </RSVPOption>
           </RSVPOptionsWrapper>
 
-          {/* 2. Number of Attendees */}
-          {rsvpStatus !== 'declined' && rsvpStatus !== 'pending' && (
-            <FormSection>
-              <FormSectionTitle>Number of Attendees</FormSectionTitle>
-              <AttendeeCounter>
-                <CounterButton
-                  $disabled={attendeeCount <= 1}
-                  onClick={() => setAttendeeCount(Math.max(1, attendeeCount - 1))}
-                  disabled={attendeeCount <= 1}
-                >
-                  <MinusOutlined />
-                </CounterButton>
-                <CounterValue>
-                  <CounterNumber>{attendeeCount}</CounterNumber>
-                  <CounterLabel>Guest{attendeeCount > 1 ? 's' : ''}</CounterLabel>
-                </CounterValue>
-                <CounterButton
-                  onClick={() => setAttendeeCount(attendeeCount + 1)}
-                >
-                  <PlusOutlined />
-                </CounterButton>
-              </AttendeeCounter>
-            </FormSection>
-          )}
-
-          <StyledForm form={form} layout="vertical" requiredMark={false}>
-            {/* 3. Contact Information - Hidden when declined */}
-            {rsvpStatus !== 'declined' && (
-            <FormSection>
-              <FormSectionTitle>Your Information</FormSectionTitle>
-
-              <Form.Item
-                name="first_name"
-                label="First Name"
-                rules={[{ required: rsvpStatus !== 'declined', message: 'Please enter your first name' }]}
+          {/* Step 2 (Accept): Add Guests */}
+          <AnimatePresence mode="wait">
+            {rsvpStatus === 'confirmed' && (
+              <motion.div
+                key="accept-flow"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
               >
-                <Input placeholder="First name" size="large" />
-              </Form.Item>
+                <Divider />
+                <FormSection>
+                  <FormSectionTitle>
+                    <UserOutlined /> Your Party
+                  </FormSectionTitle>
 
-              <Form.Item
-                name="last_name"
-                label="Last Name"
-                rules={[{ required: rsvpStatus !== 'declined', message: 'Please enter your last name' }]}
-              >
-                <Input placeholder="Last name" size="large" />
-              </Form.Item>
-
-              <Form.Item
-                name="phone"
-                label="Phone Number"
-                rules={[{ required: rsvpStatus !== 'declined', message: 'Please enter your phone number' }]}
-              >
-                <Input placeholder="Phone number" size="large" />
-              </Form.Item>
-            </FormSection>
-            )}
-
-            {/* 4. Activities Selection */}
-            {rsvpStatus !== 'declined' && rsvpStatus !== 'pending' && signupActivities.length > 0 && (
-              <FormSection>
-                <FormSectionTitle>Activities & Events</FormSectionTitle>
-                <p style={{ color: colors.textSecondary, fontSize: 14, marginTop: -12, marginBottom: 20 }}>
-                  Select the activities you'd like to attend
-                </p>
-                {signupActivities.map((activity: any) => (
-                  <ActivityCard
-                    key={activity.id}
-                    $selected={selectedActivities.has(activity.id)}
-                    onClick={() => toggleActivity(activity.id)}
-                  >
-                    <ActivityHeader>
-                      <ActivityCheckbox>
-                        <Checkbox
-                          checked={selectedActivities.has(activity.id)}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            toggleActivity(activity.id);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </ActivityCheckbox>
-                      <ActivityInfo>
-                        <ActivityName>{activity.activity_name || activity.title}</ActivityName>
-                        <ActivityMeta>
-                          {activity.date_time && (
-                            <ActivityMetaItem>
-                              <CalendarOutlined />
-                              {formatDateTime(activity.date_time)}
-                            </ActivityMetaItem>
-                          )}
-                          {activity.duration_minutes && (
-                            <ActivityMetaItem>
-                              <ClockCircleOutlined />
-                              {formatDuration(activity.duration_minutes)}
-                            </ActivityMetaItem>
-                          )}
-                          {activity.location && (
-                            <ActivityMetaItem>
-                              <EnvironmentOutlined />
-                              {activity.location}
-                            </ActivityMetaItem>
-                          )}
-                        </ActivityMeta>
-                        {activity.description && (
-                          <ActivityDescription>{activity.description}</ActivityDescription>
+                  {partyMembers.map((member, index) => (
+                    <GuestCardWrapper
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <GuestCardHeader>
+                        <GuestCardLabel>
+                          <GuestCardNumber>{index + 1}</GuestCardNumber>
+                          Guest {index + 1}
+                        </GuestCardLabel>
+                        {index > 0 && (
+                          <Button
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => removePartyMember(index)}
+                            size="small"
+                          >
+                            Remove
+                          </Button>
                         )}
+                      </GuestCardHeader>
 
-                        {/* Per-activity dress code and food info */}
-                        {(activity.dress_code_info || activity.dress_colors?.length > 0 || activity.food_description) && (
-                          <ActivityDetails>
-                            {activity.dress_code_info && (
-                              <ActivityDetailRow>
-                                <DetailIcon><SkinOutlined /></DetailIcon>
-                                <DetailLabel>Dress Code:</DetailLabel>
-                                <DetailValue>{activity.dress_code_info}</DetailValue>
-                              </ActivityDetailRow>
-                            )}
-                            {activity.dress_colors?.length > 0 && (
-                              <ActivityDetailRow>
-                                <DetailIcon><SkinOutlined /></DetailIcon>
-                                <DetailLabel>Colors:</DetailLabel>
-                                <ColorDots>
-                                  {activity.dress_colors.map((c: any, i: number) => (
-                                    <ColorDot key={i} $color={c.hex || c} title={c.name || ''} />
-                                  ))}
-                                </ColorDots>
-                              </ActivityDetailRow>
-                            )}
-                            {activity.food_description && (
-                              <ActivityDetailRow>
-                                <DetailIcon><CoffeeOutlined /></DetailIcon>
-                                <DetailLabel>Food:</DetailLabel>
-                                <DetailValue>{activity.food_description}</DetailValue>
-                              </ActivityDetailRow>
-                            )}
-                            {activity.dietary_options?.length > 0 && (
-                              <ActivityDetailRow>
-                                <DetailIcon><CoffeeOutlined /></DetailIcon>
-                                <DetailLabel>Dietary:</DetailLabel>
-                                <DetailValue>{activity.dietary_options.join(', ')}</DetailValue>
-                              </ActivityDetailRow>
-                            )}
-                          </ActivityDetails>
-                        )}
-                      </ActivityInfo>
-                    </ActivityHeader>
-                  </ActivityCard>
-                ))}
-              </FormSection>
+                      <GuestFieldsRow>
+                        <div>
+                          <Input
+                            placeholder="First Name *"
+                            value={member.first_name}
+                            onChange={(e) => updatePartyMember(index, 'first_name', e.target.value)}
+                            size="large"
+                            status={!member.first_name.trim() && rsvpStatus === 'confirmed' ? undefined : undefined}
+                          />
+                        </div>
+                        <div>
+                          <Input
+                            placeholder="Last Name *"
+                            value={member.last_name}
+                            onChange={(e) => updatePartyMember(index, 'last_name', e.target.value)}
+                            size="large"
+                          />
+                        </div>
+                        <GuestFieldFull>
+                          <Input
+                            placeholder="Phone Number"
+                            value={member.phone}
+                            onChange={(e) => updatePartyMember(index, 'phone', e.target.value)}
+                            size="large"
+                          />
+                        </GuestFieldFull>
+                      </GuestFieldsRow>
+                    </GuestCardWrapper>
+                  ))}
+
+                  {partyMembers.length < MAX_GUESTS ? (
+                    <AddGuestButton
+                      icon={<PlusOutlined />}
+                      onClick={addPartyMember}
+                    >
+                      Add Guest
+                    </AddGuestButton>
+                  ) : (
+                    <MaxGuestsNote>Maximum {MAX_GUESTS} guests allowed</MaxGuestsNote>
+                  )}
+                </FormSection>
+
+                {/* Step 3 (Accept): Select Activities */}
+                {signupActivities.length > 0 && (
+                  <>
+                    <Divider />
+                    <FormSection>
+                      <FormSectionTitle>
+                        <CalendarOutlined /> Which events will you attend?
+                      </FormSectionTitle>
+                      {signupActivities.map((activity: any) => (
+                        <ActivityCard
+                          key={activity.id}
+                          $selected={selectedActivities.has(activity.id)}
+                          onClick={() => toggleActivity(activity.id)}
+                        >
+                          <ActivityHeader>
+                            <ActivityCheckbox>
+                              <Checkbox
+                                checked={selectedActivities.has(activity.id)}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  toggleActivity(activity.id);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </ActivityCheckbox>
+                            <ActivityInfo>
+                              <ActivityName>{activity.activity_name || activity.title}</ActivityName>
+                              <ActivityMeta>
+                                {activity.date_time && (
+                                  <ActivityMetaItem>
+                                    <CalendarOutlined />
+                                    {formatDateTime(activity.date_time)}
+                                  </ActivityMetaItem>
+                                )}
+                                {activity.duration_minutes && (
+                                  <ActivityMetaItem>
+                                    <ClockCircleOutlined />
+                                    {formatDuration(activity.duration_minutes)}
+                                  </ActivityMetaItem>
+                                )}
+                                {activity.location && (
+                                  <ActivityMetaItem>
+                                    <EnvironmentOutlined />
+                                    {activity.location}
+                                  </ActivityMetaItem>
+                                )}
+                              </ActivityMeta>
+                              {activity.description && (
+                                <ActivityDescription>{activity.description}</ActivityDescription>
+                              )}
+
+                              {(activity.dress_code_info || activity.dress_colors?.length > 0 || activity.food_description) && (
+                                <ActivityDetails>
+                                  {activity.dress_code_info && (
+                                    <ActivityDetailRow>
+                                      <DetailIcon><SkinOutlined /></DetailIcon>
+                                      <DetailLabel>Dress Code:</DetailLabel>
+                                      <DetailValue>{activity.dress_code_info}</DetailValue>
+                                    </ActivityDetailRow>
+                                  )}
+                                  {activity.dress_colors?.length > 0 && (
+                                    <ActivityDetailRow>
+                                      <DetailIcon><SkinOutlined /></DetailIcon>
+                                      <DetailLabel>Colors:</DetailLabel>
+                                      <ColorDots>
+                                        {activity.dress_colors.map((c: any, i: number) => (
+                                          <ColorDot key={i} $color={c.hex || c} title={c.name || ''} />
+                                        ))}
+                                      </ColorDots>
+                                    </ActivityDetailRow>
+                                  )}
+                                  {activity.food_description && (
+                                    <ActivityDetailRow>
+                                      <DetailIcon><CoffeeOutlined /></DetailIcon>
+                                      <DetailLabel>Food:</DetailLabel>
+                                      <DetailValue>{activity.food_description}</DetailValue>
+                                    </ActivityDetailRow>
+                                  )}
+                                  {activity.dietary_options?.length > 0 && (
+                                    <ActivityDetailRow>
+                                      <DetailIcon><CoffeeOutlined /></DetailIcon>
+                                      <DetailLabel>Dietary:</DetailLabel>
+                                      <DetailValue>{activity.dietary_options.join(', ')}</DetailValue>
+                                    </ActivityDetailRow>
+                                  )}
+                                </ActivityDetails>
+                              )}
+                            </ActivityInfo>
+                          </ActivityHeader>
+                        </ActivityCard>
+                      ))}
+                    </FormSection>
+                  </>
+                )}
+              </motion.div>
             )}
 
-            {rsvpStatus !== 'declined' && rsvpStatus !== 'pending' && signupActivities.length === 0 && (
-              <FormSection>
-                <FormSectionTitle>Activities & Events</FormSectionTitle>
-                <NoActivitiesMessage>
-                  No activities have been added yet. Check back later!
-                </NoActivitiesMessage>
-              </FormSection>
+            {/* Decline Flow: Optional message */}
+            {rsvpStatus === 'declined' && (
+              <motion.div
+                key="decline-flow"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Divider />
+                <StyledForm form={form} layout="vertical" requiredMark={false}>
+                  <FormSection>
+                    <FormSectionTitle>Message for the Couple (Optional)</FormSectionTitle>
+                    <Form.Item name="notes_to_couple">
+                      <TextArea
+                        placeholder="Share your wishes or a message..."
+                        rows={3}
+                        style={{ resize: 'none' }}
+                      />
+                    </Form.Item>
+                  </FormSection>
+                </StyledForm>
+              </motion.div>
             )}
+          </AnimatePresence>
 
-            {/* 5. Song Requests - Hidden when declined */}
-            {rsvpStatus !== 'declined' && (
-            <>
-            <FormSection>
-              <FormSectionTitle>Song Requests</FormSectionTitle>
-              <Form.Item name="song_requests">
-                <TextArea
-                  placeholder="Enter your favorite songs for the DJ..."
-                  rows={3}
-                  style={{ resize: 'none' }}
-                />
-              </Form.Item>
-            </FormSection>
-
-            {/* 6. Notes to Couple */}
-            <FormSection>
-              <FormSectionTitle>Notes to the Couple</FormSectionTitle>
-              <Form.Item name="notes_to_couple">
-                <TextArea
-                  placeholder="Share your wishes, memories, or special requests..."
-                  rows={3}
-                  style={{ resize: 'none' }}
-                />
-              </Form.Item>
-            </FormSection>
-
-            {/* 7. Special Requests */}
-            <FormSection>
-              <FormSectionTitle>Special Requests</FormSectionTitle>
-              <Form.Item name="special_requests">
-                <TextArea
-                  placeholder="Any dietary requirements, accessibility needs, or other requests..."
-                  rows={3}
-                  style={{ resize: 'none' }}
-                />
-              </Form.Item>
-            </FormSection>
-            </>
-            )}
-          </StyledForm>
-
-          {/* 8. Save Button */}
+          {/* Submit Button */}
           <SubmitButton
             type="primary"
             size="large"
@@ -1002,7 +1042,7 @@ const RSVPSection: React.FC = () => {
             icon={<HeartFilled />}
           >
             {rsvpStatus === 'confirmed'
-              ? "Confirm I'm Attending"
+              ? 'Submit RSVP'
               : rsvpStatus === 'declined'
               ? 'Submit Response'
               : 'Select Your Response'}
@@ -1023,13 +1063,13 @@ const RSVPSection: React.FC = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
             >
-              <SuccessIcon
+              <SuccessIconWrapper
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
               >
                 <CheckCircleFilled />
-              </SuccessIcon>
+              </SuccessIconWrapper>
               <SuccessTitle>RSVP Confirmed!</SuccessTitle>
               <SuccessMessage>
                 Thank you for confirming your attendance. We can't wait to celebrate with you!

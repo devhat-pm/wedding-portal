@@ -134,6 +134,7 @@ async def get_complete_portal_data(guest: Guest, db: AsyncSession) -> dict:
             "special_requests": guest.special_requests,
             "song_requests": guest.song_requests,
             "notes_to_couple": guest.notes_to_couple,
+            "party_members": guest.party_members,
         },
         "wedding": {
             "id": str(wedding.id),

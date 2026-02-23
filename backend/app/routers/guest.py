@@ -25,8 +25,14 @@ router = APIRouter(prefix="/api/guest", tags=["Guest Portal"])
 
 
 # Request/Response schemas for guest endpoints
+class PartyMember(BaseModel):
+    first_name: str
+    last_name: str
+    phone: Optional[str] = None
+
+
 class RSVPUpdate(BaseModel):
-    rsvp_status: str = Field(..., description="pending, attending, not_attending, maybe")
+    rsvp_status: str = Field(..., description="pending, confirmed, declined")
     phone: Optional[str] = None
     country: Optional[str] = None
     number_of_attendees: Optional[int] = Field(default=1, ge=1)
@@ -34,6 +40,7 @@ class RSVPUpdate(BaseModel):
     song_requests: Optional[str] = None
     notes_to_couple: Optional[str] = None
     activity_ids: Optional[List[str]] = None
+    party_members: Optional[List[PartyMember]] = None
 
 
 class TravelInfoUpdate(BaseModel):
@@ -129,14 +136,19 @@ async def update_rsvp(
         guest.phone = data.phone
     if data.country is not None:
         guest.country_of_origin = data.country
-    if data.number_of_attendees is not None:
-        guest.number_of_attendees = data.number_of_attendees
     if data.special_requests is not None:
         guest.special_requests = data.special_requests
     if data.song_requests is not None:
         guest.song_requests = data.song_requests
     if data.notes_to_couple is not None:
         guest.notes_to_couple = data.notes_to_couple
+
+    # Store party members and derive attendee count
+    if data.party_members is not None:
+        guest.party_members = [m.model_dump() for m in data.party_members]
+        guest.number_of_attendees = len(data.party_members)
+    elif data.number_of_attendees is not None:
+        guest.number_of_attendees = data.number_of_attendees
 
     # Handle activity registrations
     if data.activity_ids is not None:
@@ -186,6 +198,7 @@ async def update_rsvp(
         "special_requests": guest.special_requests,
         "song_requests": guest.song_requests,
         "notes_to_couple": guest.notes_to_couple,
+        "party_members": guest.party_members,
         "rsvp_submitted_at": guest.rsvp_submitted_at.isoformat() if guest.rsvp_submitted_at else None
     }
 

@@ -5,16 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button, Result } from 'antd';
 import {
   SendOutlined,
-  CarOutlined,
-  BankOutlined,
   HomeOutlined,
 } from '@ant-design/icons';
 import { GuestPortalProvider, useGuestPortal } from '../../context/GuestPortalContext';
-import ProgressTracker from '../../components/guest/ProgressTracker';
 import WelcomeSection from './sections/WelcomeSection';
 import RSVPSection from './sections/RSVPSection';
-import TravelSection from './sections/TravelSection';
-import HotelSection from './sections/HotelSection';
 import RadaChatbot from '../../components/chat/RadaChatbot';
 import { colors, shadows, borderRadius } from '../../styles/theme';
 
@@ -30,8 +25,6 @@ interface SectionConfig {
 const SECTIONS: SectionConfig[] = [
   { key: 'welcome', label: 'Welcome', arabicLabel: 'أهلاً', icon: <HomeOutlined />, component: WelcomeSection },
   { key: 'rsvp', label: 'RSVP', arabicLabel: 'تأكيد الحضور', icon: <SendOutlined />, component: RSVPSection },
-  { key: 'travel', label: 'Arrival', arabicLabel: 'الوصول', icon: <CarOutlined />, component: TravelSection },
-  { key: 'hotel', label: 'Suggested Hotels', arabicLabel: 'الفنادق المقترحة', icon: <BankOutlined />, component: HotelSection },
 ];
 
 // Styled components
