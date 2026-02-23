@@ -1,5 +1,14 @@
 import type { RSVPStatus, GuestSide } from '../types';
 
+// Get full URL for uploaded images (handles relative /uploads/... paths)
+const API_BASE = import.meta.env.VITE_API_URL || '';
+export const getImageUrl = (url?: string | null): string | undefined => {
+  if (!url) return undefined;
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
+  // Relative path like /uploads/hotels/xxx.jpg - prepend API base
+  return `${API_BASE}${url}`;
+};
+
 // Guest Relation type (not exported from types)
 type GuestRelation = 'family' | 'friend' | 'colleague' | 'neighbor' | 'other';
 

@@ -1,6 +1,9 @@
+import os
+import uuid as uuid_lib
+import aiofiles
 from typing import List, Optional, Any
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update as sa_update
 from pydantic import BaseModel, model_validator
@@ -14,6 +17,7 @@ from app.schemas import (
     SuccessResponse
 )
 from app.utils.auth import get_current_wedding
+from app.config import settings
 
 router = APIRouter(prefix="/api/admin/hotels", tags=["Admin Hotels"])
 
@@ -39,6 +43,33 @@ class ReorderRequest(BaseModel):
                     for idx, hid in enumerate(hotel_ids)
                 ]
         return data
+
+
+@router.post("/upload-image")
+async def upload_hotel_image(
+    file: UploadFile = File(...),
+    wedding: Wedding = Depends(get_current_wedding),
+):
+    """Upload a hotel image and return the URL."""
+    allowed_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Allowed: JPEG, PNG, WebP, GIF"
+        )
+
+    upload_dir = os.path.join(settings.UPLOAD_DIR, "hotels")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    file_ext = file.filename.split(".")[-1] if file.filename else "jpg"
+    filename = f"{uuid_lib.uuid4()}.{file_ext}"
+    file_path = os.path.join(upload_dir, filename)
+
+    async with aiofiles.open(file_path, "wb") as f:
+        content = await file.read()
+        await f.write(content)
+
+    return {"url": f"/uploads/hotels/{filename}"}
 
 
 @router.post("/", response_model=SuggestedHotelResponse, status_code=status.HTTP_201_CREATED)

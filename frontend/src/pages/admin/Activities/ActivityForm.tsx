@@ -30,6 +30,8 @@ import styled from '@emotion/styled';
 import dayjs from 'dayjs';
 import { colors, borderRadius } from '../../../styles/theme';
 import type { Activity } from '../../../types';
+import * as activitiesApi from '../../../services/activities.api';
+import { getImageUrl } from '../../../utils/helpers';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -189,7 +191,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
       setHasCapacityLimit(!!activity.max_participants);
       setFileList(
         activity.image_url
-          ? [{ uid: '0', name: 'image', status: 'done', url: activity.image_url }]
+          ? [{ uid: '0', name: 'image', status: 'done', url: getImageUrl(activity.image_url) || activity.image_url, response: { url: activity.image_url } }]
           : []
       );
       setDressColors(activity.dress_colors || []);
@@ -219,6 +221,19 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
       const values = await form.validateFields();
       setLoading(true);
 
+      // Upload image file if a new file was selected (originFileObj exists)
+      let imageUrl = fileList[0]?.response?.url || fileList[0]?.url || undefined;
+      if (fileList[0]?.originFileObj) {
+        try {
+          const result = await activitiesApi.uploadActivityImage(fileList[0].originFileObj);
+          imageUrl = result.url;
+        } catch {
+          message.error('Failed to upload image');
+          setLoading(false);
+          return;
+        }
+      }
+
       const date = values.date?.format('YYYY-MM-DD');
       const startTimeStr = values.start_time?.format('HH:mm:ss');
       const endTimeStr = values.end_time?.format('HH:mm:ss');
@@ -231,7 +246,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
         location: values.location,
         max_participants: hasCapacityLimit ? values.max_participants : undefined,
         notes: values.notes,
-        image_url: fileList[0]?.url || fileList[0]?.response?.url,
+        image_url: imageUrl,
         dress_code_info: values.dress_code_info || undefined,
         dress_colors: dressColors.length > 0 ? dressColors : undefined,
         food_description: values.food_description || undefined,

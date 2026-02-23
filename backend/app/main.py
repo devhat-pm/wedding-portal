@@ -75,6 +75,8 @@ async def lifespan(app: FastAPI):
     os.makedirs(os.path.join(settings.UPLOAD_DIR, "weddings"), exist_ok=True)
     os.makedirs(os.path.join(settings.UPLOAD_DIR, "dress-codes"), exist_ok=True)
     os.makedirs(os.path.join(settings.UPLOAD_DIR, "media"), exist_ok=True)
+    os.makedirs(os.path.join(settings.UPLOAD_DIR, "hotels"), exist_ok=True)
+    os.makedirs(os.path.join(settings.UPLOAD_DIR, "activities"), exist_ok=True)
     logger.info(f"Upload directory ready: {settings.UPLOAD_DIR}")
 
     yield

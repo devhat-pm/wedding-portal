@@ -23,6 +23,8 @@ import type { UploadFile } from 'antd/es/upload/interface';
 import styled from '@emotion/styled';
 import { colors, borderRadius } from '../../../styles/theme';
 import type { SuggestedHotel } from '../../../types';
+import * as hotelsApi from '../../../services/hotels.api';
+import { getImageUrl } from '../../../utils/helpers';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -200,17 +202,17 @@ const HotelForm: React.FC<HotelFormProps> = ({ open, hotel, onClose, onSubmit })
         description: hotel.description,
         amenities: hotel.amenities || [],
       });
-      const imageUrl = hotelData.image_urls?.[0] || hotel.image_url;
-      if (imageUrl) {
-        setFileList([
-          {
-            uid: '-1',
-            name: 'hotel-image',
-            status: 'done',
-            url: imageUrl,
-          },
-        ]);
-      }
+      // Load all existing images - store original URL in response for submission
+      const urls = hotelData.image_urls || (hotel.image_url ? [hotel.image_url] : []);
+      setFileList(
+        urls.map((url: string, i: number) => ({
+          uid: String(-1 - i),
+          name: `hotel-image-${i}`,
+          status: 'done' as const,
+          url: getImageUrl(url) || url,
+          response: { url }, // keep original relative URL
+        }))
+      );
     } else {
       form.resetFields();
       setFileList([]);
@@ -221,6 +223,27 @@ const HotelForm: React.FC<HotelFormProps> = ({ open, hotel, onClose, onSubmit })
     try {
       const values = await form.validateFields();
       setLoading(true);
+
+      // Upload any new files and collect all URLs
+      const imageUrls: string[] = [];
+      for (const file of fileList) {
+        if (file.originFileObj) {
+          // New file - upload it
+          try {
+            const result = await hotelsApi.uploadHotelImage(file.originFileObj);
+            imageUrls.push(result.url);
+          } catch {
+            message.error('Failed to upload image');
+            setLoading(false);
+            return;
+          }
+        } else if (file.response?.url) {
+          // Existing image - use original relative URL
+          imageUrls.push(file.response.url);
+        } else if (file.url) {
+          imageUrls.push(file.url);
+        }
+      }
 
       // Map frontend fields to backend schema
       const data: any = {
@@ -234,7 +257,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ open, hotel, onClose, onSubmit })
         star_rating: values.star_rating,
         description: values.description,
         amenities: values.amenities,
-        image_urls: fileList[0]?.url ? [fileList[0].url] : fileList[0]?.response?.url ? [fileList[0].response.url] : undefined,
+        image_urls: imageUrls.length > 0 ? imageUrls : undefined,
       };
 
       await onSubmit(data);
@@ -364,16 +387,17 @@ const HotelForm: React.FC<HotelFormProps> = ({ open, hotel, onClose, onSubmit })
           />
         </Form.Item>
 
-        <Form.Item label="Hotel Image" style={{ marginBottom: 0 }}>
+        <Form.Item label="Hotel Images" style={{ marginBottom: 0 }}>
           <ImageUploadWrapper>
             <Upload
               listType="picture-card"
               fileList={fileList}
               onChange={({ fileList }) => setFileList(fileList)}
               beforeUpload={() => false}
-              maxCount={1}
+              multiple
+              maxCount={5}
             >
-              {fileList.length === 0 && (
+              {fileList.length < 5 && (
                 <div>
                   <PlusOutlined />
                   <div style={{ marginTop: 8 }}>Upload</div>
@@ -382,7 +406,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ open, hotel, onClose, onSubmit })
             </Upload>
           </ImageUploadWrapper>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            Recommended size: 800x600 pixels
+            Add up to 5 images. Recommended size: 800x600 pixels
           </Text>
         </Form.Item>
       </StyledForm>

@@ -31,6 +31,7 @@ import { GoldDivider } from '../../../components';
 import { colors, shadows, borderRadius } from '../../../styles/theme';
 import type { Activity } from '../../../types';
 import * as activitiesApi from '../../../services/activities.api';
+import { getImageUrl } from '../../../utils/helpers';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -401,7 +402,7 @@ const ActivityList: React.FC = () => {
                 <TimelineDot $isFirst={index === 0} />
                 <ActivityCard>
                   <ActivityCardContent>
-                    <ActivityImage $imageUrl={activity.image_url}>
+                    <ActivityImage $imageUrl={getImageUrl(activity.image_url)}>
                       {!activity.image_url && <StarOutlined />}
                     </ActivityImage>
 

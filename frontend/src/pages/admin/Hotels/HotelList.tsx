@@ -47,6 +47,7 @@ import { GoldDivider } from '../../../components';
 import { colors, shadows, borderRadius } from '../../../styles/theme';
 import type { SuggestedHotel } from '../../../types';
 import * as hotelsApi from '../../../services/hotels.api';
+import { getImageUrl } from '../../../utils/helpers';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -245,7 +246,7 @@ const SortableHotelCard: React.FC<SortableHotelCardProps> = ({ hotel, onEdit, on
             <DragOutlined style={{ fontSize: 20 }} />
           </DragHandle>
 
-          <HotelImage $imageUrl={hotel.image_url}>
+          <HotelImage $imageUrl={getImageUrl(hotel.image_url)}>
             {!hotel.image_url && <BankOutlined />}
           </HotelImage>
 

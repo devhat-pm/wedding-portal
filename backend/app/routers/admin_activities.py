@@ -1,6 +1,9 @@
+import os
+import uuid as uuid_lib
+import aiofiles
 from typing import List
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete as sa_delete
 from sqlalchemy.orm import selectinload
@@ -16,6 +19,7 @@ from app.schemas import (
     SuccessResponse
 )
 from app.utils.auth import get_current_wedding
+from app.config import settings
 
 router = APIRouter(prefix="/api/admin/activities", tags=["Admin Activities"])
 
@@ -59,6 +63,33 @@ class GuestRegistration(BaseModel):
     number_of_participants: int
     notes: str | None = None
     registered_at: str | None = None
+
+
+@router.post("/upload-image")
+async def upload_activity_image(
+    file: UploadFile = File(...),
+    wedding: Wedding = Depends(get_current_wedding),
+):
+    """Upload an activity image and return the URL."""
+    allowed_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Allowed: JPEG, PNG, WebP, GIF"
+        )
+
+    upload_dir = os.path.join(settings.UPLOAD_DIR, "activities")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    file_ext = file.filename.split(".")[-1] if file.filename else "jpg"
+    filename = f"{uuid_lib.uuid4()}.{file_ext}"
+    file_path = os.path.join(upload_dir, filename)
+
+    async with aiofiles.open(file_path, "wb") as f:
+        content = await file.read()
+        await f.write(content)
+
+    return {"url": f"/uploads/activities/{filename}"}
 
 
 @router.post("/", response_model=ActivityResponse, status_code=status.HTTP_201_CREATED)

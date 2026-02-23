@@ -36,6 +36,16 @@ export const deleteHotel = async (id: string): Promise<SuccessResponse> => {
   return response.data;
 };
 
+// Upload hotel image
+export const uploadHotelImage = async (file: File): Promise<{ url: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post<{ url: string }>('/api/admin/hotels/upload-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
 // Reorder hotels - sends hotel_ids array, backend accepts both formats
 export const reorderHotels = async (hotelIds: string[]): Promise<SuccessResponse> => {
   const response = await api.put<SuccessResponse>('/api/admin/hotels/reorder', {

@@ -38,6 +38,16 @@ export const deleteActivity = async (id: string): Promise<SuccessResponse> => {
   return response.data;
 };
 
+// Upload activity image
+export const uploadActivityImage = async (file: File): Promise<{ url: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post<{ url: string }>('/api/admin/activities/upload-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
 // Get activity registrations
 export const getActivityRegistrations = async (activityId: string): Promise<GuestRegistration[]> => {
   const response = await api.get<GuestRegistration[]>(
