@@ -227,14 +227,6 @@ const WelcomeSection: React.FC = () => {
           transition={{ duration: 1, ease: 'easeOut' }}
         >
           <DecorativeFrame>
-            <ArabicCalligraphy
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-            >
-              بسم الله الرحمن الرحيم
-            </ArabicCalligraphy>
-
             <CoupleNames
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
