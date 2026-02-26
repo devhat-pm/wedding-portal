@@ -5,13 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button, Result } from 'antd';
 import {
   SendOutlined,
-  CompassOutlined,
   BankOutlined,
 } from '@ant-design/icons';
 import { GuestPortalProvider, useGuestPortal } from '../../context/GuestPortalContext';
 import WelcomeSection from './sections/WelcomeSection';
-import RSVPSection from './sections/RSVPSection';
-import ThingsToDoSection from './sections/ThingsToDoSection';
+import RSVPComprehensivePage from './sections/RSVPComprehensivePage';
 import HotelSection from './sections/HotelSection';
 import RadaChatbot from '../../components/chat/RadaChatbot';
 import { colors, shadows, borderRadius } from '../../styles/theme';
@@ -25,9 +23,8 @@ interface SectionConfig {
 }
 
 const SECTIONS: SectionConfig[] = [
-  { key: 'rsvp', label: 'RSVP', icon: <SendOutlined />, component: RSVPSection },
+  { key: 'rsvp', label: 'RSVP', icon: <SendOutlined />, component: RSVPComprehensivePage },
   { key: 'suggested-hotels', label: 'Suggested Hotels', icon: <BankOutlined />, component: HotelSection },
-  { key: 'things-to-do', label: 'Things to Do', icon: <CompassOutlined />, component: ThingsToDoSection },
 ];
 
 // Styled components

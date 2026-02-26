@@ -28,6 +28,7 @@ import {
   RightOutlined,
   InboxOutlined,
   UsergroupAddOutlined,
+  ScheduleOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -615,6 +616,52 @@ const Dashboard: React.FC = () => {
             </HeadcountCard>
           </Col>
         </Row>
+
+        {/* Per-Event Attendance */}
+        {stats?.event_stats && stats.event_stats.length > 0 && (
+          <>
+            <GoldDivider text="Per-Event Attendance" variant="ornamental" margin="0 0 24px 0" />
+            <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
+              {stats.event_stats.map((evt) => (
+                <Col xs={24} sm={12} lg={8} key={evt.activity_id}>
+                  <StatsCard variants={itemVariants}>
+                    <StatIconWrapper>
+                      <ScheduleOutlined />
+                    </StatIconWrapper>
+                    <div style={{ marginBottom: 8 }}>
+                      <Text strong style={{ fontSize: 15, color: colors.secondary }}>
+                        {evt.activity_name}
+                      </Text>
+                      {evt.date_time && (
+                        <div>
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            {dayjs(evt.date_time).format('MMM D, YYYY h:mm A')}
+                          </Text>
+                        </div>
+                      )}
+                    </div>
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Statistic
+                          title={<Text type="secondary" style={{ fontSize: 12 }}>Registered</Text>}
+                          value={evt.attending_count}
+                          valueStyle={{ color: colors.success, fontWeight: 600, fontSize: 20 }}
+                        />
+                      </Col>
+                      <Col span={12}>
+                        <Statistic
+                          title={<Text type="secondary" style={{ fontSize: 12 }}>Expected Attendees</Text>}
+                          value={evt.total_attendees}
+                          valueStyle={{ fontWeight: 600, fontSize: 20 }}
+                        />
+                      </Col>
+                    </Row>
+                  </StatsCard>
+                </Col>
+              ))}
+            </Row>
+          </>
+        )}
 
         {/* Secondary Stats Row */}
         <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>

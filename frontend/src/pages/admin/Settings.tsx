@@ -32,6 +32,7 @@ import {
   UserOutlined,
   MessageOutlined,
   UndoOutlined,
+  HeartOutlined,
 } from '@ant-design/icons';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { motion } from 'framer-motion';
@@ -261,6 +262,8 @@ interface WeddingFormData {
   venueCountry: string;
   venueAddress: string;
   welcomeMessage: string;
+  storyTitle: string;
+  storyContent: string;
 }
 
 interface PasswordFormData {
@@ -279,6 +282,8 @@ const Settings: React.FC = () => {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [invitationLoading, setInvitationLoading] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [storyImageUrl, setStoryImageUrl] = useState<string | null>(null);
+  const [storyUploadLoading, setStoryUploadLoading] = useState(false);
   const [welcomeMessagePreview, setWelcomeMessagePreview] = useState('');
   const [invitationTemplate, setInvitationTemplate] = useState(DEFAULT_INVITATION_TEMPLATE);
   const invitationTextAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -293,8 +298,11 @@ const Settings: React.FC = () => {
         venueCountry: wedding.venue_country || '',
         venueAddress: wedding.venue_address || '',
         welcomeMessage: wedding.welcome_message || '',
+        storyTitle: wedding.story_title || '',
+        storyContent: wedding.story_content || '',
       });
       setCoverImageUrl(wedding.cover_image_url || null);
+      setStoryImageUrl(wedding.story_image_url || null);
       setWelcomeMessagePreview(wedding.welcome_message || '');
       setInvitationTemplate(wedding.invitation_message_template || DEFAULT_INVITATION_TEMPLATE);
     }
@@ -311,6 +319,8 @@ const Settings: React.FC = () => {
         venue_country: values.venueCountry || undefined,
         venue_address: values.venueAddress || undefined,
         welcome_message: values.welcomeMessage || undefined,
+        story_title: values.storyTitle || undefined,
+        story_content: values.storyContent || undefined,
       });
       updateWedding(updatedWedding);
       message.success('Wedding details updated successfully!');
@@ -339,6 +349,27 @@ const Settings: React.FC = () => {
       onError?.(error);
     } finally {
       setUploadLoading(false);
+    }
+  };
+
+  const handleStoryImageUpload: UploadProps['customRequest'] = async (options) => {
+    const { file, onSuccess, onError } = options;
+    setStoryUploadLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file as File);
+
+      const updatedWedding = await adminApi.uploadStoryImage(formData);
+      setStoryImageUrl(updatedWedding.story_image_url || null);
+      updateWedding(updatedWedding);
+      message.success('Story image uploaded successfully!');
+      onSuccess?.(updatedWedding);
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || 'Failed to upload story image');
+      onError?.(error);
+    } finally {
+      setStoryUploadLoading(false);
     }
   };
 
@@ -631,6 +662,104 @@ const Settings: React.FC = () => {
             <Form.Item style={{ marginTop: 32, marginBottom: 0 }}>
               <SaveButton type="primary" htmlType="submit" loading={loading} icon={<SaveOutlined />}>
                 Save Changes
+              </SaveButton>
+            </Form.Item>
+          </StyledForm>
+        </SectionCard>
+
+        {/* Our Story Section */}
+        <SectionCard
+          title={
+            <Space>
+              <HeartOutlined style={{ color: colors.primary }} />
+              <span>Our Story</span>
+            </Space>
+          }
+        >
+          <StyledForm
+            form={weddingForm}
+            layout="vertical"
+            onFinish={handleWeddingSubmit}
+            requiredMark={false}
+          >
+            <Form.Item
+              name="storyTitle"
+              label="Story Title"
+              extra="e.g., How We Met, Our Love Story"
+            >
+              <Input
+                placeholder="e.g., Our Love Story"
+                size="large"
+                maxLength={300}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="storyContent"
+              label="Story Content"
+              extra="Share your love story with your guests (max 2000 characters)"
+            >
+              <TextArea
+                placeholder="Tell your guests how you met, your journey together..."
+                rows={8}
+                maxLength={2000}
+                showCount
+                style={{ resize: 'none' }}
+              />
+            </Form.Item>
+
+            <div style={{ marginBottom: 16 }}>
+              <Text strong style={{ display: 'block', marginBottom: 8 }}>Story Image</Text>
+              <CoverImagePreview $hasImage={!!storyImageUrl} style={{ height: 180 }}>
+                {storyImageUrl ? (
+                  <>
+                    <img src={storyImageUrl} alt="Our story" />
+                    <CoverImageOverlay>
+                      <Upload
+                        accept="image/*"
+                        showUploadList={false}
+                        customRequest={handleStoryImageUpload}
+                      >
+                        <Button
+                          type="primary"
+                          icon={<UploadOutlined />}
+                          loading={storyUploadLoading}
+                          ghost
+                        >
+                          Change Image
+                        </Button>
+                      </Upload>
+                    </CoverImageOverlay>
+                  </>
+                ) : (
+                  <CoverPlaceholder>
+                    <HeartOutlined style={{ fontSize: 36, marginBottom: 12 }} />
+                    <div>No story image uploaded</div>
+                    <Upload
+                      accept="image/*"
+                      showUploadList={false}
+                      customRequest={handleStoryImageUpload}
+                    >
+                      <Button
+                        type="primary"
+                        icon={<UploadOutlined />}
+                        style={{ marginTop: 12 }}
+                        loading={storyUploadLoading}
+                      >
+                        Upload Story Image
+                      </Button>
+                    </Upload>
+                  </CoverPlaceholder>
+                )}
+              </CoverImagePreview>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                This image will be displayed alongside your love story on the guest portal.
+              </Text>
+            </div>
+
+            <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+              <SaveButton type="primary" htmlType="submit" loading={loading} icon={<SaveOutlined />}>
+                Save Story
               </SaveButton>
             </Form.Item>
           </StyledForm>

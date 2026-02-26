@@ -45,6 +45,8 @@ class ActivityWithCount(BaseModel):
     dress_colors: list | None = None
     food_description: str | None = None
     dietary_options: list | None = None
+    latitude: float | None = None
+    longitude: float | None = None
 
     # Frontend alias fields
     title: str | None = None
@@ -117,6 +119,8 @@ async def create_activity(
         dress_colors=data.dress_colors,
         food_description=data.food_description,
         dietary_options=data.dietary_options,
+        latitude=data.latitude,
+        longitude=data.longitude,
     )
 
     db.add(activity)
@@ -143,6 +147,8 @@ async def create_activity(
         dress_colors=activity.dress_colors,
         food_description=activity.food_description,
         dietary_options=activity.dietary_options,
+        latitude=activity.latitude,
+        longitude=activity.longitude,
     )
 
 
@@ -197,6 +203,8 @@ async def list_activities(
             dress_colors=activity.dress_colors,
             food_description=activity.food_description,
             dietary_options=activity.dietary_options,
+            latitude=activity.latitude,
+            longitude=activity.longitude,
             title=activity.activity_name,
             start_time=dt_iso,
             capacity=activity.max_participants,
@@ -262,6 +270,8 @@ async def update_activity(
         dress_colors=activity.dress_colors,
         food_description=activity.food_description,
         dietary_options=activity.dietary_options,
+        latitude=activity.latitude,
+        longitude=activity.longitude,
     )
 
 

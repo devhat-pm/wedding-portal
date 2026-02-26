@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, DateTime, Integer, Boolean, ForeignKey
+from sqlalchemy import String, Text, DateTime, Integer, Boolean, Float, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID, JSON
 from datetime import datetime
@@ -36,6 +36,8 @@ class Activity(Base):
     dress_colors: Mapped[list | None] = mapped_column(JSON, nullable=True)
     food_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     dietary_options: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Relationships
     wedding: Mapped["Wedding"] = relationship("Wedding", back_populates="activities")

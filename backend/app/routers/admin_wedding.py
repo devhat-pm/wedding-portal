@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
 
 from app.database import get_db
-from app.models import Wedding, Guest, TravelInfo, HotelInfo, GuestActivity, GuestFoodPreference, GuestDressPreference, MediaUpload, RSVPStatus
+from app.models import Wedding, Guest, TravelInfo, HotelInfo, GuestActivity, GuestFoodPreference, GuestDressPreference, MediaUpload, RSVPStatus, Activity
 from app.schemas import WeddingResponse, WeddingUpdate, SuccessResponse
 from app.utils.auth import get_current_wedding
 from app.config import settings
@@ -23,6 +23,15 @@ class RecentActivityItem(BaseModel):
     action_type: str  # rsvp, travel, hotel, food, dress, activity, media, access
     time: str
     detail: Optional[str] = None
+
+
+class EventAttendanceStats(BaseModel):
+    activity_id: str
+    activity_name: str
+    date_time: Optional[str] = None
+    attending_count: int = 0
+    total_attendees: int = 0
+    pending_count: int = 0
 
 
 class DashboardStats(BaseModel):
@@ -46,6 +55,7 @@ class DashboardStats(BaseModel):
     pending_rsvps: int = 0
     declined_rsvps: int = 0
     recent_activity: List[RecentActivityItem] = []
+    event_stats: List[EventAttendanceStats] = []
 
 
 @router.get("/", response_model=WeddingResponse)
@@ -326,6 +336,35 @@ async def get_dashboard_stats(
 
     avg_party_size = round(total_attending / confirmed_guests, 1) if confirmed_guests > 0 else 0.0
 
+    # Per-event attendance stats
+    event_stats: list[EventAttendanceStats] = []
+    events_result = await db.execute(
+        select(Activity)
+        .where(Activity.wedding_id == wedding.id, Activity.requires_signup == True)
+        .order_by(Activity.display_order, Activity.date_time)
+    )
+    for evt in events_result.scalars().all():
+        reg_count_result = await db.execute(
+            select(func.count(GuestActivity.id))
+            .where(GuestActivity.activity_id == evt.id)
+        )
+        attending_count = reg_count_result.scalar() or 0
+
+        attendees_result = await db.execute(
+            select(func.coalesce(func.sum(GuestActivity.number_of_participants), 0))
+            .where(GuestActivity.activity_id == evt.id)
+        )
+        evt_total_attendees = attendees_result.scalar() or 0
+
+        event_stats.append(EventAttendanceStats(
+            activity_id=str(evt.id),
+            activity_name=evt.activity_name,
+            date_time=evt.date_time.isoformat() if evt.date_time else None,
+            attending_count=attending_count,
+            total_attendees=evt_total_attendees,
+            pending_count=pending_guests,
+        ))
+
     return DashboardStats(
         total_guests=total_guests,
         confirmed_guests=confirmed_guests,
@@ -346,4 +385,37 @@ async def get_dashboard_stats(
         pending_rsvps=pending_guests,
         declined_rsvps=declined_guests,
         recent_activity=recent_activity,
+        event_stats=event_stats,
     )
+
+
+@router.post("/story-image", response_model=WeddingResponse)
+async def upload_story_image(
+    file: UploadFile = File(...),
+    wedding: Wedding = Depends(get_current_wedding),
+    db: AsyncSession = Depends(get_db)
+):
+    """Upload story image."""
+    allowed_types = ["image/jpeg", "image/png", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Allowed: JPEG, PNG, WebP"
+        )
+
+    upload_dir = os.path.join(settings.UPLOAD_DIR, "weddings", str(wedding.id))
+    os.makedirs(upload_dir, exist_ok=True)
+
+    file_ext = file.filename.split(".")[-1] if file.filename else "jpg"
+    filename = f"story_{uuid_lib.uuid4()}.{file_ext}"
+    file_path = os.path.join(upload_dir, filename)
+
+    async with aiofiles.open(file_path, "wb") as f:
+        content = await file.read()
+        await f.write(content)
+
+    wedding.story_image_url = f"/uploads/weddings/{wedding.id}/{filename}"
+    await db.flush()
+    await db.refresh(wedding)
+
+    return WeddingResponse.model_validate(wedding)

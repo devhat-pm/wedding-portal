@@ -23,6 +23,8 @@ class ActivityCreate(BaseModel):
     dress_colors: Optional[List[Any]] = None
     food_description: Optional[str] = None
     dietary_options: Optional[List[str]] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
     @model_validator(mode='before')
     @classmethod
@@ -56,6 +58,8 @@ class ActivityUpdate(BaseModel):
     dress_colors: Optional[List[Any]] = None
     food_description: Optional[str] = None
     dietary_options: Optional[List[str]] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
     @model_validator(mode='before')
     @classmethod
@@ -92,6 +96,8 @@ class ActivityResponse(BaseSchema):
     dress_colors: Optional[List[Any]] = None
     food_description: Optional[str] = None
     dietary_options: Optional[List[str]] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
     @computed_field
     @property

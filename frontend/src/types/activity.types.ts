@@ -26,6 +26,8 @@ export interface Activity {
   dress_colors?: Array<{ name: string; hex: string }>;
   food_description?: string;
   dietary_options?: string[];
+  latitude?: number;
+  longitude?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -58,6 +60,8 @@ export interface ActivityCreate {
   dress_colors?: Array<{ name: string; hex: string }>;
   food_description?: string;
   dietary_options?: string[];
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ActivityUpdate {
@@ -81,6 +85,8 @@ export interface ActivityUpdate {
   dress_colors?: Array<{ name: string; hex: string }>;
   food_description?: string;
   dietary_options?: string[];
+  latitude?: number;
+  longitude?: number;
 }
 
 // Guest activity registration interface

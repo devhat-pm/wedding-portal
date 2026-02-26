@@ -10,6 +10,9 @@ export interface Wedding {
   welcome_message?: string;
   invitation_message_template?: string;
   cover_image_url?: string;
+  story_title?: string;
+  story_content?: string;
+  story_image_url?: string;
   theme_color_primary?: string;
   theme_color_secondary?: string;
   admin_email: string;
@@ -29,6 +32,9 @@ export interface WeddingPublicInfo {
   venue_country?: string;
   welcome_message?: string;
   cover_image_url?: string;
+  story_title?: string;
+  story_content?: string;
+  story_image_url?: string;
   theme_color_primary?: string;
   theme_color_secondary?: string;
 }
@@ -56,6 +62,9 @@ export interface WeddingUpdate {
   welcome_message?: string;
   invitation_message_template?: string;
   cover_image_url?: string;
+  story_title?: string;
+  story_content?: string;
+  story_image_url?: string;
   theme_color_primary?: string;
   theme_color_secondary?: string;
   is_active?: boolean;
@@ -90,6 +99,16 @@ export interface RecentActivityItem {
   detail?: string;
 }
 
+// Per-event attendance stats
+export interface EventAttendanceStats {
+  activity_id: string;
+  activity_name: string;
+  date_time?: string;
+  attending_count: number;
+  total_attendees: number;
+  pending_count: number;
+}
+
 // Dashboard statistics
 export interface DashboardStats {
   total_guests: number;
@@ -115,4 +134,5 @@ export interface DashboardStats {
   not_attending?: number;
   pending?: number;
   total_attendees?: number;
+  event_stats?: EventAttendanceStats[];
 }

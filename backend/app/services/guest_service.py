@@ -146,6 +146,9 @@ async def get_complete_portal_data(guest: Guest, db: AsyncSession) -> dict:
             "venue_country": wedding.venue_country,
             "welcome_message": wedding.welcome_message,
             "cover_image_url": wedding.cover_image_url,
+            "story_title": wedding.story_title,
+            "story_content": wedding.story_content,
+            "story_image_url": wedding.story_image_url,
         },
         "travel_info": _serialize_travel_info(travel_info) if travel_info else None,
         "hotel_info": _serialize_hotel_info(hotel_info) if hotel_info else None,
@@ -319,6 +322,8 @@ def _serialize_activity(a: Activity) -> dict:
         "dress_colors": a.dress_colors,
         "food_description": a.food_description,
         "dietary_options": a.dietary_options,
+        "latitude": a.latitude,
+        "longitude": a.longitude,
     }
 
 

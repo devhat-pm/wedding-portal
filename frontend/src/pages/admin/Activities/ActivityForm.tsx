@@ -197,6 +197,8 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
         notes: activity.notes,
         dress_code_info: activity.dress_code_info,
         food_description: activity.food_description,
+        latitude: activity.latitude,
+        longitude: activity.longitude,
       });
       setHasCapacityLimit(!!activity.max_participants);
       setFileList(
@@ -265,6 +267,8 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
         dress_colors: dressColors.length > 0 ? dressColors : undefined,
         food_description: values.food_description || undefined,
         dietary_options: selectedDietaryOptions.length > 0 ? selectedDietaryOptions : undefined,
+        latitude: values.latitude || undefined,
+        longitude: values.longitude || undefined,
       };
 
       await onSubmit(data);
@@ -381,6 +385,34 @@ const ActivityForm: React.FC<ActivityFormProps> = ({ open, activity, onClose, on
             size="large"
           />
         </Form.Item>
+
+        <Row gutter={16}>
+          <Col xs={12}>
+            <Form.Item name="latitude" label="Latitude">
+              <InputNumber
+                min={-90}
+                max={90}
+                step={0.0001}
+                style={{ width: '100%' }}
+                placeholder="e.g., 25.2048"
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={12}>
+            <Form.Item name="longitude" label="Longitude">
+              <InputNumber
+                min={-180}
+                max={180}
+                step={0.0001}
+                style={{ width: '100%' }}
+                placeholder="e.g., 55.2708"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 24, marginTop: -16 }}>
+          Tip: Right-click on Google Maps and click the coordinates to copy them
+        </Text>
 
         {activityType === 'main_event' && (
           <>

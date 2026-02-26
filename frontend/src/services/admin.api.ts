@@ -70,6 +70,25 @@ export const uploadCoverImage = async (data: FormData | File): Promise<Wedding> 
   return response.data;
 };
 
+// Upload story image (accepts FormData or File)
+export const uploadStoryImage = async (data: FormData | File): Promise<Wedding> => {
+  let formData: FormData;
+
+  if (data instanceof File) {
+    formData = new FormData();
+    formData.append('file', data);
+  } else {
+    formData = data;
+  }
+
+  const response = await api.post<Wedding>('/api/admin/wedding/story-image', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
 // Get dashboard statistics
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   const response = await api.get<DashboardStats>('/api/admin/wedding/dashboard-stats');
@@ -85,5 +104,6 @@ export const adminApi = {
   getWedding,
   updateWedding,
   uploadCoverImage,
+  uploadStoryImage,
   getDashboardStats,
 };
