@@ -21,6 +21,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { colors, shadows, borderRadius } from '../../../styles/theme';
+import { getImageUrl } from '../../../utils/helpers';
 import { useGuestPortal } from '../../../context/GuestPortalContext';
 import SectionHeader from '../../../components/guest/SectionHeader';
 import HotelCard from '../../../components/guest/HotelCard';
@@ -502,7 +503,7 @@ const HotelSection: React.FC = () => {
 
           {savedInfo.hotel && (
             <SelectedHotelCard>
-              <SelectedHotelImage $imageUrl={savedInfo.hotel.image_url} />
+              <SelectedHotelImage $imageUrl={getImageUrl(savedInfo.hotel.image_url)} />
               <SelectedHotelInfo>
                 <SelectedHotelName>{savedInfo.hotel.name}</SelectedHotelName>
                 {savedInfo.hotel.address && (

@@ -14,6 +14,7 @@ import {
   ExportOutlined,
 } from '@ant-design/icons';
 import { colors, shadows, borderRadius } from '../../styles/theme';
+import { getImageUrl } from '../../utils/helpers';
 import type { SuggestedHotel } from '../../types';
 
 interface HotelCardProps {
@@ -289,7 +290,7 @@ const HotelCard: React.FC<HotelCardProps> = ({
       whileHover={{ y: -4 }}
     >
       <ImageSection>
-        <HotelImage $imageUrl={hotel.image_url} />
+        <HotelImage $imageUrl={getImageUrl(hotel.image_url)} />
         <ImageOverlay />
 
         <AnimatePresence>

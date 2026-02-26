@@ -1,16 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button, Result } from 'antd';
 import {
   SendOutlined,
-  HomeOutlined,
   CompassOutlined,
   BankOutlined,
 } from '@ant-design/icons';
 import { GuestPortalProvider, useGuestPortal } from '../../context/GuestPortalContext';
-import WelcomeSection from './sections/WelcomeSection';
 import RSVPSection from './sections/RSVPSection';
 import ThingsToDoSection from './sections/ThingsToDoSection';
 import HotelSection from './sections/HotelSection';
@@ -26,7 +24,6 @@ interface SectionConfig {
 }
 
 const SECTIONS: SectionConfig[] = [
-  { key: 'welcome', label: 'Welcome', icon: <HomeOutlined />, component: WelcomeSection },
   { key: 'rsvp', label: 'RSVP', icon: <SendOutlined />, component: RSVPSection },
   { key: 'suggested-hotels', label: 'Suggested Hotels', icon: <BankOutlined />, component: HotelSection },
   { key: 'things-to-do', label: 'Things to Do', icon: <CompassOutlined />, component: ThingsToDoSection },
@@ -111,6 +108,7 @@ const ErrorWrapper = styled.div`
 
 const MainContent = styled.main`
   padding-bottom: 100px;
+  min-height: 100vh;
 
   @media (min-width: 1024px) {
     padding-left: 280px;
@@ -329,16 +327,12 @@ const MobileNavLabel = styled.span<{ $active: boolean }>`
 // Inner portal content component
 const PortalContent: React.FC = () => {
   const { portalData, isLoading, error, sectionCompletion, completionPercentage, token } = useGuestPortal();
-  const [activeSection, setActiveSection] = useState('welcome');
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [activeSection, setActiveSection] = useState('rsvp');
 
-  // Handle section navigation
-  const scrollToSection = (sectionKey: string) => {
+  // Handle section navigation - switch active page
+  const navigateToSection = (sectionKey: string) => {
     setActiveSection(sectionKey);
-    const element = sectionRefs.current[sectionKey];
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Handle both API formats: couple_names or groom_name/bride_name
@@ -354,27 +348,6 @@ const PortalContent: React.FC = () => {
       document.title = coupleNames;
     }
   }, [coupleNames]);
-
-  // Track active section on scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + 200;
-
-      for (const section of SECTIONS) {
-        const element = sectionRefs.current[section.key];
-        if (element) {
-          const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            setActiveSection(section.key);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   if (isLoading) {
     return (
@@ -442,11 +415,14 @@ const PortalContent: React.FC = () => {
 
   const { wedding } = portalData;
 
-  // Get completion status for sections (excluding welcome)
+  // Get completion status for sections
   const getSectionCompletion = (key: string) => {
-    if (key === 'welcome') return true;
     return sectionCompletion[key as keyof typeof sectionCompletion] || false;
   };
+
+  // Get the active section's component
+  const activeConfig = SECTIONS.find((s) => s.key === activeSection) || SECTIONS[0];
+  const ActiveComponent = activeConfig.component;
 
   return (
     <PortalWrapper>
@@ -462,7 +438,7 @@ const PortalContent: React.FC = () => {
             key={section.key}
             $active={activeSection === section.key}
             $completed={getSectionCompletion(section.key)}
-            onClick={() => scrollToSection(section.key)}
+            onClick={() => navigateToSection(section.key)}
           >
             <NavItemIcon
               $active={activeSection === section.key}
@@ -494,20 +470,19 @@ const PortalContent: React.FC = () => {
         </NavProgress>
       </DesktopNav>
 
-      {/* Main Content */}
+      {/* Main Content - show only active section */}
       <MainContent>
-        {SECTIONS.map((section) => {
-          const Component = section.component;
-          return (
-            <div
-              key={section.key}
-              ref={(el) => { sectionRefs.current[section.key] = el; }}
-              id={section.key}
-            >
-              <Component />
-            </div>
-          );
-        })}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeSection}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.25 }}
+          >
+            <ActiveComponent />
+          </motion.div>
+        </AnimatePresence>
       </MainContent>
 
       {/* Mobile Bottom Navigation */}
@@ -516,7 +491,7 @@ const PortalContent: React.FC = () => {
           <MobileNavItem
             key={section.key}
             $active={activeSection === section.key}
-            onClick={() => scrollToSection(section.key)}
+            onClick={() => navigateToSection(section.key)}
           >
             <MobileNavIcon
               $active={activeSection === section.key}
