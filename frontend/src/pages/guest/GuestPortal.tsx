@@ -9,6 +9,7 @@ import {
   BankOutlined,
 } from '@ant-design/icons';
 import { GuestPortalProvider, useGuestPortal } from '../../context/GuestPortalContext';
+import WelcomeSection from './sections/WelcomeSection';
 import RSVPSection from './sections/RSVPSection';
 import ThingsToDoSection from './sections/ThingsToDoSection';
 import HotelSection from './sections/HotelSection';
@@ -470,8 +471,9 @@ const PortalContent: React.FC = () => {
         </NavProgress>
       </DesktopNav>
 
-      {/* Main Content - show only active section */}
+      {/* Main Content - welcome banner + active section */}
       <MainContent>
+        <WelcomeSection />
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSection}

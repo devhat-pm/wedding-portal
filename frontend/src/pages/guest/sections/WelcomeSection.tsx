@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { CalendarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { colors } from '../../../styles/theme';
+import { getImageUrl } from '../../../utils/helpers';
 import { useGuestPortal } from '../../../context/GuestPortalContext';
 
 const SectionWrapper = styled.section`
@@ -208,7 +209,7 @@ const WelcomeSection: React.FC = () => {
 
   return (
     <SectionWrapper>
-      <HeroSection $imageUrl={wedding.cover_image_url}>
+      <HeroSection $imageUrl={getImageUrl(wedding.cover_image_url)}>
         <PatternOverlay />
         <HeroContent
           initial={{ opacity: 0, y: 30 }}
