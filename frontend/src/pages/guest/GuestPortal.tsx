@@ -7,11 +7,13 @@ import {
   SendOutlined,
   HomeOutlined,
   CompassOutlined,
+  BankOutlined,
 } from '@ant-design/icons';
 import { GuestPortalProvider, useGuestPortal } from '../../context/GuestPortalContext';
 import WelcomeSection from './sections/WelcomeSection';
 import RSVPSection from './sections/RSVPSection';
 import ThingsToDoSection from './sections/ThingsToDoSection';
+import HotelSection from './sections/HotelSection';
 import RadaChatbot from '../../components/chat/RadaChatbot';
 import { colors, shadows, borderRadius } from '../../styles/theme';
 
@@ -19,15 +21,15 @@ import { colors, shadows, borderRadius } from '../../styles/theme';
 interface SectionConfig {
   key: string;
   label: string;
-  arabicLabel: string;
   icon: React.ReactNode;
   component: React.FC;
 }
 
 const SECTIONS: SectionConfig[] = [
-  { key: 'welcome', label: 'Welcome', arabicLabel: 'أهلاً', icon: <HomeOutlined />, component: WelcomeSection },
-  { key: 'rsvp', label: 'RSVP', arabicLabel: 'تأكيد الحضور', icon: <SendOutlined />, component: RSVPSection },
-  { key: 'things-to-do', label: 'Things to Do', arabicLabel: 'أنشطة مقترحة', icon: <CompassOutlined />, component: ThingsToDoSection },
+  { key: 'welcome', label: 'Welcome', icon: <HomeOutlined />, component: WelcomeSection },
+  { key: 'rsvp', label: 'RSVP', icon: <SendOutlined />, component: RSVPSection },
+  { key: 'suggested-hotels', label: 'Suggested Hotels', icon: <BankOutlined />, component: HotelSection },
+  { key: 'things-to-do', label: 'Things to Do', icon: <CompassOutlined />, component: ThingsToDoSection },
 ];
 
 // Styled components
@@ -150,7 +152,7 @@ const NavTitle = styled.h1`
 `;
 
 const NavSubtitle = styled.p`
-  font-family: 'Amiri', serif;
+  font-family: 'Playfair Display', serif;
   font-size: 14px;
   color: ${colors.primary};
   margin: 0;
@@ -225,11 +227,6 @@ const NavItemLabel = styled.div<{ $active: boolean }>`
   color: ${(props) => (props.$active ? colors.secondary : colors.textPrimary)};
 `;
 
-const NavItemArabic = styled.div`
-  font-family: 'Amiri', serif;
-  font-size: 12px;
-  color: ${colors.textSecondary};
-`;
 
 const NavProgress = styled.div`
   margin-top: 32px;
@@ -457,7 +454,7 @@ const PortalContent: React.FC = () => {
       <DesktopNav>
         <NavHeader>
           <NavTitle>{coupleNames}</NavTitle>
-          <NavSubtitle>دعوة زفاف</NavSubtitle>
+          <NavSubtitle>Wedding Invitation</NavSubtitle>
         </NavHeader>
 
         {SECTIONS.map((section) => (
@@ -477,7 +474,6 @@ const PortalContent: React.FC = () => {
               <NavItemLabel $active={activeSection === section.key}>
                 {section.label}
               </NavItemLabel>
-              <NavItemArabic>{section.arabicLabel}</NavItemArabic>
             </NavItemText>
           </NavItem>
         ))}

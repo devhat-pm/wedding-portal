@@ -108,11 +108,6 @@ const HeaderLabel = styled.h3`
   margin: 0;
 `;
 
-const HeaderArabic = styled.span`
-  font-family: 'Amiri', serif;
-  font-size: 14px;
-  color: ${colors.primary};
-`;
 
 const PreferenceContent = styled.div`
   padding: 32px;
@@ -457,7 +452,6 @@ const FoodSection: React.FC = () => {
     <SectionWrapper>
       <SectionHeader
         title="Food Preferences"
-        arabicTitle="تفضيلات الطعام"
         subtitle="View the menu and share your dietary preferences"
         icon={<CoffeeOutlined />}
       />
@@ -554,7 +548,6 @@ const FoodSection: React.FC = () => {
               </HeaderIcon>
               <HeaderText>
                 <HeaderLabel>Your Food Preferences</HeaderLabel>
-                <HeaderArabic>تفضيلاتك الغذائية</HeaderArabic>
               </HeaderText>
             </HeaderTitle>
           </PreferenceHeader>

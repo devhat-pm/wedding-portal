@@ -5,7 +5,6 @@ import { colors, borderRadius } from '../../styles/theme';
 
 interface SectionHeaderProps {
   title: string;
-  arabicTitle?: string;
   subtitle?: string;
   icon?: React.ReactNode;
   centered?: boolean;
@@ -59,16 +58,6 @@ const EnglishTitle = styled.h2`
   }
 `;
 
-const ArabicTitle = styled.span`
-  font-family: 'Amiri', serif;
-  font-size: 20px;
-  color: ${colors.primary};
-  font-weight: 400;
-
-  @media (max-width: 768px) {
-    font-size: 18px;
-  }
-`;
 
 const Subtitle = styled.p`
   font-size: 15px;
@@ -123,7 +112,6 @@ const DividerOrnament = styled.div`
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({
   title,
-  arabicTitle,
   subtitle,
   icon,
   centered = true,
@@ -140,7 +128,6 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         {icon && <IconWrapper>{icon}</IconWrapper>}
         <TitleContainer>
           <EnglishTitle>{title}</EnglishTitle>
-          {arabicTitle && <ArabicTitle>{arabicTitle}</ArabicTitle>}
         </TitleContainer>
       </TitleWrapper>
 

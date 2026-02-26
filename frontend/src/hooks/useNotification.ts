@@ -60,7 +60,7 @@ const notificationIcons: Record<NotificationType, React.ReactNode> = {
 };
 
 /**
- * Custom hook for notifications with Arabic-themed styling
+ * Custom hook for notifications with wedding-themed styling
  */
 export function useNotification() {
   // Configure notification defaults
@@ -85,7 +85,7 @@ export function useNotification() {
         onClick: options.onClick,
         onClose: options.onClose,
         key: options.key,
-        className: 'arabic-notification',
+        className: 'wedding-notification',
       });
     },
     []
@@ -152,7 +152,7 @@ export function useNotification() {
     (err: unknown, language: Language = 'en') => {
       const errorMessage = getApiErrorMessage(err, language);
       error(errorMessage, {
-        title: language === 'ar' ? 'خطأ' : 'Error',
+        title: 'Error',
       });
     },
     [error]

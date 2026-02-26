@@ -82,17 +82,6 @@ const Login: React.FC = () => {
             >
               Welcome Back
             </Title>
-            <Text
-              style={{
-                fontFamily: "'Amiri', serif",
-                fontSize: 18,
-                color: colors.primary,
-                display: 'block',
-                marginTop: 8,
-              }}
-            >
-              أهلاً وسهلاً
-            </Text>
             <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
               Sign in to manage your wedding guests
             </Text>

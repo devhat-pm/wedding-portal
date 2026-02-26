@@ -555,7 +555,6 @@ const DressCodeSection: React.FC = () => {
     <SectionWrapper>
       <SectionHeader
         title="Dress Code"
-        arabicTitle="قواعد اللباس"
         subtitle="View the dress code for each event and let us know your outfit plans"
         icon={<SkinOutlined />}
       />

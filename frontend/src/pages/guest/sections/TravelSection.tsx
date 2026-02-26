@@ -111,11 +111,6 @@ const ToggleTitle = styled.div`
   font-size: 15px;
 `;
 
-const ToggleArabic = styled.div`
-  font-family: 'Amiri', serif;
-  font-size: 13px;
-  color: ${colors.textSecondary};
-`;
 
 
 const StyledForm = styled(Form)`
@@ -429,7 +424,6 @@ const TravelSection: React.FC = () => {
     <SectionWrapper>
       <SectionHeader
         title="Arrival Information"
-        arabicTitle="معلومات الوصول"
         subtitle="Let us know your travel plans so we can help coordinate your arrival"
         icon={<span style={{ fontSize: 24 }}>✈️</span>}
       />
@@ -508,7 +502,6 @@ const TravelSection: React.FC = () => {
               <ToggleIcon>✈️</ToggleIcon>
               <ToggleText>
                 <ToggleTitle>Are you arriving by flight?</ToggleTitle>
-                <ToggleArabic>هل ستصل بالطائرة؟</ToggleArabic>
               </ToggleText>
             </ToggleLabel>
             <Switch
@@ -660,7 +653,6 @@ const TravelSection: React.FC = () => {
                       </ToggleIcon>
                       <ToggleText>
                         <ToggleTitle>Do you need airport pickup?</ToggleTitle>
-                        <ToggleArabic>هل تحتاج توصيل من المطار؟</ToggleArabic>
                       </ToggleText>
                     </ToggleLabel>
                     <Switch

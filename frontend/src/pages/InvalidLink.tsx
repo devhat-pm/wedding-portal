@@ -98,12 +98,6 @@ const Title = styled.h1`
   }
 `;
 
-const ArabicTitle = styled.p`
-  font-family: 'Amiri', serif;
-  font-size: 22px;
-  color: ${colors.primary};
-  margin: 0 0 24px;
-`;
 
 const Divider = styled.div`
   display: flex;
@@ -223,7 +217,6 @@ const InvalidLink: React.FC = () => {
         </IconWrapper>
 
         <Title>This Link Doesn't Seem to Work</Title>
-        <ArabicTitle>هذا الرابط لا يعمل</ArabicTitle>
 
         <Divider>
           <DividerLine />

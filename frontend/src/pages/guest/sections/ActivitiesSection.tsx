@@ -483,7 +483,6 @@ const ActivitiesSection: React.FC = () => {
         <ContentContainer>
           <SectionHeader
             title="Activities & Events"
-            arabicTitle="الأنشطة والفعاليات"
             subtitle="Explore the wedding events and activities"
           />
           <EmptyState>
@@ -646,7 +645,6 @@ const ActivitiesSection: React.FC = () => {
       <ContentContainer>
         <SectionHeader
           title="Activities & Events"
-          arabicTitle="الأنشطة والفعاليات"
           subtitle="Register for the activities you'd like to attend"
         />
 

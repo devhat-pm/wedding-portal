@@ -166,7 +166,7 @@ const PreviewTitle = styled.h3`
 `;
 
 const PreviewDate = styled.p`
-  font-family: 'Amiri', serif;
+  font-family: 'Playfair Display', serif;
   font-size: 16px;
   color: ${colors.primary};
   text-align: center;

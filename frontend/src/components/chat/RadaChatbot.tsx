@@ -12,7 +12,6 @@ import {
   DislikeOutlined,
   LikeFilled,
   DislikeFilled,
-  SwapOutlined,
 } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -54,7 +53,7 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  const language = 'en';
   const [settings, setSettings] = useState<ChatbotSettings | null>(null);
   const [sessionId] = useState(generateSessionId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -76,16 +75,10 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
   // Set initial greeting message when settings load
   useEffect(() => {
     if (settings && messages.length === 0) {
-      const greeting =
-        language === 'ar'
-          ? settings.greeting_message_ar
-          : settings.greeting_message_en;
+      const greeting = settings.greeting_message_en;
 
       const name = settings.chatbot_name || 'Rada';
-      const defaultGreeting =
-        language === 'ar'
-          ? `مرحباً${guestName ? ` ${guestName}` : ''}! أنا ${name}، مساعدة الزفاف الخاصة بك. كيف يمكنني مساعدتك اليوم؟`
-          : `Hello${guestName ? ` ${guestName}` : ''}! I'm ${name}, your wedding assistant. How can I help you today?`;
+      const defaultGreeting = `Hello${guestName ? ` ${guestName}` : ''}! I'm ${name}, your wedding assistant. How can I help you today?`;
 
       setMessages([
         {
@@ -147,10 +140,7 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch {
-      const errorContent =
-        language === 'ar'
-          ? 'عذراً، أواجه مشكلة حالياً. يرجى المحاولة مرة أخرى.'
-          : "I'm sorry, I'm having trouble connecting. Please try again.";
+      const errorContent = "I'm sorry, I'm having trouble connecting. Please try again.";
 
       const errorMessage: ChatMessage = {
         role: 'assistant',
@@ -210,10 +200,7 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
           ...prev,
           {
             role: 'assistant',
-            content:
-              language === 'ar'
-                ? 'عذراً، حدث خطأ. حاول مرة أخرى.'
-                : 'Sorry, something went wrong. Please try again.',
+            content: 'Sorry, something went wrong. Please try again.',
             timestamp: new Date(),
           },
         ]);
@@ -239,50 +226,15 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
     }
   };
 
-  const toggleLanguage = () => {
-    const newLang = language === 'en' ? 'ar' : 'en';
-    setLanguage(newLang);
-
-    // Reset messages with new greeting
-    if (settings) {
-      const greeting =
-        newLang === 'ar'
-          ? settings.greeting_message_ar
-          : settings.greeting_message_en;
-
-      const name = settings.chatbot_name || 'Rada';
-      const defaultGreeting =
-        newLang === 'ar'
-          ? `مرحباً${guestName ? ` ${guestName}` : ''}! أنا ${name}، مساعدة الزفاف. كيف يمكنني مساعدتك؟`
-          : `Hello${guestName ? ` ${guestName}` : ''}! I'm ${name}, your wedding assistant. How can I help you?`;
-
-      setMessages([
-        {
-          role: 'assistant',
-          content: greeting || defaultGreeting,
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-
   const suggestedQuestions =
-    language === 'ar'
-      ? settings?.suggested_questions_ar || [
-          'ما هو الجدول الزمني؟',
-          'أين مكان الحفل؟',
-          'كيف أؤكد حضوري؟',
-          'توصيات الفنادق؟',
-        ]
-      : settings?.suggested_questions_en || [
-          "What's the schedule?",
-          'Where is the venue?',
-          'How do I RSVP?',
-          'Hotel recommendations?',
-        ];
+    settings?.suggested_questions_en || [
+      "What's the schedule?",
+      'Where is the venue?',
+      'How do I RSVP?',
+      'Hotel recommendations?',
+    ];
 
   const chatbotName = settings?.chatbot_name || 'Rada';
-  const isRTL = language === 'ar';
 
   return (
     <div className={`chatbot-container ${position} guest-portal`}>
@@ -318,7 +270,7 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            style={{ direction: isRTL ? 'rtl' : 'ltr' }}
+            style={{ direction: 'ltr' }}
           >
             {/* Header */}
             <div className="chatbot-header">
@@ -330,21 +282,11 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
                   </Text>
                   <br />
                   <Text style={{ color: '#D6C7B8', fontSize: 12 }}>
-                    {language === 'ar' ? 'مساعدة الزفاف' : 'Wedding Assistant'}
+                    Wedding Assistant
                   </Text>
                 </div>
               </Space>
               <Space>
-                <Tooltip title={language === 'ar' ? 'English' : 'العربية'}>
-                  <Button
-                    type="text"
-                    icon={<SwapOutlined />}
-                    onClick={toggleLanguage}
-                    style={{ color: '#F3F1ED', fontSize: 12 }}
-                  >
-                    {language === 'ar' ? 'EN' : 'ع'}
-                  </Button>
-                </Tooltip>
                 <Button
                   type="text"
                   icon={isMinimized ? <ExpandOutlined /> : <MinusOutlined />}
@@ -376,14 +318,14 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
                         <Avatar
                           size="small"
                           icon={<RobotOutlined />}
-                          style={{ background: '#B7A89A', marginRight: isRTL ? 0 : 8, marginLeft: isRTL ? 8 : 0, flexShrink: 0 }}
+                          style={{ background: '#B7A89A', marginRight: 8, flexShrink: 0 }}
                         />
                       )}
                       <div>
                         <div className={`message-bubble ${msg.role}`}>{msg.content}</div>
                         {/* Feedback buttons for assistant messages */}
                         {msg.role === 'assistant' && msg.logId && (
-                          <div style={{ display: 'flex', gap: 4, marginTop: 4, marginLeft: isRTL ? 0 : 4, marginRight: isRTL ? 4 : 0 }}>
+                          <div style={{ display: 'flex', gap: 4, marginTop: 4, marginLeft: 4 }}>
                             <Button
                               type="text"
                               size="small"
@@ -405,7 +347,7 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
                         <Avatar
                           size="small"
                           icon={<UserOutlined />}
-                          style={{ background: '#9A9187', marginLeft: isRTL ? 0 : 8, marginRight: isRTL ? 8 : 0, flexShrink: 0 }}
+                          style={{ background: '#9A9187', marginLeft: 8, flexShrink: 0 }}
                         />
                       )}
                     </motion.div>
@@ -416,12 +358,12 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
                       <Avatar
                         size="small"
                         icon={<RobotOutlined />}
-                        style={{ background: '#B7A89A', marginRight: isRTL ? 0 : 8, marginLeft: isRTL ? 8 : 0, flexShrink: 0 }}
+                        style={{ background: '#B7A89A', marginRight: 8, flexShrink: 0 }}
                       />
                       <div className="message-bubble assistant typing">
                         <Spin size="small" />
                         <span style={{ marginLeft: 8 }}>
-                          {language === 'ar' ? 'أفكر...' : 'Thinking...'}
+                          Thinking...
                         </span>
                       </div>
                     </div>
@@ -453,15 +395,13 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
                 )}
 
                 {/* Input */}
-                <div className="chatbot-input" style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
+                <div className="chatbot-input">
                   <Input
                     ref={inputRef}
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyPress}
-                    placeholder={
-                      language === 'ar' ? 'اكتب سؤالك...' : 'Type your question...'
-                    }
+                    placeholder="Type your question..."
                     disabled={isLoading}
                     suffix={
                       <Button

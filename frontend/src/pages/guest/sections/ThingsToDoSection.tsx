@@ -240,7 +240,6 @@ const ThingsToDoSection: React.FC = () => {
       <SectionWrapper>
         <SectionHeader
           title="Things to Do"
-          arabicTitle="أنشطة مقترحة"
           subtitle="Explore activities and things to do during your stay"
         />
         <EmptyState
@@ -262,7 +261,6 @@ const ThingsToDoSection: React.FC = () => {
     <SectionWrapper>
       <SectionHeader
         title="Things to Do"
-        arabicTitle="أنشطة مقترحة"
         subtitle="Explore activities and things to do during your stay"
       />
 

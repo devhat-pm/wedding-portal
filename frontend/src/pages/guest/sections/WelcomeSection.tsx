@@ -83,17 +83,6 @@ const DecorativeFrame = styled.div`
   }
 `;
 
-const ArabicCalligraphy = styled(motion.div)`
-  font-family: 'Amiri', serif;
-  font-size: 24px;
-  color: ${colors.goldLight};
-  margin-bottom: 16px;
-  letter-spacing: 4px;
-
-  @media (max-width: 768px) {
-    font-size: 18px;
-  }
-`;
 
 const CoupleNames = styled(motion.h1)`
   font-family: 'Playfair Display', serif;

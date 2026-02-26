@@ -297,18 +297,6 @@ const Dashboard: React.FC = () => {
                         <Title level={5} style={{ marginBottom: 8 }}>
                           {event.name}
                         </Title>
-                        {event.name_arabic && (
-                          <Text
-                            style={{
-                              display: 'block',
-                              fontFamily: "'Amiri', serif",
-                              direction: 'rtl',
-                              marginBottom: 8,
-                            }}
-                          >
-                            {event.name_arabic}
-                          </Text>
-                        )}
                         <Space direction="vertical" size={4}>
                           <Text type="secondary">
                             <CalendarOutlined /> {formatDateTime(event.start_datetime)}

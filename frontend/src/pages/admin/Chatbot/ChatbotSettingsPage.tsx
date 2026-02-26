@@ -164,15 +164,6 @@ const ChatbotSettingsPage: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="greeting_message_ar" label="Arabic Greeting">
-                <TextArea
-                  rows={3}
-                  placeholder="مرحباً! أنا رادا، مساعدة الزفاف..."
-                  dir="rtl"
-                />
-              </Form.Item>
-            </Col>
           </Row>
         </StyledCard>
 
@@ -202,33 +193,6 @@ const ChatbotSettingsPage: React.FC = () => {
             </Button>
           </Space>
 
-          <Divider />
-
-          <SectionLabel>Arabic Questions</SectionLabel>
-          <div style={{ marginBottom: 12 }}>
-            {questionsAr.map((q, i) => (
-              <QuestionTag
-                key={i}
-                closable
-                onClose={() => setQuestionsAr((prev) => prev.filter((_, idx) => idx !== i))}
-              >
-                {q}
-              </QuestionTag>
-            ))}
-          </div>
-          <Space>
-            <Input
-              placeholder="أضف سؤالاً..."
-              value={newQuestionAr}
-              onChange={(e) => setNewQuestionAr(e.target.value)}
-              onPressEnter={addQuestionAr}
-              style={{ width: 300 }}
-              dir="rtl"
-            />
-            <Button icon={<PlusOutlined />} onClick={addQuestionAr} disabled={!newQuestionAr.trim()}>
-              Add
-            </Button>
-          </Space>
         </StyledCard>
 
         <Button

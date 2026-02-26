@@ -17,7 +17,7 @@ import type { Wedding } from '../../types/wedding.types';
 
 const { Text, Paragraph } = Typography;
 
-const DEFAULT_INVITATION_TEMPLATE = 'Hi {guest_name}! {couple_names} would love to have you at their wedding ceremony on {wedding_date} at {venue_name}. Please RSVP using the link below. We look forward to celebrating with you!';
+const DEFAULT_INVITATION_TEMPLATE = 'Hi {guest_name}! {couple_names} would love to have you at their wedding ceremony on {wedding_date} at {venue_name}. Please RSVP using your personal link below. We look forward to celebrating with you!';
 
 interface GuestLinkCardProps {
   guestName: string;
@@ -27,6 +27,15 @@ interface GuestLinkCardProps {
   className?: string;
   wedding?: Wedding | null;
 }
+
+const getAppBaseUrl = (): string => {
+  const envUrl = import.meta.env.VITE_APP_URL;
+  if (envUrl && envUrl.trim()) {
+    // Remove trailing slash
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+  return window.location.origin;
+};
 
 const generateInvitationMessage = (guestName: string, wedding: Wedding | null | undefined, link: string): string => {
   const template = wedding?.invitation_message_template || DEFAULT_INVITATION_TEMPLATE;
@@ -42,6 +51,8 @@ const generateInvitationMessage = (guestName: string, wedding: Wedding | null | 
     .replace(/{wedding_date}/g, weddingDate)
     .replace(/{venue_name}/g, venueName);
 
+  // Put the link on its own line with clear spacing so WhatsApp/messaging
+  // apps auto-detect it as a clickable link
   return `${msg}\n\n${link}`;
 };
 
@@ -308,7 +319,7 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
   const [copyBoxOpen, setCopyBoxOpen] = useState(false);
   const copyTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const baseUrl = window.location.origin;
+  const baseUrl = getAppBaseUrl();
   const fullUrl = `${baseUrl}/guest/${uniqueToken}`;
   const invitationMessage = generateInvitationMessage(guestName, wedding, fullUrl);
 
@@ -353,7 +364,7 @@ const GuestLinkCard: React.FC<GuestLinkCardProps> = ({
 
   const handleWhatsAppShare = () => {
     const text = encodeURIComponent(invitationMessage);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
 
   const handleEmailShare = () => {

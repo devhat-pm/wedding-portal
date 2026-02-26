@@ -471,7 +471,8 @@ const GuestList: React.FC = () => {
   };
 
   const handleCopyLink = async (token: string) => {
-    const url = `${window.location.origin}/guest/${token}`;
+    const appUrl = import.meta.env.VITE_APP_URL?.trim().replace(/\/+$/, '') || window.location.origin;
+    const url = `${appUrl}/guest/${token}`;
     const ok = await copyToClipboard(url);
     if (ok) {
       message.success('Link copied to clipboard!');
@@ -931,11 +932,12 @@ const GuestList: React.FC = () => {
                           type="text"
                           icon={<WhatsAppOutlined style={{ color: '#25D366' }} />}
                           onClick={() => {
-                            const url = `${window.location.origin}/guest/${guest.token}`;
+                            const appUrl = import.meta.env.VITE_APP_URL?.trim().replace(/\/+$/, '') || window.location.origin;
+                            const url = `${appUrl}/guest/${guest.token}`;
                             const text = encodeURIComponent(
-                              `You're invited! Please RSVP: ${url}`
+                              `You're invited! Please RSVP using your personal link below:\n\n${url}`
                             );
-                            window.open(`https://wa.me/?text=${text}`, '_blank');
+                            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
                           }}
                         />
                       </Tooltip>,

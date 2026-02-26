@@ -24,17 +24,16 @@ interface ProgressTrackerProps {
 interface SectionConfig {
   key: keyof SectionCompletion;
   label: string;
-  arabicLabel: string;
   icon: React.ReactNode;
 }
 
 const SECTIONS: SectionConfig[] = [
-  { key: 'rsvp', label: 'RSVP', arabicLabel: 'تأكيد الحضور', icon: <SendOutlined /> },
-  { key: 'travel', label: 'Travel', arabicLabel: 'السفر', icon: <CarOutlined /> },
-  { key: 'hotel', label: 'Hotel', arabicLabel: 'الفندق', icon: <BankOutlined /> },
-  { key: 'dress', label: 'Dress Code', arabicLabel: 'اللباس', icon: <SkinOutlined /> },
-  { key: 'food', label: 'Food', arabicLabel: 'الطعام', icon: <CoffeeOutlined /> },
-  { key: 'activities', label: 'Activities', arabicLabel: 'الأنشطة', icon: <StarOutlined /> },
+  { key: 'rsvp', label: 'RSVP', icon: <SendOutlined /> },
+  { key: 'travel', label: 'Travel', icon: <CarOutlined /> },
+  { key: 'hotel', label: 'Hotel', icon: <BankOutlined /> },
+  { key: 'dress', label: 'Dress Code', icon: <SkinOutlined /> },
+  { key: 'food', label: 'Food', icon: <CoffeeOutlined /> },
+  { key: 'activities', label: 'Activities', icon: <StarOutlined /> },
 ];
 
 // Horizontal variant styles
@@ -212,11 +211,6 @@ const VerticalLabel = styled.span<{ $completed: boolean; $current: boolean }>`
   }};
 `;
 
-const ArabicLabel = styled.span`
-  font-family: 'Amiri', serif;
-  font-size: 12px;
-  color: ${colors.textSecondary};
-`;
 
 // Compact variant styles
 const CompactWrapper = styled.div`
@@ -282,7 +276,7 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
     return (
       <CompactWrapper>
         {SECTIONS.map((section) => (
-          <Tooltip key={section.key} title={`${section.label} - ${section.arabicLabel}`}>
+          <Tooltip key={section.key} title={section.label}>
             <CompactStep
               $completed={completion[section.key]}
               $current={currentSection === section.key}
@@ -321,7 +315,6 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
                 >
                   {section.label}
                 </VerticalLabel>
-                <ArabicLabel>{section.arabicLabel}</ArabicLabel>
               </VerticalLabels>
             </VerticalStep>
             {index < SECTIONS.length - 1 && (

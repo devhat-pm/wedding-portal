@@ -155,7 +155,7 @@ const CoupleNames = styled(motion.h1)`
 `;
 
 const Ampersand = styled.span`
-  font-family: 'Amiri', serif;
+  font-family: 'Playfair Display', serif;
   font-style: italic;
   color: ${colors.primary};
   margin: 0 12px;
@@ -166,7 +166,7 @@ const Ampersand = styled.span`
 `;
 
 const WelcomeMessage = styled(motion.p)`
-  font-family: 'Amiri', serif;
+  font-family: 'Playfair Display', serif;
   font-size: 18px;
   color: ${colors.goldLight};
   max-width: 600px;

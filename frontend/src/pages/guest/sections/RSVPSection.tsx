@@ -232,11 +232,6 @@ const OptionLabel = styled.div`
   letter-spacing: 0.3px;
 `;
 
-const OptionArabic = styled.div`
-  font-family: 'Amiri', serif;
-  font-size: 14px;
-  color: ${colors.textSecondary};
-`;
 
 const FormSection = styled.div`
   margin-bottom: 32px;
@@ -781,7 +776,6 @@ const RSVPSection: React.FC = () => {
     <SectionWrapper>
       <SectionHeader
         title="RSVP"
-        arabicTitle="تأكيد الحضور"
         subtitle="Please let us know if you'll be joining us"
       />
 
@@ -834,7 +828,6 @@ const RSVPSection: React.FC = () => {
                 <CheckCircleFilled />
               </OptionIcon>
               <OptionLabel>Accept</OptionLabel>
-              <OptionArabic>سأحضر</OptionArabic>
             </RSVPOption>
 
             <RSVPOption
@@ -848,7 +841,6 @@ const RSVPSection: React.FC = () => {
                 <CloseCircleFilled />
               </OptionIcon>
               <OptionLabel>Decline</OptionLabel>
-              <OptionArabic>أعتذر</OptionArabic>
             </RSVPOption>
           </RSVPOptionsWrapper>
 

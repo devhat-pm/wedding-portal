@@ -96,7 +96,6 @@ export const borderRadius = {
 export const fonts = {
   heading: "'Playfair Display', Georgia, serif",
   body: "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  arabic: "'Amiri', 'Traditional Arabic', serif",
   code: "'Fira Code', 'Consolas', monospace",
 };
 
@@ -477,6 +476,6 @@ export const weddingTheme: ThemeConfig = {
 };
 
 // Keep backward-compatible export
-export const arabicLuxuryTheme = weddingTheme;
+export const luxuryTheme = weddingTheme;
 
 export default weddingTheme;

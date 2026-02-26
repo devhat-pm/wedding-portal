@@ -85,12 +85,6 @@ const Title = styled.h1`
   }
 `;
 
-const ArabicTitle = styled.p`
-  font-family: 'Amiri', serif;
-  font-size: 20px;
-  color: ${colors.primary};
-  margin: 0 0 24px;
-`;
 
 const Description = styled.p`
   font-size: 16px;
@@ -170,7 +164,6 @@ const NotFound: React.FC = () => {
         <ErrorCode>404</ErrorCode>
 
         <Title>Page Not Found</Title>
-        <ArabicTitle>الصفحة غير موجودة</ArabicTitle>
 
         <Divider>
           <DividerLine />

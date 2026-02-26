@@ -199,7 +199,7 @@ const PreviewTitle = styled.h3`
 `;
 
 const PreviewMessage = styled.p`
-  font-family: 'Amiri', serif;
+  font-family: 'Playfair Display', serif;
   font-style: italic;
   color: ${colors.textSecondary};
   margin: 0;
