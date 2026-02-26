@@ -106,6 +106,7 @@ export interface DashboardStats {
   pending_guests?: number;
   declined_guests?: number;
   total_attending?: number;
+  average_party_size?: number;
   vip_guests?: number;
   bride_side_guests?: number;
   groom_side_guests?: number;

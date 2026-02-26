@@ -27,6 +27,7 @@ import {
   RiseOutlined,
   RightOutlined,
   InboxOutlined,
+  UsergroupAddOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -347,6 +348,59 @@ const RSVPItemLabel = styled.div`
   color: ${colors.textSecondary};
 `;
 
+const HeadcountCard = styled(motion(Card))`
+  border-radius: ${borderRadius.lg}px;
+  border: 2px solid ${colors.primary};
+  box-shadow: ${shadows.md};
+  height: 100%;
+  background: linear-gradient(135deg, ${colors.goldPale} 0%, ${colors.cardBg} 100%);
+
+  .ant-card-body {
+    padding: 28px 24px;
+  }
+`;
+
+const HeadcountMain = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+`;
+
+const HeadcountIconWrapper = styled.div`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.goldDark} 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: white;
+  flex-shrink: 0;
+`;
+
+const HeadcountNumber = styled.div`
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  font-weight: 700;
+  color: ${colors.secondary};
+  line-height: 1;
+`;
+
+const HeadcountLabel = styled.div`
+  font-size: 14px;
+  color: ${colors.textSecondary};
+  margin-top: 2px;
+`;
+
+const HeadcountSubtext = styled.div`
+  font-size: 12px;
+  color: ${colors.textSecondary};
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid ${colors.creamDark};
+`;
+
 const LoadingWrapper = styled.div`
   display: flex;
   justify-content: center;
@@ -520,6 +574,45 @@ const Dashboard: React.FC = () => {
                 valueStyle={{ color: colors.gray[500], fontWeight: 600 }}
               />
             </StatsCard>
+          </Col>
+        </Row>
+
+        {/* Headcount Row */}
+        <GoldDivider text="Expected Headcount" variant="ornamental" margin="0 0 24px 0" />
+
+        <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
+          <Col xs={24} md={12}>
+            <HeadcountCard variants={itemVariants}>
+              <HeadcountMain>
+                <HeadcountIconWrapper>
+                  <UsergroupAddOutlined />
+                </HeadcountIconWrapper>
+                <div>
+                  <HeadcountNumber>{stats?.total_attending || 0}</HeadcountNumber>
+                  <HeadcountLabel>Total Attendees</HeadcountLabel>
+                </div>
+              </HeadcountMain>
+              <HeadcountSubtext>
+                Total people attending including guests and their party members, based on {stats?.confirmed_rsvps || 0} confirmed RSVP{(stats?.confirmed_rsvps || 0) !== 1 ? 's' : ''}
+              </HeadcountSubtext>
+            </HeadcountCard>
+          </Col>
+
+          <Col xs={24} md={12}>
+            <HeadcountCard variants={itemVariants}>
+              <HeadcountMain>
+                <HeadcountIconWrapper>
+                  <TeamOutlined />
+                </HeadcountIconWrapper>
+                <div>
+                  <HeadcountNumber>{stats?.average_party_size || 0}</HeadcountNumber>
+                  <HeadcountLabel>Average Party Size</HeadcountLabel>
+                </div>
+              </HeadcountMain>
+              <HeadcountSubtext>
+                Average number of attendees per confirmed invitation
+              </HeadcountSubtext>
+            </HeadcountCard>
           </Col>
         </Row>
 

@@ -32,6 +32,7 @@ class DashboardStats(BaseModel):
     pending_guests: int
     maybe_guests: int
     total_attending: int
+    average_party_size: float = 0.0
     vip_guests: int
     bride_side_guests: int
     groom_side_guests: int
@@ -323,6 +324,8 @@ async def get_dashboard_stats(
     recent_activity.sort(key=lambda x: x.time, reverse=True)
     recent_activity = recent_activity[:10]
 
+    avg_party_size = round(total_attending / confirmed_guests, 1) if confirmed_guests > 0 else 0.0
+
     return DashboardStats(
         total_guests=total_guests,
         confirmed_guests=confirmed_guests,
@@ -330,6 +333,7 @@ async def get_dashboard_stats(
         pending_guests=pending_guests,
         maybe_guests=maybe_guests,
         total_attending=total_attending,
+        average_party_size=avg_party_size,
         vip_guests=0,
         bride_side_guests=0,
         groom_side_guests=0,
