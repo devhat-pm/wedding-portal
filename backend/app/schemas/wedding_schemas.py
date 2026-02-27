@@ -39,6 +39,7 @@ class WeddingUpdate(BaseModel):
     story_title: Optional[str] = Field(None, max_length=300)
     story_content: Optional[str] = None
     story_image_url: Optional[str] = None
+    couple_image_url: Optional[str] = None
     is_active: Optional[bool] = None
 
     @field_validator('wedding_date', mode='after')
@@ -63,6 +64,7 @@ class WeddingResponse(BaseSchema, TimestampMixin):
     story_title: Optional[str] = None
     story_content: Optional[str] = None
     story_image_url: Optional[str] = None
+    couple_image_url: Optional[str] = None
     admin_email: str
     is_active: bool
     theme_color_primary: Optional[str] = None
@@ -81,6 +83,7 @@ class WeddingPublicInfo(BaseSchema):
     story_title: Optional[str] = None
     story_content: Optional[str] = None
     story_image_url: Optional[str] = None
+    couple_image_url: Optional[str] = None
     theme_color_primary: Optional[str] = None
     theme_color_secondary: Optional[str] = None
 

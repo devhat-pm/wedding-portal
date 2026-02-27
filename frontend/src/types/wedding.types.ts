@@ -13,6 +13,7 @@ export interface Wedding {
   story_title?: string;
   story_content?: string;
   story_image_url?: string;
+  couple_image_url?: string;
   theme_color_primary?: string;
   theme_color_secondary?: string;
   admin_email: string;
@@ -35,6 +36,7 @@ export interface WeddingPublicInfo {
   story_title?: string;
   story_content?: string;
   story_image_url?: string;
+  couple_image_url?: string;
   theme_color_primary?: string;
   theme_color_secondary?: string;
 }
@@ -65,6 +67,7 @@ export interface WeddingUpdate {
   story_title?: string;
   story_content?: string;
   story_image_url?: string;
+  couple_image_url?: string;
   theme_color_primary?: string;
   theme_color_secondary?: string;
   is_active?: boolean;

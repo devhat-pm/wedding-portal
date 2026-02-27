@@ -27,6 +27,7 @@ class Wedding(Base, TimestampMixin):
     story_title: Mapped[str | None] = mapped_column(String(300), nullable=True)
     story_content: Mapped[str | None] = mapped_column(Text, nullable=True)
     story_image_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    couple_image_url: Mapped[str | None] = mapped_column(String, nullable=True)
     admin_email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     admin_password_hash: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

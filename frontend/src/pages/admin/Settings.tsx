@@ -283,7 +283,9 @@ const Settings: React.FC = () => {
   const [invitationLoading, setInvitationLoading] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [storyImageUrl, setStoryImageUrl] = useState<string | null>(null);
+  const [coupleImageUrl, setCoupleImageUrl] = useState<string | null>(null);
   const [storyUploadLoading, setStoryUploadLoading] = useState(false);
+  const [coupleUploadLoading, setCoupleUploadLoading] = useState(false);
   const [welcomeMessagePreview, setWelcomeMessagePreview] = useState('');
   const [invitationTemplate, setInvitationTemplate] = useState(DEFAULT_INVITATION_TEMPLATE);
   const invitationTextAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -303,6 +305,7 @@ const Settings: React.FC = () => {
       });
       setCoverImageUrl(wedding.cover_image_url || null);
       setStoryImageUrl(wedding.story_image_url || null);
+      setCoupleImageUrl(wedding.couple_image_url || null);
       setWelcomeMessagePreview(wedding.welcome_message || '');
       setInvitationTemplate(wedding.invitation_message_template || DEFAULT_INVITATION_TEMPLATE);
     }
@@ -370,6 +373,27 @@ const Settings: React.FC = () => {
       onError?.(error);
     } finally {
       setStoryUploadLoading(false);
+    }
+  };
+
+  const handleCoupleImageUpload: UploadProps['customRequest'] = async (options) => {
+    const { file, onSuccess, onError } = options;
+    setCoupleUploadLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file as File);
+
+      const updatedWedding = await adminApi.uploadCoupleImage(formData);
+      setCoupleImageUrl(updatedWedding.couple_image_url || null);
+      updateWedding(updatedWedding);
+      message.success('Couple image uploaded successfully!');
+      onSuccess?.(updatedWedding);
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || 'Failed to upload couple image');
+      onError?.(error);
+    } finally {
+      setCoupleUploadLoading(false);
     }
   };
 
@@ -707,6 +731,55 @@ const Settings: React.FC = () => {
                 style={{ resize: 'none' }}
               />
             </Form.Item>
+
+            <div style={{ marginBottom: 24 }}>
+              <Text strong style={{ display: 'block', marginBottom: 8 }}>Couple Image</Text>
+              <CoverImagePreview $hasImage={!!coupleImageUrl} style={{ height: 200 }}>
+                {coupleImageUrl ? (
+                  <>
+                    <img src={coupleImageUrl} alt="Couple" style={{ objectPosition: 'center top' }} />
+                    <CoverImageOverlay>
+                      <Upload
+                        accept="image/*"
+                        showUploadList={false}
+                        customRequest={handleCoupleImageUpload}
+                      >
+                        <Button
+                          type="primary"
+                          icon={<UploadOutlined />}
+                          loading={coupleUploadLoading}
+                          ghost
+                        >
+                          Change Image
+                        </Button>
+                      </Upload>
+                    </CoverImageOverlay>
+                  </>
+                ) : (
+                  <CoverPlaceholder>
+                    <UserOutlined style={{ fontSize: 36, marginBottom: 12 }} />
+                    <div>No couple image uploaded</div>
+                    <Upload
+                      accept="image/*"
+                      showUploadList={false}
+                      customRequest={handleCoupleImageUpload}
+                    >
+                      <Button
+                        type="primary"
+                        icon={<UploadOutlined />}
+                        style={{ marginTop: 12 }}
+                        loading={coupleUploadLoading}
+                      >
+                        Upload Couple Image
+                      </Button>
+                    </Upload>
+                  </CoverPlaceholder>
+                )}
+              </CoverImagePreview>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                A photo of the couple displayed in the Our Story section. Recommended: a portrait or square photo.
+              </Text>
+            </div>
 
             <div style={{ marginBottom: 16 }}>
               <Text strong style={{ display: 'block', marginBottom: 8 }}>Story Image</Text>

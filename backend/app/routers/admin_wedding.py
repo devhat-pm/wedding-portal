@@ -419,3 +419,35 @@ async def upload_story_image(
     await db.refresh(wedding)
 
     return WeddingResponse.model_validate(wedding)
+
+
+@router.post("/couple-image", response_model=WeddingResponse)
+async def upload_couple_image(
+    file: UploadFile = File(...),
+    wedding: Wedding = Depends(get_current_wedding),
+    db: AsyncSession = Depends(get_db)
+):
+    """Upload couple image for the Our Story section."""
+    allowed_types = ["image/jpeg", "image/png", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Allowed: JPEG, PNG, WebP"
+        )
+
+    upload_dir = os.path.join(settings.UPLOAD_DIR, "weddings", str(wedding.id))
+    os.makedirs(upload_dir, exist_ok=True)
+
+    file_ext = file.filename.split(".")[-1] if file.filename else "jpg"
+    filename = f"couple_{uuid_lib.uuid4()}.{file_ext}"
+    file_path = os.path.join(upload_dir, filename)
+
+    async with aiofiles.open(file_path, "wb") as f:
+        content = await file.read()
+        await f.write(content)
+
+    wedding.couple_image_url = f"/uploads/weddings/{wedding.id}/{filename}"
+    await db.flush()
+    await db.refresh(wedding)
+
+    return WeddingResponse.model_validate(wedding)

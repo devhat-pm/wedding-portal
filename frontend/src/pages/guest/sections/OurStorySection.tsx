@@ -185,6 +185,36 @@ const CoupleNames = styled.div`
   }
 `;
 
+const CoupleImageWrapper = styled(motion.div)`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+`;
+
+const CoupleImageFrame = styled.div`
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid ${colors.primary};
+  box-shadow: 0 8px 32px rgba(183, 168, 154, 0.3), 0 0 0 8px ${colors.goldPale};
+  position: relative;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @media (max-width: 480px) {
+    width: 160px;
+    height: 160px;
+    border-width: 3px;
+    box-shadow: 0 6px 24px rgba(183, 168, 154, 0.25), 0 0 0 6px ${colors.goldPale};
+  }
+`;
+
 const ClosingFlourish = styled.div`
   display: flex;
   align-items: center;
@@ -217,6 +247,7 @@ const OurStorySection: React.FC = () => {
   const storyTitle = wedding?.story_title;
   const storyContent = wedding?.story_content;
   const storyImageUrl = wedding?.story_image_url;
+  const coupleImageUrl = wedding?.couple_image_url;
   const brideName = wedding?.bride_name;
   const groomName = wedding?.groom_name;
 
@@ -261,6 +292,21 @@ const OurStorySection: React.FC = () => {
             <Flourish>
               <HeartFilled />
             </Flourish>
+            {coupleImageUrl && (
+              <CoupleImageWrapper
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <CoupleImageFrame>
+                  <img
+                    src={getImageUrl(coupleImageUrl) || coupleImageUrl}
+                    alt={brideName && groomName ? `${brideName} & ${groomName}` : 'The Couple'}
+                  />
+                </CoupleImageFrame>
+              </CoupleImageWrapper>
+            )}
             {paragraphs.map((paragraph: string, index: number) => (
               <StoryParagraph key={index}>{paragraph.trim()}</StoryParagraph>
             ))}
