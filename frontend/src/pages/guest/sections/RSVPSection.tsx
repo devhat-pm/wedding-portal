@@ -12,6 +12,7 @@ import {
   EnvironmentOutlined,
   ClockCircleOutlined,
   CalendarOutlined,
+  SkinOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import confetti from 'canvas-confetti';
@@ -35,16 +36,16 @@ interface PartyMember {
 // Styled Components
 // ============================================
 const SectionWrapper = styled.section`
-  padding: 80px 24px;
-  max-width: 720px;
+  padding: 48px 24px;
+  max-width: 780px;
   margin: 0 auto;
 
   @media (max-width: 768px) {
-    padding: 60px 20px;
+    padding: 40px 20px;
   }
 
   @media (max-width: 480px) {
-    padding: 48px 16px;
+    padding: 32px 16px;
   }
 `;
 
@@ -54,7 +55,7 @@ const CurrentStatusCard = styled(motion.div)<{ $status: string }>`
   justify-content: space-between;
   padding: 20px 24px;
   border-radius: ${borderRadius.xl}px;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 
   ${(props) => {
     switch (props.$status) {
@@ -130,51 +131,101 @@ const FormCard = styled(motion.div)`
   border-radius: ${borderRadius.xl}px;
   border: 1px solid ${colors.borderGold};
   box-shadow: ${shadows.lg};
-  padding: 40px;
+  padding: 32px;
 
   @media (max-width: 768px) {
-    padding: 32px 24px;
+    padding: 24px 20px;
   }
-
-  @media (max-width: 480px) {
-    padding: 28px 20px;
-  }
-`;
-
-// Per-event RSVP card styles
-const EventRSVPCard = styled(motion.div)`
-  background: white;
-  border: 1px solid ${colors.borderGold};
-  border-radius: ${borderRadius.lg}px;
-  padding: 24px;
-  margin-bottom: 16px;
 
   @media (max-width: 480px) {
     padding: 20px 16px;
   }
 `;
 
-const EventCardName = styled.h4`
+// ─── Per-Event RSVP Card (rich design) ───
+const EventRSVPCard = styled(motion.div)`
+  background: white;
+  border: 1px solid ${colors.borderGold};
+  border-radius: ${borderRadius.xl}px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: ${shadows.md};
+`;
+
+const EventCardHeader = styled.div`
+  background: linear-gradient(135deg, ${colors.goldPale} 0%, ${colors.creamMedium} 100%);
+  padding: 22px 28px;
+  border-bottom: 1px solid ${colors.borderGold};
+
+  @media (max-width: 480px) {
+    padding: 18px 20px;
+  }
+`;
+
+const EventCardName = styled.h3`
   font-family: 'Playfair Display', serif;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: ${colors.secondary};
-  margin: 0 0 10px;
+  margin: 0 0 6px;
+
+  @media (max-width: 480px) {
+    font-size: 19px;
+  }
 `;
 
-const EventCardMeta = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 16px;
+const EventCardDescription = styled.p`
+  font-size: 14px;
+  color: ${colors.textSecondary};
+  margin: 0;
+  line-height: 1.6;
 `;
 
-const EventMetaItem = styled.div`
+const EventCardBody = styled.div`
+  padding: 24px 28px;
+
+  @media (max-width: 480px) {
+    padding: 20px;
+  }
+`;
+
+const EventDetailGrid = styled.div`
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 16px;
+  margin-bottom: 24px;
+  align-items: center;
+`;
+
+const EventDetailLabel = styled.div`
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: ${colors.textSecondary};
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  color: ${colors.textSecondary};
+`;
+
+const EventDetailValue = styled.div`
+  font-size: 14px;
+  color: ${colors.textPrimary};
+  font-weight: 500;
+`;
+
+const EventCardDivider = styled.div`
+  height: 1px;
+  background: ${colors.creamDark};
+  margin-bottom: 20px;
+`;
+
+const EventResponsePrompt = styled.p`
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  color: ${colors.secondary};
+  text-align: center;
+  margin: 0 0 16px;
 `;
 
 const EventResponseRow = styled.div`
@@ -188,18 +239,18 @@ const EventResponseRow = styled.div`
 
 const EventRadioButton = styled.button<{ $selected: boolean; $variant: 'attending' | 'declined' }>`
   flex: 1;
-  padding: 12px 16px;
-  border-radius: ${borderRadius.md}px;
+  padding: 16px;
+  border-radius: ${borderRadius.lg}px;
   border: 2px solid;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   transition: all 0.2s ease;
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
 
   ${(props) => {
     if (props.$variant === 'attending') {
@@ -208,6 +259,7 @@ const EventRadioButton = styled.button<{ $selected: boolean; $variant: 'attendin
           border-color: ${colors.success};
           background: rgba(91, 122, 94, 0.1);
           color: ${colors.success};
+          box-shadow: 0 2px 8px rgba(91, 122, 94, 0.2);
         `
         : `
           border-color: ${colors.creamDark};
@@ -220,6 +272,7 @@ const EventRadioButton = styled.button<{ $selected: boolean; $variant: 'attendin
         border-color: ${colors.error};
         background: rgba(158, 91, 91, 0.08);
         color: ${colors.error};
+        box-shadow: 0 2px 8px rgba(158, 91, 91, 0.15);
       `
       : `
         border-color: ${colors.creamDark};
@@ -229,8 +282,9 @@ const EventRadioButton = styled.button<{ $selected: boolean; $variant: 'attendin
   }}
 `;
 
+// ─── Form Section Styles ───
 const FormSection = styled.div`
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 `;
 
 const FormSectionTitle = styled.h4`
@@ -242,6 +296,12 @@ const FormSectionTitle = styled.h4`
   align-items: center;
   gap: 10px;
   letter-spacing: 0.5px;
+`;
+
+const FormSectionSubtitle = styled.p`
+  font-size: 14px;
+  color: ${colors.textSecondary};
+  margin: -12px 0 20px;
 `;
 
 const StyledForm = styled(Form)`
@@ -272,7 +332,7 @@ const StyledForm = styled(Form)`
   }
 `;
 
-// Guest Card styles
+// ─── Guest Card Styles ───
 const GuestCardWrapper = styled(motion.div)`
   border: 1px solid ${colors.borderGold};
   border-radius: ${borderRadius.lg}px;
@@ -379,7 +439,7 @@ const SubmitButton = styled(Button)`
   }
 `;
 
-// Success overlay
+// ─── Success Overlay ───
 const SuccessOverlay = styled(motion.div)`
   position: fixed;
   inset: 0;
@@ -430,7 +490,7 @@ const SuccessMessage = styled.p`
 const Divider = styled.div`
   height: 1px;
   background: ${colors.creamDark};
-  margin: 32px 0;
+  margin: 28px 0;
 `;
 
 const MAX_GUESTS = 10;
@@ -617,11 +677,6 @@ const RSVPSection: React.FC = () => {
     return 'Awaiting Response';
   };
 
-  const formatDateTime = (dateTime: string) => {
-    const d = dayjs(dateTime);
-    return d.format('ddd, MMM D [at] h:mm A');
-  };
-
   if (!portalData) return null;
 
   return (
@@ -669,49 +724,62 @@ const RSVPSection: React.FC = () => {
               key={activity.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.08 }}
+              transition={{ delay: index * 0.1 }}
             >
-              <EventCardName>{activity.activity_name || activity.title}</EventCardName>
-              <EventCardMeta>
-                {activity.date_time && (
-                  <EventMetaItem>
-                    <CalendarOutlined />
-                    {formatDateTime(activity.date_time)}
-                  </EventMetaItem>
+              <EventCardHeader>
+                <EventCardName>{activity.activity_name || activity.title}</EventCardName>
+                {activity.description && (
+                  <EventCardDescription>{activity.description}</EventCardDescription>
                 )}
-                {activity.duration_minutes && (
-                  <EventMetaItem>
-                    <ClockCircleOutlined />
-                    {activity.duration_minutes < 60
-                      ? `${activity.duration_minutes} min`
-                      : `${Math.floor(activity.duration_minutes / 60)}h${activity.duration_minutes % 60 > 0 ? ` ${activity.duration_minutes % 60}m` : ''}`}
-                  </EventMetaItem>
-                )}
-                {activity.location && (
-                  <EventMetaItem>
-                    <EnvironmentOutlined />
-                    {activity.location}
-                  </EventMetaItem>
-                )}
-              </EventCardMeta>
-              <EventResponseRow>
-                <EventRadioButton
-                  $selected={eventResponses[activity.id] === 'attending'}
-                  $variant="attending"
-                  onClick={() => setEventResponse(activity.id, 'attending')}
-                  type="button"
-                >
-                  <CheckCircleFilled /> I will be attending
-                </EventRadioButton>
-                <EventRadioButton
-                  $selected={eventResponses[activity.id] === 'declined'}
-                  $variant="declined"
-                  onClick={() => setEventResponse(activity.id, 'declined')}
-                  type="button"
-                >
-                  <CloseCircleFilled /> Regretfully decline
-                </EventRadioButton>
-              </EventResponseRow>
+              </EventCardHeader>
+              <EventCardBody>
+                <EventDetailGrid>
+                  {activity.date_time && (
+                    <>
+                      <EventDetailLabel><CalendarOutlined /> Date</EventDetailLabel>
+                      <EventDetailValue>{dayjs(activity.date_time).format('dddd, MMMM D, YYYY')}</EventDetailValue>
+                    </>
+                  )}
+                  {activity.date_time && (
+                    <>
+                      <EventDetailLabel><ClockCircleOutlined /> Time</EventDetailLabel>
+                      <EventDetailValue>{dayjs(activity.date_time).format('h:mm A')}</EventDetailValue>
+                    </>
+                  )}
+                  {activity.location && (
+                    <>
+                      <EventDetailLabel><EnvironmentOutlined /> Venue</EventDetailLabel>
+                      <EventDetailValue>{activity.location}</EventDetailValue>
+                    </>
+                  )}
+                  {activity.dress_code_info && (
+                    <>
+                      <EventDetailLabel><SkinOutlined /> Dress Code</EventDetailLabel>
+                      <EventDetailValue>{activity.dress_code_info}</EventDetailValue>
+                    </>
+                  )}
+                </EventDetailGrid>
+                <EventCardDivider />
+                <EventResponsePrompt>Will you be joining us?</EventResponsePrompt>
+                <EventResponseRow>
+                  <EventRadioButton
+                    $selected={eventResponses[activity.id] === 'attending'}
+                    $variant="attending"
+                    onClick={() => setEventResponse(activity.id, 'attending')}
+                    type="button"
+                  >
+                    <CheckCircleFilled /> I will be attending
+                  </EventRadioButton>
+                  <EventRadioButton
+                    $selected={eventResponses[activity.id] === 'declined'}
+                    $variant="declined"
+                    onClick={() => setEventResponse(activity.id, 'declined')}
+                    type="button"
+                  >
+                    <CloseCircleFilled /> Regretfully decline
+                  </EventRadioButton>
+                </EventResponseRow>
+              </EventCardBody>
             </EventRSVPCard>
           ))}
 
@@ -730,6 +798,9 @@ const RSVPSection: React.FC = () => {
                   <FormSectionTitle>
                     <UserOutlined /> Your Party
                   </FormSectionTitle>
+                  <FormSectionSubtitle>
+                    Please provide details for everyone attending
+                  </FormSectionSubtitle>
 
                   {partyMembers.map((member, index) => (
                     <GuestCardWrapper
@@ -790,7 +861,7 @@ const RSVPSection: React.FC = () => {
                       icon={<PlusOutlined />}
                       onClick={addPartyMember}
                     >
-                      Add Guest
+                      Add Another Guest
                     </AddGuestButton>
                   ) : (
                     <MaxGuestsNote>Maximum {MAX_GUESTS} guests allowed</MaxGuestsNote>

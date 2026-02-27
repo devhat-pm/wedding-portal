@@ -16,16 +16,16 @@ import { colors, shadows, borderRadius } from '../../../styles/theme';
 import { getImageUrl } from '../../../utils/helpers';
 
 const SectionWrapper = styled.section`
-  padding: 80px 24px;
-  max-width: 720px;
+  padding: 48px 24px;
+  max-width: 780px;
   margin: 0 auto;
 
   @media (max-width: 768px) {
-    padding: 60px 20px;
+    padding: 40px 20px;
   }
 
   @media (max-width: 480px) {
-    padding: 48px 16px;
+    padding: 32px 16px;
   }
 `;
 

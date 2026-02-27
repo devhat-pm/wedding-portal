@@ -8,8 +8,8 @@ const RSVPComprehensivePage: React.FC = () => {
   return (
     <>
       <RSVPSection />
-      <EventMapSection />
       <OurStorySection />
+      <EventMapSection />
       <ThingsToDoSection />
     </>
   );

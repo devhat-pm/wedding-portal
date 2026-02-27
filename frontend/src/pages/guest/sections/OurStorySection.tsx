@@ -1,32 +1,32 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
-import { HeartOutlined } from '@ant-design/icons';
+import { HeartFilled } from '@ant-design/icons';
 import { useGuestPortal } from '../../../context/GuestPortalContext';
 import SectionHeader from '../../../components/guest/SectionHeader';
 import { colors, shadows, borderRadius } from '../../../styles/theme';
 import { getImageUrl } from '../../../utils/helpers';
 
 const SectionWrapper = styled.section`
-  padding: 80px 24px;
-  max-width: 720px;
+  padding: 48px 24px;
+  max-width: 780px;
   margin: 0 auto;
 
   @media (max-width: 768px) {
-    padding: 60px 20px;
+    padding: 40px 20px;
   }
 
   @media (max-width: 480px) {
-    padding: 48px 16px;
+    padding: 32px 16px;
   }
 `;
 
 const StoryCard = styled(motion.div)`
-  background: ${colors.cardBg};
+  background: white;
   border: 1px solid ${colors.borderGold};
-  border-radius: ${borderRadius.lg}px;
+  border-radius: ${borderRadius.xl}px;
   overflow: hidden;
-  box-shadow: ${shadows.sm};
+  box-shadow: ${shadows.md};
 `;
 
 const StoryImage = styled.img`
@@ -36,31 +36,80 @@ const StoryImage = styled.img`
   display: block;
 
   @media (max-width: 480px) {
-    max-height: 300px;
+    max-height: 280px;
   }
 `;
 
 const StoryContent = styled.div`
-  padding: 32px;
+  padding: 40px 44px;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    padding: 32px 28px;
+  }
 
   @media (max-width: 480px) {
-    padding: 24px 20px;
+    padding: 28px 20px;
   }
 `;
 
-const StoryTitle = styled.h3`
-  font-family: 'Playfair Display', serif;
-  font-size: 24px;
-  color: ${colors.secondary};
-  margin: 0 0 16px;
-  text-align: center;
+const Flourish = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  color: ${colors.primary};
+  font-size: 16px;
+
+  &::before,
+  &::after {
+    content: '';
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      ${colors.primary},
+      transparent
+    );
+  }
 `;
 
-const StoryText = styled.div`
-  font-size: 15px;
-  line-height: 1.8;
+const StoryParagraph = styled.p`
+  font-size: 16px;
+  line-height: 1.9;
   color: ${colors.textPrimary};
-  white-space: pre-wrap;
+  margin: 0 0 20px;
+  font-style: italic;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+`;
+
+const ClosingFlourish = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 28px;
+  color: ${colors.primary};
+  font-size: 14px;
+
+  &::before,
+  &::after {
+    content: '';
+    width: 40px;
+    height: 1px;
+    background: ${colors.primary};
+    opacity: 0.4;
+  }
 `;
 
 const OurStorySection: React.FC = () => {
@@ -75,12 +124,16 @@ const OurStorySection: React.FC = () => {
 
   if (!storyTitle && !storyContent) return null;
 
+  // Split content into paragraphs for proper rendering
+  const paragraphs = storyContent
+    ? storyContent.split(/\n\n+/).filter((p: string) => p.trim())
+    : [];
+
   return (
     <SectionWrapper>
       <SectionHeader
-        title="Our Story"
+        title={storyTitle || 'Our Story'}
         subtitle="How it all began"
-        icon={<HeartOutlined />}
       />
 
       <StoryCard
@@ -95,8 +148,15 @@ const OurStorySection: React.FC = () => {
           />
         )}
         <StoryContent>
-          {storyTitle && <StoryTitle>{storyTitle}</StoryTitle>}
-          {storyContent && <StoryText>{storyContent}</StoryText>}
+          <Flourish>
+            <HeartFilled />
+          </Flourish>
+          {paragraphs.map((paragraph: string, index: number) => (
+            <StoryParagraph key={index}>{paragraph.trim()}</StoryParagraph>
+          ))}
+          <ClosingFlourish>
+            <HeartFilled />
+          </ClosingFlourish>
         </StoryContent>
       </StoryCard>
     </SectionWrapper>
