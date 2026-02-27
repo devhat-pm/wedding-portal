@@ -29,20 +29,29 @@ const SectionWrapper = styled.section`
   }
 `;
 
-const ActivityCard = styled(motion.div)<{ $themeColor?: string }>`
-  background: ${colors.cardBg};
-  border-radius: ${borderRadius.xl}px;
-  border: 1px solid ${colors.borderGold};
-  border-left: 5px solid ${(props) => props.$themeColor || colors.borderGold};
+const ActivitiesGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ActivityCard = styled(motion.div)<{ $themeColor?: string; $fullWidth?: boolean }>`
+  background: white;
+  border-radius: ${borderRadius.xxl}px;
+  border: 1.5px solid ${colors.borderGold};
   box-shadow: ${shadows.md};
   overflow: hidden;
-  margin-bottom: 20px;
   transition: all 0.3s ease;
+  grid-column: ${(props) => props.$fullWidth ? '1 / -1' : 'auto'};
 
   &:hover {
     box-shadow: ${shadows.lg};
-    transform: translateY(-2px);
-    border-left-color: ${(props) => props.$themeColor || colors.primary};
+    transform: translateY(-3px);
+    border-color: ${(props) => props.$themeColor || colors.primary};
   }
 `;
 
@@ -52,51 +61,65 @@ const CardImage = styled.div<{ $imageUrl?: string }>`
   background: ${(props) =>
     props.$imageUrl
       ? `url(${props.$imageUrl}) center/cover no-repeat`
-      : `linear-gradient(135deg, ${colors.goldPale} 0%, ${colors.creamMedium} 100%)`};
+      : `linear-gradient(135deg, ${colors.secondary} 0%, ${colors.goldDark} 100%)`};
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${colors.primary};
+  color: white;
   font-size: 40px;
   position: relative;
 
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.1));
+  }
+
   @media (max-width: 480px) {
-    height: 140px;
+    height: 150px;
   }
 `;
 
 const CardBody = styled.div`
-  padding: 24px;
+  padding: 22px 20px;
 
   @media (max-width: 480px) {
-    padding: 20px 16px;
+    padding: 18px 16px;
   }
 `;
 
 const ActivityTitle = styled.h3`
   font-family: 'Playfair Display', serif;
-  font-size: 20px;
+  font-size: 19px;
   color: ${colors.secondary};
   margin: 0 0 12px;
+  font-weight: 600;
 `;
 
 const MetaRow = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 14px;
 `;
 
 const MetaItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 5px;
+  font-size: 12px;
   color: ${colors.textSecondary};
+  background: ${colors.creamLight};
+  padding: 4px 10px;
+  border-radius: 20px;
 
   .anticon {
     color: ${colors.primary};
-    font-size: 14px;
+    font-size: 12px;
   }
 `;
 
@@ -108,12 +131,12 @@ const Description = styled.p`
 `;
 
 const DetailSection = styled.div`
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid ${colors.creamDark};
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 `;
 
 const DetailRow = styled.div`
@@ -125,7 +148,7 @@ const DetailRow = styled.div`
 
 const DetailIcon = styled.span`
   color: ${colors.primary};
-  font-size: 14px;
+  font-size: 13px;
   flex-shrink: 0;
   margin-top: 1px;
 `;
@@ -133,40 +156,26 @@ const DetailIcon = styled.span`
 const DetailLabel = styled.span`
   color: ${colors.textSecondary};
   font-weight: 500;
-  min-width: 80px;
+  min-width: 70px;
+  font-size: 12px;
 `;
 
 const DetailValue = styled.span`
   color: ${colors.textPrimary};
-`;
-
-const ColorDots = styled.div`
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  align-items: center;
-`;
-
-const ColorDot = styled.div<{ $color: string }>`
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: ${(props) => props.$color};
-  border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  font-size: 13px;
 `;
 
 const ColorPalette = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
 `;
 
 const ColorSwatch = styled.div<{ $color: string }>`
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: ${(props) => props.$color};
   border: 2.5px solid white;
@@ -183,16 +192,17 @@ const ColorSwatchLabel = styled.span`
 const EmptyState = styled(motion.div)`
   text-align: center;
   padding: 60px 20px;
-  background: ${colors.cardBg};
-  border-radius: ${borderRadius.xl}px;
-  border: 1px solid ${colors.borderGold};
+  background: white;
+  border-radius: ${borderRadius.xxl}px;
+  border: 1.5px solid ${colors.borderGold};
+  box-shadow: ${shadows.md};
 `;
 
 const EmptyIcon = styled.div`
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, ${colors.creamLight} 0%, ${colors.creamMedium} 100%);
+  background: linear-gradient(135deg, ${colors.goldPale} 0%, ${colors.creamMedium} 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -264,101 +274,110 @@ const ThingsToDoSection: React.FC = () => {
         subtitle="Explore activities and things to do during your stay"
       />
 
-      {thingsToDo.map((activity: any, index: number) => {
-        const themeColor = activity.dress_colors?.[0]?.hex || activity.dress_colors?.[0] || undefined;
-        return (
-          <ActivityCard
-            key={activity.id}
-            $themeColor={themeColor}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.1, duration: 0.4 }}
-          >
-            {activity.image_url && (
-              <CardImage $imageUrl={getImageUrl(activity.image_url)} />
-            )}
+      <ActivitiesGrid>
+        {thingsToDo.map((activity: any, index: number) => {
+          const themeColor = activity.dress_colors?.[0]?.hex || activity.dress_colors?.[0] || undefined;
+          // First item spans full width if there are odd items
+          const isFirst = index === 0 && thingsToDo.length > 2;
+          return (
+            <ActivityCard
+              key={activity.id}
+              $themeColor={themeColor}
+              $fullWidth={isFirst}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+            >
+              {activity.image_url ? (
+                <CardImage $imageUrl={getImageUrl(activity.image_url)} />
+              ) : (
+                <CardImage>
+                  <CompassOutlined />
+                </CardImage>
+              )}
 
-            <CardBody>
-              <ActivityTitle>
-                {activity.activity_name || activity.title}
-              </ActivityTitle>
+              <CardBody>
+                <ActivityTitle>
+                  {activity.activity_name || activity.title}
+                </ActivityTitle>
 
-              <MetaRow>
-                {(activity.date_time || activity.start_time) && (
-                  <MetaItem>
-                    <CalendarOutlined />
-                    {formatDateTime(activity.date_time || activity.start_time)}
-                  </MetaItem>
+                <MetaRow>
+                  {(activity.date_time || activity.start_time) && (
+                    <MetaItem>
+                      <CalendarOutlined />
+                      {formatDateTime(activity.date_time || activity.start_time)}
+                    </MetaItem>
+                  )}
+                  {activity.duration_minutes && (
+                    <MetaItem>
+                      <ClockCircleOutlined />
+                      {formatDuration(activity.duration_minutes)}
+                    </MetaItem>
+                  )}
+                  {activity.location && (
+                    <MetaItem>
+                      <EnvironmentOutlined />
+                      {activity.location}
+                    </MetaItem>
+                  )}
+                </MetaRow>
+
+                {/* Prominent color palette */}
+                {activity.dress_colors?.length > 0 && (
+                  <ColorPalette>
+                    <SkinOutlined style={{ color: themeColor || colors.primary, fontSize: 14 }} />
+                    {activity.dress_colors.map((c: any, i: number) => (
+                      <ColorSwatch key={i} $color={c.hex || c} title={c.name || ''} />
+                    ))}
+                    {activity.dress_colors[0]?.name && (
+                      <ColorSwatchLabel>{activity.dress_colors.map((c: any) => c.name).join(', ')}</ColorSwatchLabel>
+                    )}
+                  </ColorPalette>
                 )}
-                {activity.duration_minutes && (
-                  <MetaItem>
-                    <ClockCircleOutlined />
-                    {formatDuration(activity.duration_minutes)}
-                  </MetaItem>
+
+                {activity.description && (
+                  <Description>{activity.description}</Description>
                 )}
-                {activity.location && (
-                  <MetaItem>
-                    <EnvironmentOutlined />
-                    {activity.location}
-                  </MetaItem>
+
+                {(activity.dress_code_info || activity.food_description || activity.dietary_options?.length > 0) && (
+                  <DetailSection>
+                    {activity.dress_code_info && (
+                      <DetailRow>
+                        <DetailIcon><SkinOutlined /></DetailIcon>
+                        <DetailLabel>Dress Code:</DetailLabel>
+                        <DetailValue>{activity.dress_code_info}</DetailValue>
+                      </DetailRow>
+                    )}
+                    {activity.food_description && (
+                      <DetailRow>
+                        <DetailIcon><CoffeeOutlined /></DetailIcon>
+                        <DetailLabel>Food:</DetailLabel>
+                        <DetailValue>{activity.food_description}</DetailValue>
+                      </DetailRow>
+                    )}
+                    {activity.dietary_options?.length > 0 && (
+                      <DetailRow>
+                        <DetailIcon><CoffeeOutlined /></DetailIcon>
+                        <DetailLabel>Dietary:</DetailLabel>
+                        <DetailValue>{activity.dietary_options.join(', ')}</DetailValue>
+                      </DetailRow>
+                    )}
+                  </DetailSection>
                 )}
-              </MetaRow>
 
-              {/* Prominent color palette */}
-              {activity.dress_colors?.length > 0 && (
-                <ColorPalette>
-                  <SkinOutlined style={{ color: themeColor || colors.primary, fontSize: 14 }} />
-                  {activity.dress_colors.map((c: any, i: number) => (
-                    <ColorSwatch key={i} $color={c.hex || c} title={c.name || ''} />
-                  ))}
-                  {activity.dress_colors[0]?.name && (
-                    <ColorSwatchLabel>{activity.dress_colors.map((c: any) => c.name).join(', ')}</ColorSwatchLabel>
-                  )}
-                </ColorPalette>
-              )}
-
-              {activity.description && (
-                <Description>{activity.description}</Description>
-              )}
-
-              {(activity.dress_code_info || activity.food_description || activity.dietary_options?.length > 0) && (
-                <DetailSection>
-                  {activity.dress_code_info && (
-                    <DetailRow>
-                      <DetailIcon><SkinOutlined /></DetailIcon>
-                      <DetailLabel>Dress Code:</DetailLabel>
-                      <DetailValue>{activity.dress_code_info}</DetailValue>
-                    </DetailRow>
-                  )}
-                  {activity.food_description && (
-                    <DetailRow>
-                      <DetailIcon><CoffeeOutlined /></DetailIcon>
-                      <DetailLabel>Food:</DetailLabel>
-                      <DetailValue>{activity.food_description}</DetailValue>
-                    </DetailRow>
-                  )}
-                  {activity.dietary_options?.length > 0 && (
-                    <DetailRow>
-                      <DetailIcon><CoffeeOutlined /></DetailIcon>
-                      <DetailLabel>Dietary:</DetailLabel>
-                      <DetailValue>{activity.dietary_options.join(', ')}</DetailValue>
-                    </DetailRow>
-                  )}
-                </DetailSection>
-              )}
-
-              {activity.notes && (
-                <DetailSection>
-                  <Description style={{ fontStyle: 'italic', color: colors.textSecondary }}>
-                    {activity.notes}
-                  </Description>
-                </DetailSection>
-              )}
-            </CardBody>
-          </ActivityCard>
-        );
-      })}
+                {activity.notes && (
+                  <DetailSection>
+                    <Description style={{ fontStyle: 'italic', color: colors.textSecondary, fontSize: 13 }}>
+                      {activity.notes}
+                    </Description>
+                  </DetailSection>
+                )}
+              </CardBody>
+            </ActivityCard>
+          );
+        })}
+      </ActivitiesGrid>
     </SectionWrapper>
   );
 };

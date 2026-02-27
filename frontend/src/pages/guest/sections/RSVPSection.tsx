@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
+import { keyframes } from '@emotion/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Form, Input, Button, message } from 'antd';
 import {
@@ -14,12 +15,14 @@ import {
   CalendarOutlined,
   SkinOutlined,
   UserOutlined,
+  StarOutlined,
 } from '@ant-design/icons';
 import confetti from 'canvas-confetti';
 import dayjs from 'dayjs';
 import { colors, shadows, borderRadius } from '../../../styles/theme';
 import { useGuestPortal } from '../../../context/GuestPortalContext';
 import SectionHeader from '../../../components/guest/SectionHeader';
+import ArabicPattern from '../../../components/Common/ArabicPattern';
 
 const { TextArea } = Input;
 
@@ -31,6 +34,19 @@ interface PartyMember {
   last_name: string;
   phone: string;
 }
+
+// ============================================
+// Animations
+// ============================================
+const shimmer = keyframes`
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+`;
+
+const pulseGlow = keyframes`
+  0%, 100% { box-shadow: 0 0 0 0 rgba(183, 168, 154, 0); }
+  50% { box-shadow: 0 0 20px 4px rgba(183, 168, 154, 0.15); }
+`;
 
 // ============================================
 // Styled Components
@@ -53,29 +69,44 @@ const CurrentStatusCard = styled(motion.div)<{ $status: string }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px;
+  padding: 24px 28px;
   border-radius: ${borderRadius.xl}px;
   margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
 
   ${(props) => {
     switch (props.$status) {
       case 'confirmed':
         return `
-          background: linear-gradient(135deg, #E5CEC0 0%, #D6C7B8 100%);
-          border: 1px solid #B7A89A;
+          background: linear-gradient(135deg, #E5CEC0 0%, #D6C7B8 50%, #EEE8DF 100%);
+          border: 1.5px solid ${colors.primary};
         `;
       case 'declined':
         return `
           background: linear-gradient(135deg, #EEE8DF 0%, #D6C7B8 100%);
-          border: 1px solid #9A9187;
+          border: 1.5px solid #9A9187;
         `;
       default:
         return `
           background: linear-gradient(135deg, ${colors.goldPale} 0%, ${colors.creamLight} 100%);
-          border: 1px solid ${colors.borderGold};
+          border: 1.5px solid ${colors.borderGold};
         `;
     }
   }}
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    background-size: 200% 100%;
+    animation: ${shimmer} 6s ease-in-out infinite;
+    pointer-events: none;
+  }
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -88,25 +119,39 @@ const StatusInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
+  position: relative;
+  z-index: 1;
 `;
 
 const StatusIcon = styled.div<{ $status: string }>`
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 26px;
 
   ${(props) => {
     switch (props.$status) {
       case 'confirmed':
-        return `background: ${colors.success}; color: white;`;
+        return `
+          background: linear-gradient(135deg, ${colors.success}, #4a6b4d);
+          color: white;
+          box-shadow: 0 4px 12px rgba(91, 122, 94, 0.3);
+        `;
       case 'declined':
-        return `background: ${colors.error}; color: white;`;
+        return `
+          background: linear-gradient(135deg, ${colors.error}, #7a4444);
+          color: white;
+          box-shadow: 0 4px 12px rgba(158, 91, 91, 0.3);
+        `;
       default:
-        return `background: ${colors.primary}; color: white;`;
+        return `
+          background: linear-gradient(135deg, ${colors.primary}, ${colors.goldDark});
+          color: white;
+          box-shadow: 0 4px 12px rgba(183, 168, 154, 0.3);
+        `;
     }
   }}
 `;
@@ -114,7 +159,9 @@ const StatusIcon = styled.div<{ $status: string }>`
 const StatusText = styled.div``;
 
 const StatusLabel = styled.div`
-  font-size: 13px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   color: ${colors.textSecondary};
   margin-bottom: 4px;
 `;
@@ -128,84 +175,166 @@ const StatusValue = styled.div`
 
 const FormCard = styled(motion.div)`
   background: ${colors.cardBg};
-  border-radius: ${borderRadius.xl}px;
-  border: 1px solid ${colors.borderGold};
+  border-radius: ${borderRadius.xxl}px;
+  border: 1.5px solid ${colors.borderGold};
   box-shadow: ${shadows.lg};
-  padding: 32px;
+  padding: 36px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, ${colors.primary}, ${colors.goldPale}, ${colors.primary});
+  }
 
   @media (max-width: 768px) {
-    padding: 24px 20px;
+    padding: 28px 20px;
   }
 
   @media (max-width: 480px) {
-    padding: 20px 16px;
+    padding: 24px 16px;
   }
 `;
 
-// ─── Per-Event RSVP Card (rich design) ───
+// ─── Per-Event RSVP Card (luxurious design) ───
 const EventRSVPCard = styled(motion.div)`
   background: white;
-  border: 1px solid ${colors.borderGold};
-  border-radius: ${borderRadius.xl}px;
+  border: 1.5px solid ${colors.borderGold};
+  border-radius: ${borderRadius.xxl}px;
   overflow: hidden;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   box-shadow: ${shadows.md};
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: ${shadows.lg};
+    transform: translateY(-2px);
+    border-color: ${colors.primary};
+  }
 `;
 
 const EventCardHeader = styled.div`
-  background: linear-gradient(135deg, ${colors.goldPale} 0%, ${colors.creamMedium} 100%);
-  padding: 22px 28px;
-  border-bottom: 1px solid ${colors.borderGold};
+  position: relative;
+  padding: 28px 32px 24px;
+  background: linear-gradient(135deg, ${colors.secondary} 0%, #4A433B 60%, ${colors.goldDark} 100%);
+  color: white;
+  overflow: hidden;
 
   @media (max-width: 480px) {
-    padding: 18px 20px;
+    padding: 22px 20px 20px;
   }
+`;
+
+const EventCardPatternOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  opacity: 0.12;
+`;
+
+const EventCardHeaderContent = styled.div`
+  position: relative;
+  z-index: 1;
+`;
+
+const EventCardIcon = styled.div`
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: ${colors.goldPale};
+  margin-bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 `;
 
 const EventCardName = styled.h3`
   font-family: 'Playfair Display', serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
-  color: ${colors.secondary};
+  color: white;
   margin: 0 0 6px;
+  letter-spacing: 0.5px;
 
   @media (max-width: 480px) {
-    font-size: 19px;
+    font-size: 20px;
   }
 `;
 
 const EventCardDescription = styled.p`
   font-size: 14px;
-  color: ${colors.textSecondary};
+  color: rgba(255, 255, 255, 0.75);
   margin: 0;
   line-height: 1.6;
 `;
 
 const EventCardBody = styled.div`
-  padding: 24px 28px;
+  padding: 28px 32px;
 
   @media (max-width: 480px) {
-    padding: 20px;
+    padding: 22px 20px;
   }
 `;
 
 const EventDetailGrid = styled.div`
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 10px 16px;
-  margin-bottom: 24px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+`;
+
+const EventDetailItem = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: ${colors.creamLight};
+  border-radius: ${borderRadius.lg}px;
+  border: 1px solid rgba(183, 168, 154, 0.15);
+`;
+
+const EventDetailIconWrapper = styled.div`
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, ${colors.goldPale}, ${colors.creamMedium});
+  display: flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: ${colors.secondary};
+  font-size: 15px;
+`;
+
+const EventDetailTextGroup = styled.div`
+  display: flex;
+  flex-direction: column;
 `;
 
 const EventDetailLabel = styled.div`
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   color: ${colors.textSecondary};
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  margin-bottom: 2px;
 `;
 
 const EventDetailValue = styled.div`
@@ -216,68 +345,99 @@ const EventDetailValue = styled.div`
 
 const EventCardDivider = styled.div`
   height: 1px;
-  background: ${colors.creamDark};
-  margin-bottom: 20px;
+  background: linear-gradient(90deg, transparent, ${colors.primary}, transparent);
+  margin-bottom: 24px;
+  opacity: 0.4;
 `;
 
 const EventResponsePrompt = styled.p`
   font-family: 'Playfair Display', serif;
-  font-size: 16px;
+  font-size: 17px;
   color: ${colors.secondary};
   text-align: center;
-  margin: 0 0 16px;
+  margin: 0 0 20px;
+  letter-spacing: 0.3px;
 `;
 
 const EventResponseRow = styled.div`
   display: flex;
-  gap: 12px;
+  gap: 14px;
 
   @media (max-width: 480px) {
     flex-direction: column;
+    gap: 12px;
   }
 `;
 
 const EventRadioButton = styled.button<{ $selected: boolean; $variant: 'attending' | 'declined' }>`
   flex: 1;
-  padding: 16px;
+  padding: 18px 20px;
   border-radius: ${borderRadius.lg}px;
   border: 2px solid;
   cursor: pointer;
   font-size: 15px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    border-radius: inherit;
+  }
 
   ${(props) => {
     if (props.$variant === 'attending') {
       return props.$selected
         ? `
           border-color: ${colors.success};
-          background: rgba(91, 122, 94, 0.1);
+          background: linear-gradient(135deg, rgba(91, 122, 94, 0.12), rgba(91, 122, 94, 0.06));
           color: ${colors.success};
-          box-shadow: 0 2px 8px rgba(91, 122, 94, 0.2);
+          box-shadow: 0 4px 16px rgba(91, 122, 94, 0.2), inset 0 0 0 1px rgba(91, 122, 94, 0.1);
+          transform: scale(1.02);
         `
         : `
           border-color: ${colors.creamDark};
           color: ${colors.textSecondary};
-          &:hover { border-color: ${colors.success}; color: ${colors.success}; }
+          &:hover {
+            border-color: ${colors.success};
+            color: ${colors.success};
+            background: rgba(91, 122, 94, 0.04);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(91, 122, 94, 0.1);
+          }
         `;
     }
     return props.$selected
       ? `
         border-color: ${colors.error};
-        background: rgba(158, 91, 91, 0.08);
+        background: linear-gradient(135deg, rgba(158, 91, 91, 0.1), rgba(158, 91, 91, 0.04));
         color: ${colors.error};
-        box-shadow: 0 2px 8px rgba(158, 91, 91, 0.15);
+        box-shadow: 0 4px 16px rgba(158, 91, 91, 0.15), inset 0 0 0 1px rgba(158, 91, 91, 0.1);
+        transform: scale(1.02);
       `
       : `
         border-color: ${colors.creamDark};
         color: ${colors.textSecondary};
-        &:hover { border-color: ${colors.error}; color: ${colors.error}; }
+        &:hover {
+          border-color: ${colors.error};
+          color: ${colors.error};
+          background: rgba(158, 91, 91, 0.03);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(158, 91, 91, 0.08);
+        }
       `;
   }}
 `;
@@ -289,9 +449,9 @@ const FormSection = styled.div`
 
 const FormSectionTitle = styled.h4`
   font-family: 'Playfair Display', serif;
-  font-size: 18px;
+  font-size: 20px;
   color: ${colors.secondary};
-  margin: 0 0 20px;
+  margin: 0 0 6px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -301,7 +461,7 @@ const FormSectionTitle = styled.h4`
 const FormSectionSubtitle = styled.p`
   font-size: 14px;
   color: ${colors.textSecondary};
-  margin: -12px 0 20px;
+  margin: 0 0 24px;
 `;
 
 const StyledForm = styled(Form)`
@@ -334,12 +494,18 @@ const StyledForm = styled(Form)`
 
 // ─── Guest Card Styles ───
 const GuestCardWrapper = styled(motion.div)`
-  border: 1px solid ${colors.borderGold};
-  border-radius: ${borderRadius.lg}px;
-  padding: 20px;
+  border: 1.5px solid ${colors.borderGold};
+  border-radius: ${borderRadius.xl}px;
+  padding: 24px;
   margin-bottom: 16px;
-  background: ${colors.creamLight};
+  background: white;
   position: relative;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${colors.primary};
+    box-shadow: ${shadows.sm};
+  }
 `;
 
 const GuestCardHeader = styled.div`
@@ -356,20 +522,21 @@ const GuestCardLabel = styled.div`
   color: ${colors.secondary};
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 `;
 
 const GuestCardNumber = styled.span`
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: ${colors.primary};
+  background: linear-gradient(135deg, ${colors.primary}, ${colors.goldDark});
   color: white;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 13px;
   font-family: inherit;
+  box-shadow: 0 2px 6px rgba(183, 168, 154, 0.3);
 `;
 
 const GuestFieldsRow = styled.div`
@@ -393,19 +560,21 @@ const GuestFieldFull = styled.div`
 const AddGuestButton = styled(Button)`
   && {
     width: 100%;
-    height: 52px;
+    height: 56px;
     border: 2px dashed ${colors.borderGold};
-    border-radius: ${borderRadius.lg}px;
+    border-radius: ${borderRadius.xl}px;
     color: ${colors.primary};
     font-weight: 500;
     font-size: 15px;
     background: transparent;
     margin-bottom: 8px;
+    transition: all 0.25s ease;
 
     &:hover {
       border-color: ${colors.primary};
       color: ${colors.primary};
       background: ${colors.goldPale};
+      transform: translateY(-1px);
     }
   }
 `;
@@ -420,23 +589,65 @@ const MaxGuestsNote = styled.div`
 const SubmitButton = styled(Button)`
   && {
     width: 100%;
-    height: 60px;
-    font-size: 17px;
+    height: 64px;
+    font-size: 18px;
     font-weight: 600;
-    border-radius: ${borderRadius.lg}px;
-    margin-top: 24px;
-    box-shadow: 0 4px 16px rgba(183, 168, 154, 0.3);
+    font-family: 'Playfair Display', serif;
+    letter-spacing: 1px;
+    border-radius: ${borderRadius.xl}px;
+    margin-top: 28px;
+    box-shadow: 0 6px 24px rgba(183, 168, 154, 0.35);
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      transition: left 0.5s ease;
+    }
 
     &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(183, 168, 154, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(183, 168, 154, 0.45);
+
+      &::after {
+        left: 100%;
+      }
     }
 
     &:active:not(:disabled) {
-      transform: translateY(0);
+      transform: translateY(-1px);
     }
   }
+`;
+
+const SectionDivider = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 32px 0;
+  gap: 12px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, ${colors.primary}, transparent);
+    opacity: 0.3;
+  }
+`;
+
+const DividerOrnament = styled.div`
+  color: ${colors.primary};
+  font-size: 12px;
+  opacity: 0.6;
 `;
 
 // ─── Success Overlay ───
@@ -448,49 +659,58 @@ const SuccessOverlay = styled(motion.div)`
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 `;
 
 const SuccessCard = styled(motion.div)`
   background: white;
-  border-radius: ${borderRadius.xl}px;
-  padding: 48px;
+  border-radius: ${borderRadius.xxl}px;
+  padding: 56px 48px;
   text-align: center;
-  max-width: 400px;
+  max-width: 420px;
   margin: 20px;
   box-shadow: ${shadows.xl};
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, ${colors.success}, ${colors.primary}, ${colors.success});
+  }
 `;
 
 const SuccessIconWrapper = styled(motion.div)`
-  width: 80px;
-  height: 80px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-  background: linear-gradient(135deg, ${colors.success} 0%, #9A9187 100%);
+  background: linear-gradient(135deg, ${colors.success} 0%, #4a6b4d 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 24px;
-  font-size: 40px;
+  margin: 0 auto 28px;
+  font-size: 42px;
   color: white;
+  box-shadow: 0 8px 24px rgba(91, 122, 94, 0.3);
 `;
 
 const SuccessTitle = styled.h3`
   font-family: 'Playfair Display', serif;
-  font-size: 24px;
+  font-size: 26px;
   color: ${colors.secondary};
-  margin: 0 0 8px;
+  margin: 0 0 10px;
+  letter-spacing: 0.5px;
 `;
 
 const SuccessMessage = styled.p`
-  font-size: 14px;
+  font-size: 15px;
   color: ${colors.textSecondary};
   margin: 0;
-`;
-
-const Divider = styled.div`
-  height: 1px;
-  background: ${colors.creamDark};
-  margin: 28px 0;
+  line-height: 1.7;
 `;
 
 const MAX_GUESTS = 10;
@@ -706,6 +926,7 @@ const RSVPSection: React.FC = () => {
           <Button
             icon={<EditOutlined />}
             onClick={() => setIsEditing(true)}
+            style={{ position: 'relative', zIndex: 1 }}
           >
             Edit Response
           </Button>
@@ -724,39 +945,73 @@ const RSVPSection: React.FC = () => {
               key={activity.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.12 }}
             >
               <EventCardHeader>
-                <EventCardName>{activity.activity_name || activity.title}</EventCardName>
-                {activity.description && (
-                  <EventCardDescription>{activity.description}</EventCardDescription>
-                )}
+                <EventCardPatternOverlay>
+                  <ArabicPattern
+                    variant="diamonds"
+                    color="white"
+                    opacity={0.5}
+                    width="100%"
+                    height="100%"
+                  />
+                </EventCardPatternOverlay>
+                <EventCardHeaderContent>
+                  <EventCardIcon>
+                    <StarOutlined />
+                  </EventCardIcon>
+                  <EventCardName>{activity.activity_name || activity.title}</EventCardName>
+                  {activity.description && (
+                    <EventCardDescription>{activity.description}</EventCardDescription>
+                  )}
+                </EventCardHeaderContent>
               </EventCardHeader>
               <EventCardBody>
                 <EventDetailGrid>
                   {activity.date_time && (
-                    <>
-                      <EventDetailLabel><CalendarOutlined /> Date</EventDetailLabel>
-                      <EventDetailValue>{dayjs(activity.date_time).format('dddd, MMMM D, YYYY')}</EventDetailValue>
-                    </>
+                    <EventDetailItem>
+                      <EventDetailIconWrapper>
+                        <CalendarOutlined />
+                      </EventDetailIconWrapper>
+                      <EventDetailTextGroup>
+                        <EventDetailLabel>Date</EventDetailLabel>
+                        <EventDetailValue>{dayjs(activity.date_time).format('dddd, MMMM D, YYYY')}</EventDetailValue>
+                      </EventDetailTextGroup>
+                    </EventDetailItem>
                   )}
                   {activity.date_time && (
-                    <>
-                      <EventDetailLabel><ClockCircleOutlined /> Time</EventDetailLabel>
-                      <EventDetailValue>{dayjs(activity.date_time).format('h:mm A')}</EventDetailValue>
-                    </>
+                    <EventDetailItem>
+                      <EventDetailIconWrapper>
+                        <ClockCircleOutlined />
+                      </EventDetailIconWrapper>
+                      <EventDetailTextGroup>
+                        <EventDetailLabel>Time</EventDetailLabel>
+                        <EventDetailValue>{dayjs(activity.date_time).format('h:mm A')}</EventDetailValue>
+                      </EventDetailTextGroup>
+                    </EventDetailItem>
                   )}
                   {activity.location && (
-                    <>
-                      <EventDetailLabel><EnvironmentOutlined /> Venue</EventDetailLabel>
-                      <EventDetailValue>{activity.location}</EventDetailValue>
-                    </>
+                    <EventDetailItem>
+                      <EventDetailIconWrapper>
+                        <EnvironmentOutlined />
+                      </EventDetailIconWrapper>
+                      <EventDetailTextGroup>
+                        <EventDetailLabel>Venue</EventDetailLabel>
+                        <EventDetailValue>{activity.location}</EventDetailValue>
+                      </EventDetailTextGroup>
+                    </EventDetailItem>
                   )}
                   {activity.dress_code_info && (
-                    <>
-                      <EventDetailLabel><SkinOutlined /> Dress Code</EventDetailLabel>
-                      <EventDetailValue>{activity.dress_code_info}</EventDetailValue>
-                    </>
+                    <EventDetailItem>
+                      <EventDetailIconWrapper>
+                        <SkinOutlined />
+                      </EventDetailIconWrapper>
+                      <EventDetailTextGroup>
+                        <EventDetailLabel>Dress Code</EventDetailLabel>
+                        <EventDetailValue>{activity.dress_code_info}</EventDetailValue>
+                      </EventDetailTextGroup>
+                    </EventDetailItem>
                   )}
                 </EventDetailGrid>
                 <EventCardDivider />
@@ -793,7 +1048,9 @@ const RSVPSection: React.FC = () => {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Divider />
+                <SectionDivider>
+                  <DividerOrnament><HeartFilled /></DividerOrnament>
+                </SectionDivider>
                 <FormSection>
                   <FormSectionTitle>
                     <UserOutlined /> Your Party
@@ -879,7 +1136,9 @@ const RSVPSection: React.FC = () => {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Divider />
+                <SectionDivider>
+                  <DividerOrnament><HeartFilled /></DividerOrnament>
+                </SectionDivider>
                 <StyledForm form={form} layout="vertical" requiredMark={false}>
                   <FormSection>
                     <FormSectionTitle>Message for the Couple (Optional)</FormSectionTitle>

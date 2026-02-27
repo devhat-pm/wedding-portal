@@ -5,6 +5,7 @@ import {
   EnvironmentOutlined,
   CalendarOutlined,
   CompassOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useGuestPortal } from '../../../context/GuestPortalContext';
@@ -25,28 +26,104 @@ const SectionWrapper = styled.section`
   }
 `;
 
-const LocationCard = styled(motion.a)`
+const MapFrame = styled.div`
+  margin-bottom: 28px;
+  border-radius: ${borderRadius.xxl}px;
+  overflow: hidden;
+  border: 2px solid ${colors.borderGold};
+  box-shadow: ${shadows.lg};
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, ${colors.primary}, ${colors.goldPale}, ${colors.primary});
+    z-index: 1;
+  }
+`;
+
+const MapIframe = styled.iframe`
+  width: 100%;
+  height: 380px;
+  border: none;
   display: block;
-  background: ${colors.cardBg};
-  border: 1px solid ${colors.borderGold};
-  border-radius: ${borderRadius.lg}px;
-  padding: 20px 24px;
-  margin-bottom: 16px;
+
+  @media (max-width: 768px) {
+    height: 280px;
+  }
+`;
+
+const LocationsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+`;
+
+const LocationCard = styled(motion.a)`
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: white;
+  border: 1.5px solid ${colors.borderGold};
+  border-radius: ${borderRadius.xl}px;
+  padding: 22px 24px;
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   box-shadow: ${shadows.sm};
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, ${colors.primary}, ${colors.goldPale});
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
 
   &:hover {
     border-color: ${colors.primary};
     box-shadow: ${shadows.md};
     transform: translateY(-2px);
     color: inherit;
+
+    &::before {
+      opacity: 1;
+    }
   }
 
   @media (max-width: 480px) {
-    padding: 16px;
+    padding: 18px 16px;
+    flex-direction: column;
+    gap: 12px;
   }
+`;
+
+const LocationIconWrapper = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, ${colors.goldPale}, ${colors.creamMedium});
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+  color: ${colors.secondary};
+  box-shadow: 0 2px 8px rgba(183, 168, 154, 0.15);
+`;
+
+const LocationContent = styled.div`
+  flex: 1;
 `;
 
 const LocationName = styled.h3`
@@ -54,15 +131,27 @@ const LocationName = styled.h3`
   font-size: 18px;
   color: ${colors.secondary};
   margin: 0 0 8px;
+  font-weight: 600;
+`;
+
+const LocationMeta = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 6px;
 `;
 
 const LocationDetail = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 13px;
   color: ${colors.textSecondary};
-  margin-bottom: 4px;
+
+  .anticon {
+    color: ${colors.primary};
+    font-size: 13px;
+  }
 `;
 
 const MapLink = styled.span`
@@ -71,26 +160,13 @@ const MapLink = styled.span`
   gap: 6px;
   font-size: 13px;
   color: ${colors.primary};
-  margin-top: 8px;
-  font-weight: 500;
-`;
+  margin-top: 6px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: color 0.2s;
 
-const MapContainer = styled.div`
-  margin-bottom: 24px;
-  border-radius: ${borderRadius.lg}px;
-  overflow: hidden;
-  border: 1px solid ${colors.borderGold};
-  box-shadow: ${shadows.sm};
-`;
-
-const MapIframe = styled.iframe`
-  width: 100%;
-  height: 400px;
-  border: none;
-  display: block;
-
-  @media (max-width: 768px) {
-    height: 280px;
+  &:hover {
+    color: ${colors.goldDark};
   }
 `;
 
@@ -133,7 +209,7 @@ const EventMapSection: React.FC = () => {
         icon={<EnvironmentOutlined />}
       />
 
-      <MapContainer>
+      <MapFrame>
         <MapIframe
           src={embedUrl}
           loading="lazy"
@@ -141,40 +217,53 @@ const EventMapSection: React.FC = () => {
           allowFullScreen
           title="Event locations map"
         />
-      </MapContainer>
+      </MapFrame>
 
-      {locatedActivities.map((activity: any, index: number) => (
-        <LocationCard
-          key={activity.id || index}
-          href={getMapUrl(activity)}
-          target="_blank"
-          rel="noopener noreferrer"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-        >
-          <LocationName>{activity.activity_name}</LocationName>
-
-          {activity.location && (
-            <LocationDetail>
-              <EnvironmentOutlined style={{ color: colors.primary }} />
-              {activity.location}
-            </LocationDetail>
-          )}
-
-          {activity.date_time && (
-            <LocationDetail>
-              <CalendarOutlined style={{ color: colors.primary }} />
-              {dayjs(activity.date_time).format('MMM D, YYYY h:mm A')}
-            </LocationDetail>
-          )}
-
-          <MapLink>
-            <CompassOutlined />
-            Open in Google Maps
-          </MapLink>
-        </LocationCard>
-      ))}
+      <LocationsGrid>
+        {locatedActivities.map((activity: any, index: number) => (
+          <LocationCard
+            key={activity.id || index}
+            href={getMapUrl(activity)}
+            target="_blank"
+            rel="noopener noreferrer"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <LocationIconWrapper>
+              <EnvironmentOutlined />
+            </LocationIconWrapper>
+            <LocationContent>
+              <LocationName>{activity.activity_name}</LocationName>
+              <LocationMeta>
+                {activity.location && (
+                  <LocationDetail>
+                    <EnvironmentOutlined />
+                    {activity.location}
+                  </LocationDetail>
+                )}
+                {activity.date_time && (
+                  <LocationDetail>
+                    <CalendarOutlined />
+                    {dayjs(activity.date_time).format('MMM D, YYYY')}
+                  </LocationDetail>
+                )}
+                {activity.date_time && (
+                  <LocationDetail>
+                    <ClockCircleOutlined />
+                    {dayjs(activity.date_time).format('h:mm A')}
+                  </LocationDetail>
+                )}
+              </LocationMeta>
+              <MapLink>
+                <CompassOutlined />
+                Open in Google Maps
+              </MapLink>
+            </LocationContent>
+          </LocationCard>
+        ))}
+      </LocationsGrid>
     </SectionWrapper>
   );
 };
