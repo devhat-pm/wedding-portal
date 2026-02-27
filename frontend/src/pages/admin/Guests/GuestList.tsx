@@ -111,7 +111,7 @@ const SearchInput = styled(Input)`
 
 const FilterSelect = styled(Select)`
   && {
-    min-width: 160px;
+    width: 150px;
 
     .ant-select-selector {
       border-radius: ${borderRadius.md}px !important;
@@ -538,20 +538,35 @@ const GuestList: React.FC = () => {
     {
       title: 'Guest Name',
       key: 'name',
+      width: 180,
+      ellipsis: true,
       render: (_, record) => (
-        <Space>
-          <Text strong>
-            {(record as any).full_name || `${record.first_name} ${record.last_name}`}
-          </Text>
-        </Space>
+        <Text strong style={{ whiteSpace: 'nowrap' }}>
+          {(record as any).full_name || `${record.first_name} ${record.last_name}`}
+        </Text>
       ),
-      sorter: true,
+      sorter: (a, b) => {
+        const nameA = ((a as any).full_name || `${a.first_name} ${a.last_name}`).toLowerCase();
+        const nameB = ((b as any).full_name || `${b.first_name} ${b.last_name}`).toLowerCase();
+        return nameA.localeCompare(nameB);
+      },
     },
     {
-      title: 'RSVP Status',
+      title: 'Guests',
+      key: 'number_of_attendees',
+      width: 80,
+      align: 'center',
+      sorter: (a, b) => (a.number_of_attendees || 0) - (b.number_of_attendees || 0),
+      render: (_, record) => (
+        <Text>{record.number_of_attendees || 0}</Text>
+      ),
+    },
+    {
+      title: 'RSVP',
       dataIndex: 'rsvp_status',
       key: 'rsvp_status',
-      width: 130,
+      width: 120,
+      sorter: (a, b) => (a.rsvp_status || '').localeCompare(b.rsvp_status || ''),
       render: (status: RSVPStatus) => {
         const icons = {
           confirmed: <CheckCircleOutlined />,
@@ -716,6 +731,7 @@ const GuestList: React.FC = () => {
             value={rsvpFilter}
             onChange={(value) => setRsvpFilter(value as string)}
             suffixIcon={<FilterOutlined />}
+            popupMatchSelectWidth={false}
           >
             <Option value="all">All Status</Option>
             <Option value="pending">Pending</Option>
@@ -727,6 +743,7 @@ const GuestList: React.FC = () => {
             placeholder="Travel Info"
             value={travelFilter}
             onChange={(value) => setTravelFilter(value as string)}
+            popupMatchSelectWidth={false}
           >
             <Option value="all">All Travel</Option>
             <Option value="yes">Has Travel Info</Option>
@@ -737,6 +754,7 @@ const GuestList: React.FC = () => {
             placeholder="Hotel Info"
             value={hotelFilter}
             onChange={(value) => setHotelFilter(value as string)}
+            popupMatchSelectWidth={false}
           >
             <Option value="all">All Hotel</Option>
             <Option value="yes">Has Hotel Info</Option>
