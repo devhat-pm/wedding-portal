@@ -75,6 +75,25 @@ const MapLink = styled.span`
   font-weight: 500;
 `;
 
+const MapContainer = styled.div`
+  margin-bottom: 24px;
+  border-radius: ${borderRadius.lg}px;
+  overflow: hidden;
+  border: 1px solid ${colors.borderGold};
+  box-shadow: ${shadows.sm};
+`;
+
+const MapIframe = styled.iframe`
+  width: 100%;
+  height: 400px;
+  border: none;
+  display: block;
+
+  @media (max-width: 768px) {
+    height: 280px;
+  }
+`;
+
 const EventMapSection: React.FC = () => {
   const { portalData } = useGuestPortal();
 
@@ -97,6 +116,15 @@ const EventMapSection: React.FC = () => {
     return '#';
   };
 
+  // Build embed URL: prefer coordinates, fall back to location text
+  const coordActivity = locatedActivities.find(
+    (a: any) => a.latitude && a.longitude
+  );
+  const embedQuery = coordActivity
+    ? `${coordActivity.latitude},${coordActivity.longitude}`
+    : encodeURIComponent(locatedActivities[0]?.location || '');
+  const embedUrl = `https://maps.google.com/maps?q=${embedQuery}&z=12&output=embed`;
+
   return (
     <SectionWrapper>
       <SectionHeader
@@ -104,6 +132,16 @@ const EventMapSection: React.FC = () => {
         subtitle="Find your way to each event"
         icon={<EnvironmentOutlined />}
       />
+
+      <MapContainer>
+        <MapIframe
+          src={embedUrl}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          allowFullScreen
+          title="Event locations map"
+        />
+      </MapContainer>
 
       {locatedActivities.map((activity: any, index: number) => (
         <LocationCard

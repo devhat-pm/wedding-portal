@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Form, Input, Button, Checkbox, message } from 'antd';
+import { Form, Input, Button, message } from 'antd';
 import {
   CheckCircleFilled,
   CloseCircleFilled,
@@ -12,8 +12,6 @@ import {
   EnvironmentOutlined,
   ClockCircleOutlined,
   CalendarOutlined,
-  SkinOutlined,
-  CoffeeOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import confetti from 'canvas-confetti';
@@ -32,8 +30,6 @@ interface PartyMember {
   last_name: string;
   phone: string;
 }
-
-type RSVPStatus = 'pending' | 'confirmed' | 'declined';
 
 // ============================================
 // Styled Components
@@ -145,93 +141,93 @@ const FormCard = styled(motion.div)`
   }
 `;
 
-const RSVPQuestion = styled.h3`
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  color: ${colors.secondary};
-  text-align: center;
-  margin: 0 0 28px;
+// Per-event RSVP card styles
+const EventRSVPCard = styled(motion.div)`
+  background: white;
+  border: 1px solid ${colors.borderGold};
+  border-radius: ${borderRadius.lg}px;
+  padding: 24px;
+  margin-bottom: 16px;
+
+  @media (max-width: 480px) {
+    padding: 20px 16px;
+  }
 `;
 
-const RSVPOptionsWrapper = styled.div`
+const EventCardName = styled.h4`
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: ${colors.secondary};
+  margin: 0 0 10px;
+`;
+
+const EventCardMeta = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 40px;
+  margin-bottom: 16px;
+`;
+
+const EventMetaItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: ${colors.textSecondary};
+`;
+
+const EventResponseRow = styled.div`
+  display: flex;
+  gap: 12px;
 
   @media (max-width: 480px) {
     flex-direction: column;
   }
 `;
 
-const RSVPOption = styled(motion.button)<{ $selected: boolean; $variant: 'accept' | 'decline' }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 28px 24px;
-  border-radius: ${borderRadius.lg}px;
+const EventRadioButton = styled.button<{ $selected: boolean; $variant: 'attending' | 'declined' }>`
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: ${borderRadius.md}px;
   border: 2px solid;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
   background: transparent;
-
-  ${(props) => {
-    const isSelected = props.$selected;
-    switch (props.$variant) {
-      case 'accept':
-        return `
-          border-color: ${isSelected ? colors.success : colors.creamDark};
-          background: ${isSelected ? '#E5CEC0' : 'transparent'};
-          box-shadow: ${isSelected ? '0 4px 12px rgba(76, 175, 80, 0.15)' : 'none'};
-          &:hover { border-color: ${colors.success}; background: #E5CEC0; }
-        `;
-      case 'decline':
-        return `
-          border-color: ${isSelected ? colors.error : colors.creamDark};
-          background: ${isSelected ? '#EEE8DF' : 'transparent'};
-          box-shadow: ${isSelected ? '0 4px 12px rgba(244, 67, 54, 0.15)' : 'none'};
-          &:hover { border-color: ${colors.error}; background: #EEE8DF; }
-        `;
-    }
-  }}
-`;
-
-const OptionIcon = styled.div<{ $variant: 'accept' | 'decline'; $selected: boolean }>`
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
-  transition: all 0.3s ease;
+  gap: 8px;
 
   ${(props) => {
-    const bgOpacity = props.$selected ? 1 : 0.12;
-    switch (props.$variant) {
-      case 'accept':
-        return `
-          background: rgba(76, 175, 80, ${bgOpacity});
-          color: ${props.$selected ? 'white' : colors.success};
-        `;
-      case 'decline':
-        return `
-          background: rgba(244, 67, 54, ${bgOpacity});
-          color: ${props.$selected ? 'white' : colors.error};
+    if (props.$variant === 'attending') {
+      return props.$selected
+        ? `
+          border-color: ${colors.success};
+          background: rgba(91, 122, 94, 0.1);
+          color: ${colors.success};
+        `
+        : `
+          border-color: ${colors.creamDark};
+          color: ${colors.textSecondary};
+          &:hover { border-color: ${colors.success}; color: ${colors.success}; }
         `;
     }
+    return props.$selected
+      ? `
+        border-color: ${colors.error};
+        background: rgba(158, 91, 91, 0.08);
+        color: ${colors.error};
+      `
+      : `
+        border-color: ${colors.creamDark};
+        color: ${colors.textSecondary};
+        &:hover { border-color: ${colors.error}; color: ${colors.error}; }
+      `;
   }}
 `;
-
-const OptionLabel = styled.div`
-  font-size: 17px;
-  font-weight: 600;
-  color: ${colors.secondary};
-  letter-spacing: 0.3px;
-`;
-
 
 const FormSection = styled.div`
   margin-bottom: 32px;
@@ -383,141 +379,6 @@ const SubmitButton = styled(Button)`
   }
 `;
 
-// Activity card styles
-const ActivityCard = styled.div<{ $selected: boolean; $themeColor?: string }>`
-  border: 2px solid ${(props) => (props.$selected ? colors.primary : colors.creamDark)};
-  border-left: 5px solid ${(props) => props.$themeColor || (props.$selected ? colors.primary : colors.creamDark)};
-  border-radius: ${borderRadius.lg}px;
-  padding: 20px;
-  margin-bottom: 16px;
-  background: ${(props) => (props.$selected ? colors.goldPale : 'white')};
-  transition: all 0.2s ease;
-  cursor: pointer;
-
-  &:hover {
-    border-color: ${colors.primary};
-    border-left-color: ${(props) => props.$themeColor || colors.primary};
-    box-shadow: 0 2px 8px rgba(183, 168, 154, 0.15);
-  }
-`;
-
-const ActivityHeader = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-`;
-
-const ActivityCheckbox = styled.div`
-  padding-top: 2px;
-`;
-
-const ActivityInfo = styled.div`
-  flex: 1;
-`;
-
-const ActivityName = styled.div`
-  font-family: 'Playfair Display', serif;
-  font-size: 17px;
-  font-weight: 600;
-  color: ${colors.secondary};
-  margin-bottom: 8px;
-`;
-
-const ActivityMeta = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 8px;
-`;
-
-const ActivityMetaItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: ${colors.textSecondary};
-`;
-
-const ActivityDescription = styled.div`
-  font-size: 14px;
-  color: ${colors.textPrimary};
-  margin-top: 8px;
-  line-height: 1.5;
-`;
-
-const ActivityDetails = styled.div`
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid ${colors.creamDark};
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const ActivityDetailRow = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
-`;
-
-const DetailIcon = styled.span`
-  color: ${colors.primary};
-  font-size: 14px;
-  flex-shrink: 0;
-  margin-top: 1px;
-`;
-
-const DetailLabel = styled.span`
-  color: ${colors.textSecondary};
-  font-weight: 500;
-  min-width: 80px;
-`;
-
-const DetailValue = styled.span`
-  color: ${colors.textPrimary};
-`;
-
-const ColorPalette = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-`;
-
-const ColorSwatch = styled.div<{ $color: string }>`
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: ${(props) => props.$color};
-  border: 2.5px solid white;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
-  flex-shrink: 0;
-`;
-
-const ColorSwatchLabel = styled.span`
-  font-size: 12px;
-  color: ${colors.textSecondary};
-  margin-left: 2px;
-`;
-
-const ColorDots = styled.div`
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  align-items: center;
-`;
-
-const ColorDot = styled.div<{ $color: string }>`
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: ${(props) => props.$color};
-  border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-`;
-
 // Success overlay
 const SuccessOverlay = styled(motion.div)`
   position: fixed;
@@ -581,23 +442,38 @@ const RSVPSection: React.FC = () => {
   const { portalData, updateRSVP } = useGuestPortal();
   const [form] = Form.useForm();
 
-  const [rsvpStatus, setRsvpStatus] = useState<RSVPStatus>('pending');
+  const [eventResponses, setEventResponses] = useState<Record<string, 'attending' | 'declined'>>({});
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
   const [partyMembers, setPartyMembers] = useState<PartyMember[]>([
     { first_name: '', last_name: '', phone: '' },
   ]);
+
+  // Derived values
+  const signupActivities = (portalData?.activities || []).filter(
+    (a: any) => a.requires_signup !== false
+  );
+  const attendingIds = signupActivities
+    .filter((a: any) => eventResponses[a.id] === 'attending')
+    .map((a: any) => a.id as string);
+  const attendingAnyEvent = attendingIds.length > 0;
+  const allDeclined =
+    signupActivities.length > 0 &&
+    signupActivities.every((a: any) => eventResponses[a.id] === 'declined');
+  const hasResponded =
+    signupActivities.length > 0 &&
+    signupActivities.every((a: any) => eventResponses[a.id] !== undefined);
+  const derivedRsvpStatus = hasResponded
+    ? attendingAnyEvent
+      ? 'confirmed'
+      : 'declined'
+    : 'pending';
 
   useEffect(() => {
     if (portalData?.guest) {
       const guest = portalData.guest;
       const guestData = guest as any;
-
-      const status = guest.rsvp_status as RSVPStatus;
-      // Map 'maybe' to 'pending' for legacy data
-      setRsvpStatus(status === 'maybe' ? 'pending' : (status || 'pending'));
 
       // Load party members from API or derive from guest name
       if (guestData.party_members && Array.isArray(guestData.party_members) && guestData.party_members.length > 0) {
@@ -607,7 +483,6 @@ const RSVPSection: React.FC = () => {
           phone: m.phone || '',
         })));
       } else {
-        // Pre-fill first guest with the main guest's name
         let firstName = guest.first_name || '';
         let lastName = guest.last_name || '';
         if (guestData.full_name && !firstName && !lastName) {
@@ -627,35 +502,26 @@ const RSVPSection: React.FC = () => {
         notes_to_couple: guestData.notes_to_couple || '',
       });
 
-      // Initialize selected activities from existing registrations
-      if (portalData.activities) {
-        const registered = new Set<string>();
-        portalData.activities.forEach((act: any) => {
-          if (act.is_registered) {
-            registered.add(act.id);
+      // Reconstruct eventResponses from existing registrations
+      const status = guest.rsvp_status;
+      if (status === 'confirmed' || status === 'declined') {
+        const responses: Record<string, 'attending' | 'declined'> = {};
+        (portalData.activities || []).forEach((act: any) => {
+          if (act.requires_signup !== false) {
+            responses[act.id] = act.is_registered ? 'attending' : 'declined';
           }
         });
-        setSelectedActivities(registered);
+        setEventResponses(responses);
+        setIsEditing(false);
+      } else {
+        setEventResponses({});
+        setIsEditing(true);
       }
-
-      setIsEditing(guest.rsvp_status === 'pending' || guest.rsvp_status === 'maybe');
     }
   }, [portalData, form]);
 
-  const handleRSVPChange = (status: RSVPStatus) => {
-    setRsvpStatus(status);
-  };
-
-  const toggleActivity = (activityId: string) => {
-    setSelectedActivities((prev) => {
-      const next = new Set(prev);
-      if (next.has(activityId)) {
-        next.delete(activityId);
-      } else {
-        next.add(activityId);
-      }
-      return next;
-    });
+  const setEventResponse = (activityId: string, response: 'attending' | 'declined') => {
+    setEventResponses((prev) => ({ ...prev, [activityId]: response }));
   };
 
   const updatePartyMember = (index: number, field: keyof PartyMember, value: string) => {
@@ -672,7 +538,7 @@ const RSVPSection: React.FC = () => {
   };
 
   const removePartyMember = (index: number) => {
-    if (index === 0) return; // Cannot remove first guest
+    if (index === 0) return;
     setPartyMembers((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -689,29 +555,30 @@ const RSVPSection: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      if (rsvpStatus === 'confirmed') {
+      if (attendingAnyEvent) {
         if (!validatePartyMembers()) return;
       }
 
-      if (rsvpStatus === 'declined') {
+      if (allDeclined) {
         await form.validateFields();
       }
 
       setLoading(true);
 
+      const rsvpStatus = attendingAnyEvent ? 'confirmed' : 'declined';
+
       const data: any = {
         rsvp_status: rsvpStatus,
-        activity_ids: rsvpStatus === 'confirmed' ? Array.from(selectedActivities) : [],
+        activity_ids: attendingIds,
       };
 
-      if (rsvpStatus === 'confirmed') {
+      if (attendingAnyEvent) {
         data.party_members = partyMembers.map((m) => ({
           first_name: m.first_name.trim(),
           last_name: m.last_name.trim(),
           phone: m.phone.trim(),
         }));
         data.number_of_attendees = partyMembers.length;
-        // Use the first party member's phone as the main guest phone
         data.phone = partyMembers[0]?.phone || undefined;
       } else {
         data.number_of_attendees = 0;
@@ -722,8 +589,7 @@ const RSVPSection: React.FC = () => {
 
       await updateRSVP(data);
 
-      // Show success animation
-      if (rsvpStatus === 'confirmed') {
+      if (attendingAnyEvent) {
         setShowSuccess(true);
         confetti({
           particleCount: 100,
@@ -743,14 +609,12 @@ const RSVPSection: React.FC = () => {
   };
 
   const getStatusLabel = () => {
-    switch (rsvpStatus) {
-      case 'confirmed':
-        return 'Attending';
-      case 'declined':
-        return 'Declined';
-      default:
-        return 'Awaiting Response';
+    if (derivedRsvpStatus === 'confirmed') {
+      const count = attendingIds.length;
+      return `Attending ${count} event${count !== 1 ? 's' : ''} \u00b7 ${partyMembers.length} guest${partyMembers.length !== 1 ? 's' : ''}`;
     }
+    if (derivedRsvpStatus === 'declined') return 'Declined';
+    return 'Awaiting Response';
   };
 
   const formatDateTime = (dateTime: string) => {
@@ -758,19 +622,7 @@ const RSVPSection: React.FC = () => {
     return d.format('ddd, MMM D [at] h:mm A');
   };
 
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes} min`;
-    const hrs = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
-  };
-
   if (!portalData) return null;
-
-  // Get activities that require signup
-  const signupActivities = (portalData.activities || []).filter(
-    (a: any) => a.requires_signup !== false
-  );
 
   return (
     <SectionWrapper>
@@ -780,23 +632,20 @@ const RSVPSection: React.FC = () => {
       />
 
       {/* Current Status Display (when not editing) */}
-      {!isEditing && rsvpStatus !== 'pending' && (
+      {!isEditing && derivedRsvpStatus !== 'pending' && (
         <CurrentStatusCard
-          $status={rsvpStatus}
+          $status={derivedRsvpStatus}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <StatusInfo>
-            <StatusIcon $status={rsvpStatus}>
-              {rsvpStatus === 'confirmed' && <CheckCircleFilled />}
-              {rsvpStatus === 'declined' && <CloseCircleFilled />}
+            <StatusIcon $status={derivedRsvpStatus}>
+              {derivedRsvpStatus === 'confirmed' && <CheckCircleFilled />}
+              {derivedRsvpStatus === 'declined' && <CloseCircleFilled />}
             </StatusIcon>
             <StatusText>
               <StatusLabel>Your Response</StatusLabel>
-              <StatusValue>
-                {getStatusLabel()}
-                {rsvpStatus === 'confirmed' && ` - ${partyMembers.length} guest${partyMembers.length > 1 ? 's' : ''}`}
-              </StatusValue>
+              <StatusValue>{getStatusLabel()}</StatusValue>
             </StatusText>
           </StatusInfo>
           <Button
@@ -809,46 +658,68 @@ const RSVPSection: React.FC = () => {
       )}
 
       {/* RSVP Form */}
-      {(isEditing || rsvpStatus === 'pending') && (
+      {(isEditing || derivedRsvpStatus === 'pending') && (
         <FormCard
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          {/* Step 1: Accept or Decline */}
-          <RSVPQuestion>Will you be attending?</RSVPQuestion>
-          <RSVPOptionsWrapper>
-            <RSVPOption
-              $selected={rsvpStatus === 'confirmed'}
-              $variant="accept"
-              onClick={() => handleRSVPChange('confirmed')}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+          {/* Per-Event RSVP Cards */}
+          {signupActivities.map((activity: any, index: number) => (
+            <EventRSVPCard
+              key={activity.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.08 }}
             >
-              <OptionIcon $variant="accept" $selected={rsvpStatus === 'confirmed'}>
-                <CheckCircleFilled />
-              </OptionIcon>
-              <OptionLabel>Accept</OptionLabel>
-            </RSVPOption>
+              <EventCardName>{activity.activity_name || activity.title}</EventCardName>
+              <EventCardMeta>
+                {activity.date_time && (
+                  <EventMetaItem>
+                    <CalendarOutlined />
+                    {formatDateTime(activity.date_time)}
+                  </EventMetaItem>
+                )}
+                {activity.duration_minutes && (
+                  <EventMetaItem>
+                    <ClockCircleOutlined />
+                    {activity.duration_minutes < 60
+                      ? `${activity.duration_minutes} min`
+                      : `${Math.floor(activity.duration_minutes / 60)}h${activity.duration_minutes % 60 > 0 ? ` ${activity.duration_minutes % 60}m` : ''}`}
+                  </EventMetaItem>
+                )}
+                {activity.location && (
+                  <EventMetaItem>
+                    <EnvironmentOutlined />
+                    {activity.location}
+                  </EventMetaItem>
+                )}
+              </EventCardMeta>
+              <EventResponseRow>
+                <EventRadioButton
+                  $selected={eventResponses[activity.id] === 'attending'}
+                  $variant="attending"
+                  onClick={() => setEventResponse(activity.id, 'attending')}
+                  type="button"
+                >
+                  <CheckCircleFilled /> I will be attending
+                </EventRadioButton>
+                <EventRadioButton
+                  $selected={eventResponses[activity.id] === 'declined'}
+                  $variant="declined"
+                  onClick={() => setEventResponse(activity.id, 'declined')}
+                  type="button"
+                >
+                  <CloseCircleFilled /> Regretfully decline
+                </EventRadioButton>
+              </EventResponseRow>
+            </EventRSVPCard>
+          ))}
 
-            <RSVPOption
-              $selected={rsvpStatus === 'declined'}
-              $variant="decline"
-              onClick={() => handleRSVPChange('declined')}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <OptionIcon $variant="decline" $selected={rsvpStatus === 'declined'}>
-                <CloseCircleFilled />
-              </OptionIcon>
-              <OptionLabel>Decline</OptionLabel>
-            </RSVPOption>
-          </RSVPOptionsWrapper>
-
-          {/* Step 2 (Accept): Add Guests */}
+          {/* Party Details (when attending any event) */}
           <AnimatePresence mode="wait">
-            {rsvpStatus === 'confirmed' && (
+            {attendingAnyEvent && (
               <motion.div
-                key="accept-flow"
+                key="party-flow"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -892,7 +763,6 @@ const RSVPSection: React.FC = () => {
                             value={member.first_name}
                             onChange={(e) => updatePartyMember(index, 'first_name', e.target.value)}
                             size="large"
-                            status={!member.first_name.trim() && rsvpStatus === 'confirmed' ? undefined : undefined}
                           />
                         </div>
                         <div>
@@ -926,113 +796,11 @@ const RSVPSection: React.FC = () => {
                     <MaxGuestsNote>Maximum {MAX_GUESTS} guests allowed</MaxGuestsNote>
                   )}
                 </FormSection>
-
-                {/* Step 3 (Accept): Select Activities */}
-                {signupActivities.length > 0 && (
-                  <>
-                    <Divider />
-                    <FormSection>
-                      <FormSectionTitle>
-                        <CalendarOutlined /> Which events will you attend?
-                      </FormSectionTitle>
-                      {signupActivities.map((activity: any) => {
-                        const themeColor = activity.dress_colors?.[0]?.hex || activity.dress_colors?.[0] || undefined;
-                        return (
-                          <ActivityCard
-                            key={activity.id}
-                            $selected={selectedActivities.has(activity.id)}
-                            $themeColor={themeColor}
-                            onClick={() => toggleActivity(activity.id)}
-                          >
-                            <ActivityHeader>
-                              <ActivityCheckbox>
-                                <Checkbox
-                                  checked={selectedActivities.has(activity.id)}
-                                  onChange={(e) => {
-                                    e.stopPropagation();
-                                    toggleActivity(activity.id);
-                                  }}
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              </ActivityCheckbox>
-                              <ActivityInfo>
-                                <ActivityName>{activity.activity_name || activity.title}</ActivityName>
-                                <ActivityMeta>
-                                  {activity.date_time && (
-                                    <ActivityMetaItem>
-                                      <CalendarOutlined />
-                                      {formatDateTime(activity.date_time)}
-                                    </ActivityMetaItem>
-                                  )}
-                                  {activity.duration_minutes && (
-                                    <ActivityMetaItem>
-                                      <ClockCircleOutlined />
-                                      {formatDuration(activity.duration_minutes)}
-                                    </ActivityMetaItem>
-                                  )}
-                                  {activity.location && (
-                                    <ActivityMetaItem>
-                                      <EnvironmentOutlined />
-                                      {activity.location}
-                                    </ActivityMetaItem>
-                                  )}
-                                </ActivityMeta>
-
-                                {/* Prominent color palette */}
-                                {activity.dress_colors?.length > 0 && (
-                                  <ColorPalette>
-                                    <SkinOutlined style={{ color: colors.primary, fontSize: 14 }} />
-                                    {activity.dress_colors.map((c: any, i: number) => (
-                                      <ColorSwatch key={i} $color={c.hex || c} title={c.name || ''} />
-                                    ))}
-                                    {activity.dress_colors[0]?.name && (
-                                      <ColorSwatchLabel>{activity.dress_colors.map((c: any) => c.name).join(', ')}</ColorSwatchLabel>
-                                    )}
-                                  </ColorPalette>
-                                )}
-
-                                {activity.description && (
-                                  <ActivityDescription>{activity.description}</ActivityDescription>
-                                )}
-
-                                {(activity.dress_code_info || activity.food_description) && (
-                                  <ActivityDetails>
-                                    {activity.dress_code_info && (
-                                      <ActivityDetailRow>
-                                        <DetailIcon><SkinOutlined /></DetailIcon>
-                                        <DetailLabel>Dress Code:</DetailLabel>
-                                        <DetailValue>{activity.dress_code_info}</DetailValue>
-                                      </ActivityDetailRow>
-                                    )}
-                                    {activity.food_description && (
-                                      <ActivityDetailRow>
-                                        <DetailIcon><CoffeeOutlined /></DetailIcon>
-                                        <DetailLabel>Food:</DetailLabel>
-                                        <DetailValue>{activity.food_description}</DetailValue>
-                                      </ActivityDetailRow>
-                                    )}
-                                    {activity.dietary_options?.length > 0 && (
-                                      <ActivityDetailRow>
-                                        <DetailIcon><CoffeeOutlined /></DetailIcon>
-                                        <DetailLabel>Dietary:</DetailLabel>
-                                        <DetailValue>{activity.dietary_options.join(', ')}</DetailValue>
-                                      </ActivityDetailRow>
-                                    )}
-                                  </ActivityDetails>
-                                )}
-                              </ActivityInfo>
-                            </ActivityHeader>
-                          </ActivityCard>
-                        );
-                      })}
-                    </FormSection>
-                  </>
-                )}
               </motion.div>
             )}
 
-            {/* Decline Flow: Optional message */}
-            {rsvpStatus === 'declined' && (
+            {/* Decline Message (when all events declined) */}
+            {allDeclined && (
               <motion.div
                 key="decline-flow"
                 initial={{ opacity: 0, height: 0 }}
@@ -1063,12 +831,12 @@ const RSVPSection: React.FC = () => {
             size="large"
             loading={loading}
             onClick={handleSubmit}
-            disabled={rsvpStatus === 'pending'}
+            disabled={!hasResponded}
             icon={<HeartFilled />}
           >
-            {rsvpStatus === 'confirmed'
+            {attendingAnyEvent
               ? 'Submit RSVP'
-              : rsvpStatus === 'declined'
+              : allDeclined
               ? 'Submit Response'
               : 'Select Your Response'}
           </SubmitButton>
