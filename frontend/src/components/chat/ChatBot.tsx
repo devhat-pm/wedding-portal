@@ -155,6 +155,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
         )}
       </AnimatePresence>
 
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div className="chatbot-backdrop" onClick={() => setIsOpen(false)} />
+      )}
+
       {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
@@ -188,6 +193,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
                   type="text"
                   icon={<CloseOutlined />}
                   onClick={() => setIsOpen(false)}
+                  className="chatbot-close-btn"
                   style={{ color: '#F3F1ED' }}
                 />
               </Space>

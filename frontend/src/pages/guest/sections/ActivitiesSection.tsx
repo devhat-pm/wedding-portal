@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import styled from '@emotion/styled';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button, Tag, Tabs, message, Checkbox, Modal } from 'antd';
+import { Button, Tag, Tabs, message, Checkbox, Modal, Dropdown } from 'antd';
 import {
   CalendarOutlined,
   ClockCircleOutlined,
@@ -10,10 +10,13 @@ import {
   CheckCircleOutlined,
   InfoCircleOutlined,
   StarFilled,
+  GoogleOutlined,
+  AppleOutlined,
 } from '@ant-design/icons';
 import { useGuestPortal } from '../../../context/GuestPortalContext';
 import { SectionHeader } from '../../../components/guest';
 import { colors, shadows, borderRadius } from '../../../styles/theme';
+import { buildCalendarEvent, downloadICS, getGoogleCalendarUrl } from '../../../utils/calendar';
 import type { Activity } from '../../../types';
 
 // Styled components
@@ -332,6 +335,22 @@ const UnregisterButton = styled(Button)`
   }
 `;
 
+const AddToCalendarBtn = styled(Button)`
+  && {
+    font-size: 12px;
+    color: ${colors.primary};
+    border-color: ${colors.borderGold};
+    border-radius: ${borderRadius.md}px;
+    height: 32px;
+    padding: 0 12px;
+
+    &:hover {
+      color: ${colors.goldDark};
+      border-color: ${colors.goldDark};
+    }
+  }
+`;
+
 const EmptyState = styled.div`
   text-align: center;
   padding: 60px 20px;
@@ -477,6 +496,36 @@ const ActivitiesSection: React.FC = () => {
     return ((activity.registered_count || 0) / activity.capacity) * 100;
   };
 
+  const handleAddToCalendar = (activity: Activity, type: 'google' | 'ics') => {
+    const event = buildCalendarEvent(activity as any);
+    if (!event) {
+      message.warning('No date available for this event');
+      return;
+    }
+    if (type === 'google') {
+      window.open(getGoogleCalendarUrl(event), '_blank');
+    } else {
+      downloadICS(event);
+    }
+  };
+
+  const calendarMenuItems = (activity: Activity) => ({
+    items: [
+      {
+        key: 'google',
+        icon: <GoogleOutlined />,
+        label: 'Google Calendar',
+        onClick: () => handleAddToCalendar(activity, 'google'),
+      },
+      {
+        key: 'ics',
+        icon: <AppleOutlined />,
+        label: 'Apple / Outlook (.ics)',
+        onClick: () => handleAddToCalendar(activity, 'ics'),
+      },
+    ],
+  });
+
   if (activities.length === 0) {
     return (
       <SectionWrapper id="activities">
@@ -601,12 +650,21 @@ const ActivitiesSection: React.FC = () => {
                           <CheckCircleOutlined />
                           You're registered
                         </RegisteredBadge>
-                        <UnregisterButton
-                          onClick={() => handleToggleRegistration(activity.id, true)}
-                          loading={loading === activity.id}
-                        >
-                          Cancel Registration
-                        </UnregisterButton>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          {(activity.activity_date || activity.date_time) && (
+                            <Dropdown menu={calendarMenuItems(activity)} trigger={['click']}>
+                              <AddToCalendarBtn icon={<CalendarOutlined />}>
+                                Add to Calendar
+                              </AddToCalendarBtn>
+                            </Dropdown>
+                          )}
+                          <UnregisterButton
+                            onClick={() => handleToggleRegistration(activity.id, true)}
+                            loading={loading === activity.id}
+                          >
+                            Cancel Registration
+                          </UnregisterButton>
+                        </div>
                       </>
                     ) : (
                       <>

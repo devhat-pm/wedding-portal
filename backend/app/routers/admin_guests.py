@@ -235,6 +235,7 @@ async def list_guests(
     page_size: int = Query(default=20, ge=1, le=100),
     rsvp_status: Optional[str] = None,
     search: Optional[str] = None,
+    activity_name: Optional[str] = None,
     wedding: Wedding = Depends(get_current_wedding),
     db: AsyncSession = Depends(get_db)
 ):
@@ -255,6 +256,16 @@ async def list_guests(
         )
         query = query.where(search_filter)
         count_query = count_query.where(search_filter)
+
+    if activity_name:
+        activity_subq = select(GuestActivity.guest_id).join(
+            Activity, GuestActivity.activity_id == Activity.id
+        ).where(
+            Activity.wedding_id == wedding.id,
+            Activity.activity_name.ilike(f"%{activity_name}%")
+        )
+        query = query.where(Guest.id.in_(activity_subq))
+        count_query = count_query.where(Guest.id.in_(activity_subq))
 
     # Get total count
     total_result = await db.execute(count_query)

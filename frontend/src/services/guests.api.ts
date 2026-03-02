@@ -17,6 +17,7 @@ interface GuestFilters {
   rsvp_status?: RSVPStatus;
   has_travel_info?: boolean;
   has_hotel_info?: boolean;
+  activity_name?: string;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
 }

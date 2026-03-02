@@ -85,6 +85,22 @@ const DecorativeFrame = styled.div`
 `;
 
 
+const WelcomeGreeting = styled(motion.div)`
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  opacity: 0.9;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+    letter-spacing: 1.5px;
+  }
+`;
+
 const CoupleNames = styled(motion.h1)`
   font-family: 'Playfair Display', serif;
   font-size: 56px;
@@ -217,6 +233,15 @@ const WelcomeSection: React.FC = () => {
           transition={{ duration: 1, ease: 'easeOut' }}
         >
           <DecorativeFrame>
+            {portalData.guest?.full_name && (
+              <WelcomeGreeting
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+              >
+                Welcome, {portalData.guest.full_name}
+              </WelcomeGreeting>
+            )}
             <CoupleNames
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}

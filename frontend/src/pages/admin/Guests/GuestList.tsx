@@ -302,8 +302,7 @@ const GuestList: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [searchText, setSearchText] = useState('');
   const [rsvpFilter, setRsvpFilter] = useState<string>('all');
-  const [travelFilter, setTravelFilter] = useState<string>('all');
-  const [hotelFilter, setHotelFilter] = useState<string>('all');
+  const [eventFilter, setEventFilter] = useState<string>('all');
   const [tableParams, setTableParams] = useState<TableParams>({
     pagination: {
       current: 1,
@@ -434,8 +433,7 @@ const GuestList: React.FC = () => {
         page_size: tableParams.pagination.pageSize || 10,
         search: searchText || undefined,
         rsvp_status: rsvpFilter !== 'all' ? (rsvpFilter as RSVPStatus) : undefined,
-        has_travel_info: travelFilter !== 'all' ? travelFilter === 'yes' : undefined,
-        has_hotel_info: hotelFilter !== 'all' ? hotelFilter === 'yes' : undefined,
+        activity_name: eventFilter !== 'all' ? eventFilter : undefined,
       });
 
       setGuests(response.items);
@@ -455,7 +453,7 @@ const GuestList: React.FC = () => {
 
   useEffect(() => {
     fetchGuests();
-  }, [tableParams.pagination.current, tableParams.pagination.pageSize, searchText, rsvpFilter, travelFilter, hotelFilter]);
+  }, [tableParams.pagination.current, tableParams.pagination.pageSize, searchText, rsvpFilter, eventFilter]);
 
   const handleTableChange = (
     pagination: TablePaginationConfig,
@@ -589,28 +587,6 @@ const GuestList: React.FC = () => {
       render: (phone) => phone || <Text type="secondary">-</Text>,
     },
     {
-      title: 'Travel',
-      key: 'has_travel_info',
-      width: 80,
-      align: 'center',
-      render: (_, record) => (
-        <StatusIcon $hasInfo={record.has_travel_info}>
-          {record.has_travel_info ? <CheckOutlined /> : <MinusOutlined />}
-        </StatusIcon>
-      ),
-    },
-    {
-      title: 'Hotel',
-      key: 'has_hotel_info',
-      width: 80,
-      align: 'center',
-      render: (_, record) => (
-        <StatusIcon $hasInfo={record.has_hotel_info}>
-          {record.has_hotel_info ? <CheckOutlined /> : <MinusOutlined />}
-        </StatusIcon>
-      ),
-    },
-    {
       title: 'Link',
       key: 'unique_token',
       width: 120,
@@ -740,25 +716,14 @@ const GuestList: React.FC = () => {
           </FilterSelect>
 
           <FilterSelect
-            placeholder="Travel Info"
-            value={travelFilter}
-            onChange={(value) => setTravelFilter(value as string)}
+            placeholder="Event"
+            value={eventFilter}
+            onChange={(value) => setEventFilter(value as string)}
             popupMatchSelectWidth={false}
           >
-            <Option value="all">All Travel</Option>
-            <Option value="yes">Has Travel Info</Option>
-            <Option value="no">No Travel Info</Option>
-          </FilterSelect>
-
-          <FilterSelect
-            placeholder="Hotel Info"
-            value={hotelFilter}
-            onChange={(value) => setHotelFilter(value as string)}
-            popupMatchSelectWidth={false}
-          >
-            <Option value="all">All Hotel</Option>
-            <Option value="yes">Has Hotel Info</Option>
-            <Option value="no">No Hotel Info</Option>
+            <Option value="all">All Events</Option>
+            <Option value="Wedding">Wedding</Option>
+            <Option value="Petra">Petra</Option>
           </FilterSelect>
 
           {selectedRowKeys.length > 0 && (

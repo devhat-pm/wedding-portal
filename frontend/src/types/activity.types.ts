@@ -6,6 +6,7 @@ export interface Activity {
   title: string;
   description?: string;
   event_day?: number;
+  activity_date?: string;
   date_time?: string;
   start_time?: string;
   end_time?: string;
