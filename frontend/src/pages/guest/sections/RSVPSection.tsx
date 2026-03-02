@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Form, Input, Button, message } from 'antd';
+import { Form, Input, Button, Dropdown, message } from 'antd';
 import {
   CheckCircleFilled,
   CloseCircleFilled,
@@ -16,6 +16,8 @@ import {
   SkinOutlined,
   UserOutlined,
   StarOutlined,
+  GoogleOutlined,
+  AppleOutlined,
 } from '@ant-design/icons';
 import confetti from 'canvas-confetti';
 import dayjs from 'dayjs';
@@ -23,6 +25,7 @@ import { colors, shadows, borderRadius } from '../../../styles/theme';
 import { useGuestPortal } from '../../../context/GuestPortalContext';
 import SectionHeader from '../../../components/guest/SectionHeader';
 import ArabicPattern from '../../../components/Common/ArabicPattern';
+import { buildCalendarEvent, downloadICS, getGoogleCalendarUrl } from '../../../utils/calendar';
 
 const { TextArea } = Input;
 
@@ -931,6 +934,86 @@ const RSVPSection: React.FC = () => {
             Edit Response
           </Button>
         </CurrentStatusCard>
+      )}
+
+      {/* Add to Calendar - shown when confirmed and not editing */}
+      {!isEditing && derivedRsvpStatus === 'confirmed' && attendingIds.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+          {signupActivities
+            .filter((a: any) => eventResponses[a.id] === 'attending' && a.date_time)
+            .map((activity: any) => (
+              <div
+                key={activity.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: 'white',
+                  border: `1px solid ${colors.borderGold}`,
+                  borderRadius: borderRadius.lg,
+                  padding: '12px 16px',
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, color: colors.secondary, fontSize: 14 }}>
+                    {activity.activity_name}
+                  </div>
+                  <div style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                    {dayjs(activity.date_time).format('ddd, MMM D [at] h:mm A')}
+                  </div>
+                </div>
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'google',
+                        icon: <GoogleOutlined />,
+                        label: 'Google Calendar',
+                        onClick: () => {
+                          const event = buildCalendarEvent({
+                            title: activity.activity_name,
+                            description: activity.description,
+                            location: activity.location,
+                            date_time: activity.date_time,
+                            duration_minutes: activity.duration_minutes,
+                          });
+                          if (event) window.open(getGoogleCalendarUrl(event), '_blank');
+                        },
+                      },
+                      {
+                        key: 'ics',
+                        icon: <AppleOutlined />,
+                        label: 'Apple / Outlook (.ics)',
+                        onClick: () => {
+                          const event = buildCalendarEvent({
+                            title: activity.activity_name,
+                            description: activity.description,
+                            location: activity.location,
+                            date_time: activity.date_time,
+                            duration_minutes: activity.duration_minutes,
+                          });
+                          if (event) downloadICS(event);
+                        },
+                      },
+                    ],
+                  }}
+                  trigger={['click']}
+                >
+                  <Button
+                    icon={<CalendarOutlined />}
+                    style={{
+                      borderColor: colors.borderGold,
+                      color: colors.primary,
+                      borderRadius: borderRadius.md,
+                      flexShrink: 0,
+                    }}
+                  >
+                    Add to Calendar
+                  </Button>
+                </Dropdown>
+              </div>
+            ))}
+        </div>
       )}
 
       {/* RSVP Form */}
