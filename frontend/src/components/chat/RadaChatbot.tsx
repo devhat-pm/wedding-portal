@@ -261,11 +261,6 @@ const RadaChatbot: React.FC<RadaChatbotProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Mobile Backdrop */}
-      {isOpen && (
-        <div className="chatbot-backdrop" onClick={() => setIsOpen(false)} />
-      )}
-
       {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (

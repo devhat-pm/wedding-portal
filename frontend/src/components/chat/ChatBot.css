@@ -115,36 +115,23 @@
   border-color: #B7A89A;
 }
 
-/* Close button mobile touch target */
+/* Close button - large touch target on mobile */
 .chatbot-close-btn {
   min-width: 44px !important;
   min-height: 44px !important;
   display: flex !important;
   align-items: center;
   justify-content: center;
-}
-
-/* Mobile backdrop overlay */
-.chatbot-backdrop {
-  display: none;
+  font-size: 18px !important;
 }
 
 /* Mobile Responsive */
 @media (max-width: 480px) {
-  .chatbot-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 999;
-  }
-
   .chatbot-window {
     width: calc(100vw - 24px);
-    height: calc(100vh - 80px);
+    height: calc(100vh - 160px);
     max-height: none;
-    border-radius: 16px 16px 0 0;
-    z-index: 1001;
+    border-radius: 16px;
   }
 
   .chatbot-container.bottom-right,
@@ -152,6 +139,15 @@
     bottom: 12px;
     right: 12px;
     left: 12px;
+  }
+
+  /* Prominent close button on mobile */
+  .chatbot-close-btn {
+    min-width: 48px !important;
+    min-height: 48px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 50% !important;
+    font-size: 20px !important;
   }
 }
 

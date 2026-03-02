@@ -155,11 +155,6 @@ const ChatBot: React.FC<ChatBotProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Mobile Backdrop */}
-      {isOpen && (
-        <div className="chatbot-backdrop" onClick={() => setIsOpen(false)} />
-      )}
-
       {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
