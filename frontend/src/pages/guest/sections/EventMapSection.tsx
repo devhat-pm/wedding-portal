@@ -176,8 +176,9 @@ const EventMapSection: React.FC = () => {
   if (!portalData) return null;
 
   const activities = (portalData.activities || []) as any[];
+  // Only show main wedding events (requires signup/registration), not "things to do"
   const locatedActivities = activities.filter(
-    (a: any) => a.location || (a.latitude && a.longitude)
+    (a: any) => (a.location || (a.latitude && a.longitude)) && a.requires_signup !== false
   );
 
   if (locatedActivities.length === 0) return null;
